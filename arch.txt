@@ -1,0 +1,55 @@
+================================================================================
+🏗️  АРХИТЕКТУРА ПРОЕКТА
+================================================================================
+📅 Сгенерировано: 2025-12-01 02:24:18
+📁 Корневая директория: C:\Users\GAME\Documents\GitHub\MA_prod
+
+
+📊 СТАТИСТИКА:
+   📁 Папок: 10
+   📄 Файлов: 33
+   📦 Всего: 43 элементов
+
+└── 📁 
+    ├── 📄 amvera.yml (280.0 B)
+    ├── 📄 app.py (3.0 KB)
+    ├── 📄 arch.py (4.8 KB)
+    ├── 📄 arch.txt (2.0 KB)
+    ├── 📁 backend
+    │   └── 📁 middleware
+    │       └── 📄 auth.js (667.0 B)
+    ├── 📄 config.py (685.0 B)
+    ├── 📁 database
+    │   └── 📄 db.py (60.0 B)
+    ├── 📄 gunicorn.conf.py (114.0 B)
+    ├── 📄 LICENSE (1.1 KB)
+    ├── 📁 models
+    │   ├── 📄 product.py (2.5 KB)
+    │   └── 📄 section.py (1.1 KB)
+    ├── 📄 package.json (561.0 B)
+    ├── 📄 photo_2025-11-30_03-24-55.jpg (41.6 KB)
+    ├── 📄 requirements.txt (129.0 B)
+    ├── 📁 routes
+    │   ├── 📄 products.py (5.3 KB)
+    │   └── 📄 sections.py (3.1 KB)
+    ├── 📄 server.js (0.0 B)
+    ├── 📁 static
+    │   ├── 📁 admin
+    │   │   ├── 📄 admin.css (20.8 KB)
+    │   │   ├── 📄 admin.html (21.3 KB)
+    │   │   └── 📄 admin.js (46.1 KB)
+    │   ├── 📁 css
+    │   │   ├── 📄 index.css (28.4 KB)
+    │   │   ├── 📄 piece.css (48.1 KB)
+    │   │   └── 📄 shop.css (34.5 KB)
+    │   ├── 📄 index.html (18.3 KB)
+    │   ├── 📁 js
+    │   │   ├── 📄 data-manager.js (8.0 KB)
+    │   │   ├── 📄 index.js (7.8 KB)
+    │   │   ├── 📄 piece.js (48.5 KB)
+    │   │   └── 📄 shop.js (39.0 KB)
+    │   ├── 📄 piece.html (8.7 KB)
+    │   └── 📄 shop.html (8.9 KB)
+    ├── 📄 telegram-bot.js (3.6 KB)
+    ├── 📄 telegram-service.js (3.6 KB)
+    └── 📄 wsgi.py (188.0 B)

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MA Furniture - Интернет-магазин мебели</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/shop.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="/index.html">
+                        <div class="logo-container">
+                            <img src="./images/logo2.png" alt="MA Furniture" class="logo-image">
+                            <div class="logo-text-container">
+                                <span class="logo-text">MA FURNITURE</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="./index.html">Главная</a></li>
+                        <li><a href="./shop.html">Каталог</a></li>
+                        <li><a href="./index.html#about">О компании</a></li>
+                        <li><a href="./index.html#faq">FAQ</a></li>
+                    </ul>
+                </nav>
+                
+                <div class="header-actions">
+                    <!-- Обновленная иконка корзины -->
+                    <button class="cart-icon minimal outline" id="cartIcon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                    
+                    <a href="https://t.me/Ma_Furniture_ru" class="btn btn-outline btn-telegram">
+                        <i class="fab fa-telegram-plane"></i>
+                        <span>Telegram</span>
+                    </a>
+                    <button class="menu-toggle" id="menuToggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="hero-title">Каталог мебели</h1>
+            <p class="hero-subtitle">Более 45 эксклюзивных моделей премиум-класса для вашего интерьера</p>
+            <div class="hero-actions">
+                <a href="./index.html" class="btn btn-outline">
+                    <i class="fas fa-home"></i>
+                    <span>На главную</span>
+                </a>
+                <a href="https://t.me/Ma_Furniture_ru" class="btn btn-secondary">
+                    <i class="fab fa-telegram-plane"></i>
+                    <span>Получить консультацию</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="catalog" id="catalog">
+        <div class="container">
+            <h2 class="section-title">Каталог товаров</h2>
+            <div class="catalog-filters" id="catalogFilters">
+                <button class="filter-btn active" data-filter="all">Все товары</button>
+                <!-- Фильтры будут загружены динамически из разделов админки -->
+            </div>
+            
+            <div class="products-grid" id="productsGrid">
+                <!-- Товары будут загружаться динамически -->
+            </div>
+            
+            <div class="pagination" id="pagination">
+                <!-- Пагинация будет генерироваться динамически -->
+            </div>
+        </div>
+    </section>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>MA Furniture</h3>
+                    <p>Эксклюзивные гардеробные системы премиум-класса с итальянским дизайном и немецкой точностью.</p>
+                    <div class="social-links">
+                        <a href="https://t.me/Ma_Furniture_ru" aria-label="Telegram">
+                            <i class="fab fa-telegram-plane"></i>
+                        </a>
+                        <a href="#" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" aria-label="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Навигация</h4>
+                    <ul>
+                        <li><a href="./index.html">Главная</a></li>
+                        <li><a href="./index.html#about">О компании</a></li>
+                        <li><a href="./shop.html">Магазин</a></li>
+                        <li><a href="./index.html#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Разделы</h4>
+                    <ul id="footerSections">
+                        <!-- Разделы будут загружены динамически -->
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Контакты</h4>
+                    <ul>
+                        <li><i class="fas fa-phone"></i> +7 (910) 005-34-24</li>
+                        <li><i class="fas fa-envelope"></i> ma.furniture@mail.ru</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Москва, Россия</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 MA Furniture. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Новая корзина -->
+    <div class="cart-overlay" id="cartOverlay">
+        <div class="cart-sidebar">
+            <div class="cart-header">
+                <h3 class="cart-title">
+                    <i class="fas fa-shopping-cart"></i>
+                    Корзина
+                </h3>
+                <button class="cart-close" id="cartClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="cart-content" id="cartContent">
+                <div class="cart-empty" id="cartEmpty">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h4>Корзина пуста</h4>
+                    <p>Добавьте товары из каталога</p>
+                </div>
+                <div class="cart-items" id="cartItems" style="display: none;"></div>
+            </div>
+            
+            <div class="cart-footer" id="cartFooter" style="display: none;">
+                <div class="cart-summary">
+                    <div class="cart-total">
+                        <span>Итого:</span>
+                        <span class="cart-total-amount" id="cartTotalAmount">0 ₽</span>
+                    </div>
+                    <div class="cart-actions">
+                        <button class="btn btn-primary btn-checkout" id="checkoutBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            Оформить заказ
+                        </button>
+                        <button class="btn btn-outline btn-continue" id="continueShoppingBtn">
+                            Продолжить покупки
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/imask"></script>
+    <script>
+        // Маска для телефона
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInput = document.getElementById('customerPhone');
+            if (phoneInput) {
+                IMask(phoneInput, {
+                    mask: '+{7} (000) 000-00-00'
+                });
+            }
+        });
+    </script>
+    <script src="./data-manager.js"></script>
+    <script src="./shop.js"></script>
+</body>
+</html>

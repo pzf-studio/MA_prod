@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - MA Furniture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/admin.css">
+    <style>
+        /* Индикатор загрузки для всей страницы */
+        .page-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-size: 1.2rem;
+            color: var(--admin-dark);
+        }
+        
+        .page-loading.hidden {
+            display: none;
+        }
+        
+        /* Стили для уведомлений */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .notification.success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .notification.error {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .notification.info {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="pageLoading" class="page-loading">
+        <div style="text-align: center;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Загрузка админ-панели...</p>
+        </div>
+    </div>
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="container">
+            <div class="admin-panel">
+                <div class="admin-header">
+                    <div>
+                        <h1 class="admin-title">Управление товарами</h1>
+                        <small id="productCounter">Товаров: 0/35</small>
+                    </div>
+                    <div class="admin-actions">
+                        <button class="btn btn-primary" id="addProductBtn">
+                            <i class="fas fa-plus"></i> Добавить товар
+                        </button>
+                        <button class="btn btn-outline" id="refreshBtn">
+                            <i class="fas fa-sync"></i> Обновить
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-tab="products">Товары</button>
+                    <button class="admin-tab" data-tab="sections">Разделы</button>
+                    <button class="admin-tab" data-tab="orders">Заказы</button>
+                    <button class="admin-tab" data-tab="statistics">Статистика</button>
+                </div>
+
+                <!-- Products Tab -->
+                <div class="admin-content active" id="productsTab">
+                    <div class="table-container">
+                        <table class="products-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Название</th>
+                                    <th>Раздел</th>
+                                    <th>Цена</th>
+                                    <th>Бейдж</th>
+                                    <th>Цвета</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTableBody">
+                                <!-- Products will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sections Tab -->
+                <div class="admin-content" id="sectionsTab">
+                    <div class="admin-header">
+                        <div>
+                            <h3>Управление разделами</h3>
+                            <small id="sectionsCounter">Разделов: 0</small>
+                        </div>
+                        <div class="admin-actions">
+                            <button class="btn btn-primary" id="addSectionBtn">
+                                <i class="fas fa-plus"></i> Добавить раздел
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="products-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Название</th>
+                                    <th>Код</th>
+                                    <th>Товаров</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sectionsTableBody">
+                                <!-- Sections will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Orders Tab -->
+                <div class="admin-content" id="ordersTab">
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-bag" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <h3>Раздел заказов</h3>
+                        <p>Здесь будут отображаться заказы покупателей</p>
+                    </div>
+                </div>
+
+                <!-- Statistics Tab -->
+                <div class="admin-content" id="statisticsTab">
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <h3>Статистика</h3>
+                        <p>Здесь будет отображаться статистика продаж</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Product Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-body">
+                <h2 id="modalTitle">Добавить товар</h2>
+                <form class="product-form" id="productForm">
+                        <input type="hidden" id="productId">
+                        
+                        <div class="form-group">
+                            <label for="productName">Название товара *</label>
+                            <input type="text" id="productName" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="productPrice">Цена (₽) *</label>
+                                <input type="number" id="productPrice" min="0" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="productSection">Раздел *</label>
+                                <select id="productSection" required>
+                                    <option value="">Выберите раздел</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="productSku">Артикул</label>
+                                <input type="text" id="productSku">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="productStock">Количество на складе</label>
+                                <input type="number" id="productStock" min="0" value="0">
+                            </div>
+                        </div>
+
+                        <!-- НОВАЯ СИСТЕМА: Несколько цветов -->
+                        <div class="form-group">
+                            <label for="productColors">Система "Несколько цветов"</label>
+                            <div class="colors-selector">
+                                <label class="color-option">
+                                    <input type="checkbox" id="enableMultipleColors"> 
+                                    Включить систему нескольких цветов
+                                </label>
+                                
+                                <div class="colors-container" id="colorsContainer" style="display: none;">
+                                    <div class="colors-header">
+                                        <h4>Управление цветами</h4>
+                                        <button type="button" class="btn btn-outline btn-small" id="addColorBtn">
+                                            <i class="fas fa-plus"></i> Добавить цвет
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="colors-variants-list" id="colorsVariantsList">
+                                        <!-- Варианты цветов будут добавляться здесь -->
+                                    </div>
+                                    
+                                    <div class="colors-info">
+                                        <small>Максимум 10 цветов. Для каждого цвета можно задать название, выбрать цвет из палитры и загрузить индивидуальные фотографии.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Бейдж</label>
+                            <div class="badge-selector">
+                                <div class="badge-option" data-badge="">Без бейджа</div>
+                                <div class="badge-option" data-badge="Хит продаж">Хит продаж</div>
+                                <div class="badge-option" data-badge="Новинка">Новинка</div>
+                            </div>
+                            <input type="hidden" id="productBadge" value="">
+                        </div>
+                        <div class="form-group">
+                            <label for="productFeatures">Особенности (каждая с новой строки)</label>
+                            <textarea id="productFeatures" rows="3" placeholder="Высококачественные материалы&#10;Эксклюзивный дизайн&#10;Прочная конструкция"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="productSpecifications">Характеристики (в формате "Ключ: значение")</label>
+                            <textarea id="productSpecifications" rows="4" placeholder="Материал: Массив дерева&#10;Размеры: 200x90x45 см&#10;Вес: 35 кг&#10;Цвет: Натуральное дерево"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="productDescription">Описание</label>
+                            <textarea id="productDescription" rows="4" placeholder="Описание товара..."></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="productActive">
+                                    <input type="checkbox" id="productActive" checked> Активный товар
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="productFeatured">
+                                    <input type="checkbox" id="productFeatured"> Рекомендуемый товар
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productImages">Фотографии товара</label>
+                            <div class="image-upload-container">
+                                <div class="image-preview" id="imagePreview">
+                                    <!-- Препросмотр изображений будет здесь -->
+                                </div>
+                                <input type="file" id="productImages" multiple accept="image/*" style="display: none;">
+                                <button type="button" class="btn btn-outline" id="uploadImagesBtn">
+                                    <i class="fas fa-upload"></i> Загрузить фото (макс. 5)
+                                </button>
+                                <small>Можно загрузить до 5 изображений. Первое изображение будет основным.</small>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-cancel" id="cancelBtn">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Сохранить товар</button>
+                        </div>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Modal -->
+    <div class="modal" id="sectionModal">
+        <div class="modal-content">
+            <button class="modal-close" id="sectionModalClose">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-body">
+                <h2 id="sectionModalTitle">Добавить раздел</h2>
+                <form class="product-form" id="sectionForm">
+                    <input type="hidden" id="sectionId">
+                    
+                    <div class="form-group">
+                        <label for="sectionName">Название раздела *</label>
+                        <input type="text" id="sectionName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sectionCode">Код раздела (латинские буквы) *</label>
+                        <input type="text" id="sectionCode" required pattern="[a-zA-Z0-9-]+" title="Только латинские буквы, цифры и дефисы">
+                        <small>Используется для фильтрации, только латинские буквы и цифры</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sectionActive">
+                            <input type="checkbox" id="sectionActive" checked> Активный раздел
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-cancel" id="cancelSectionBtn">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить раздел</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h3>Подтверждение удаления</h3>
+                <p>Вы уверены, что хотите удалить этот товар?</p>
+                <div class="form-actions">
+                    <button class="btn btn-cancel" id="cancelDelete">Отмена</button>
+                    <button class="btn btn-delete" id="confirmDelete">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Confirmation Modal -->
+    <div class="modal" id="sectionConfirmModal">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h3>Подтверждение удаления</h3>
+                <p id="sectionConfirmMessage">Вы уверены, что хотите удалить этот раздел?</p>
+                <div class="form-actions">
+                    <button class="btn btn-cancel" id="cancelSectionDelete">Отмена</button>
+                    <button class="btn btn-delete" id="confirmSectionDelete">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin/admin.js"></script>
+    
+    <script>
+        // Показываем индикатор загрузки при переходе между страницами
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingElement = document.getElementById('pageLoading');
+            if (loadingElement) {
+                loadingElement.classList.add('hidden');
+            }
+        });
+
+        // Защита от копирования контента (опционально)
+        document.addEventListener('contextmenu', function(e) {
+            if (e.target.closest('.admin-panel')) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            // Блокировка F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+                (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

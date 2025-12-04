@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Товар - MA Furniture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/piece.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="/index.html">
+                        <div class="logo-container">
+                            <img src="./images/logo2.png" alt="MA Furniture" class="logo-image">
+                            <div class="logo-text-container">
+                                <span class="logo-text">MA FURNITURE</span>
+                                
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="./index.html">Главная</a></li>
+                        <li><a href="./shop.html">Каталог</a></li>
+                        <li><a href="./index.html#about">О компании</a></li>
+                        <li><a href="./index.html#faq">FAQ</a></li>
+                    </ul>
+                </nav>
+                
+                <div class="header-actions">
+                    <button class="cart-btn" id="cartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count">0</span>
+                    </button>
+                    <a href="https://t.me/Ma_Furniture_ru" class="btn btn-outline btn-telegram">
+                        <i class="fab fa-telegram-plane"></i>
+                        <span>Telegram</span>
+                    </a>
+                    <button class="menu-toggle" id="menuToggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <div class="logo">
+                <h2>MA Furniture</h2>
+            </div>
+            <button class="close-menu" id="closeMenu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <nav class="mobile-nav">
+            <a href="./index.html">Главная</a>
+            <a href="./shop.html">Каталог</a>
+            <a href="./about.html">О нас</a>
+            <a href="./contact.html">Контакты</a>
+        </nav>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Корзина</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be loaded here -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Итого:</span>
+                <span id="cartTotal">₽ 0</span>
+            </div>
+            <button class="btn btn-primary btn-checkout">Оформить заказ</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="container">
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumbs">
+                <a href="./index.html">Главная</a>
+                <span class="separator">/</span>
+                <a href="./shop.html">Каталог</a>
+                <span class="separator">/</span>
+                <span class="current">Товар</span>
+            </nav>
+
+            <!-- Product Details -->
+            <div class="product-details" id="productDetails">
+                <!-- Product content will be loaded here -->
+            </div>
+
+            <!-- Related Products -->
+            <section class="related-products">
+                <div class="section-header">
+                    <h2>Сопутствующие товары</h2>
+                    <a href="./shop.html" class="view-all">Смотреть все</a>
+                </div>
+                <div class="products-grid" id="relatedProducts">
+                    <!-- Related products will be loaded here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>MA Furniture</h3>
+                    <p>Эксклюзивные гардеробные системы премиум-класса с итальянским дизайном и немецкой точностью.</p>
+                    <div class="social-links">
+                        <a href="https://t.me/Ma_Furniture_ru" aria-label="Telegram">
+                            <i class="fab fa-telegram-plane"></i>
+                        </a>
+                        <a href="#" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" aria-label="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Навигация</h4>
+                    <ul>
+                        <li><a href="./index.html">Главная</a></li>
+                        <li><a href="./index.html#about">О компании</a></li>
+                        <li><a href="./shop.html">Магазин</a></li>
+                        <li><a href="./index.html#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Категории</h4>
+                    <ul>
+                        <li><a href="./shop.html?category=pantograph">Пантографы</a></li>
+                        <li><a href="./shop.html?category=wardrobe">Гардеробные системы</a></li>
+                        <li><a href="./shop.html?category=premium">Премиум коллекция</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Контакты</h4>
+                    <ul>
+                        <li><i class="fas fa-phone"></i> +7 (910) 005-34-24</li>
+                        <li><i class="fas fa-envelope"></i> ma.furniture@mail.ru</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Москва, Россия</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2023 MA Furniture. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Consultation Modal -->
+    <div class="modal" id="consultationModal">
+        <div class="modal-content">
+            <button class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-body">
+                <h2>Бесплатная консультация</h2>
+                <p>Оставьте свои данные и наш специалист свяжется с вами</p>
+                <form class="consultation-form" id="consultationForm">
+                    <div class="form-group">
+                        <input type="text" name="name" placeholder="Ваше имя" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" name="phone" placeholder="Ваш телефон" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Получить консультацию</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем скрипты в правильном порядке -->
+    <script src="https://unpkg.com/imask"></script>
+    <script src="./js/data-manager.js"></script>
+    <script src="./js/piece.js"></script>
+</body>
+</html>

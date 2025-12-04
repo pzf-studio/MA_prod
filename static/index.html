@@ -1,0 +1,350 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ma.furniture - Роскошная мебель на заказ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/index.css">
+    <script src="./js/index.js" defer></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="./index.html">
+                        <div class="logo-container">
+                            <img src="./images/logo2.png" alt="MA Furniture" class="logo-image">
+                            <div class="logo-text-container">
+                                <span class="logo-text">MA FURNITURE</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="./index.html">Главная</a></li>
+                        <li><a href="./shop.html">Каталог</a></li>
+                        <li><a href="./index.html#about">О компании</a></li>
+                        <li><a href="./index.html#faq">FAQ</a></li>
+                    </ul>
+                </nav>
+                
+                <div class="header-actions">
+                    <a href="https://t.me/Ma_Furniture_ru" class="btn btn-outline btn-telegram">
+                        <i class="fab fa-telegram-plane"></i>
+                        <span>Telegram</span>
+                    </a>
+                    <button class="menu-toggle" id="menuToggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <section class="hero-section" id="hero">
+        <div class="hero-background">
+            <div class="hero-overlay"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="brand-name">MA Furniture</span>
+                    <span class="brand-subtitle">Комплектация и<br>наполнение гардеробных<br>премиум и бизнес класса</span>
+                </h1>
+                <p class="hero-subtitle">____________________________________________________</p>
+                <div class="hero-buttons">
+                    <a href="/shop.html" class="btn btn-secondary">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Перейти в магазин</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+    <section class="shop-mini-preview" id="shop-mini-preview">
+        <div class="container">
+            <h2 class="section-title">ПОПУЛЯРНЫЕ ТОВАРЫ</h2>
+            <p class="section-subtitle">Случайная подборка товаров из нашего каталога</p>
+            
+            <div class="random-products-grid" id="randomProductsGrid">
+                <!-- Случайные товары будут загружены через JavaScript -->
+            </div>
+            
+            <div class="mini-preview-actions">
+                <a href="/shop.html" class="btn btn-primary">
+                    <i class="fas fa-store"></i>
+                    Смотреть весь каталог
+                </a>
+                <a href="https://t.me/Ma_Furniture_ru" class="btn btn-secondary">
+                    <i class="fab fa-telegram-plane"></i>
+                    Получить консультацию
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Существующая секция предварительного просмотра магазина -->
+    <section class="shop-preview" id="shop-preview">
+        <div class="container">
+            <h2 class="section-title">НАША ПРОДУКЦИЯ</h2>
+            <div class="shop-grid">
+                <div class="shop-card">
+                    <div class="shop-card-image">
+                        <img src="./images/1.png" alt="Электрические пантографы">
+                    </div>
+                    <div class="shop-card-content">
+                        <h3>Электрические пантографы</h3>
+                        <p>Электрические пантографы с сенсорным управлением
+в премиальной отделке итальянской экокожей и
+болеее бюджетные модели с пластиковыми корпусами</p>
+                        <div class="price">от 45 000 ₽</div>
+                        <a href="./shop.html?category=pantograph" class="btn btn-primary">Смотреть модели</a>
+                    </div>
+                </div>
+                
+                <div class="shop-card">
+                    <div class="shop-card-image">
+                        <img src="./images/2.jpeg" alt="Системы хранения">
+                    </div>
+                    <div class="shop-card-content">
+                        <h3>Системы хранения</h3>
+                        <p>Ящики, брючницы и органайзеры с корпусами из
+анодированного и окрашенного алюминия с отделкой
+из итальянской экокожи</p>
+                        <div class="price">от 25 000 ₽</div>
+                        <a href="./shop.html?category=wardrobe" class="btn btn-primary">Смотреть модели</a>
+                    </div>
+                </div>
+                
+                <div class="shop-card">
+                    <div class="shop-card-image">
+                        <img src="./images/3.jpg" alt="Обувницы">
+                    </div>
+                    <div class="shop-card-content">
+                        <h3>Обувницы</h3>
+                        <p>Вращающиеся на 360° и выдвижные системы хранения
+обуви с корпусами из анодированного и окрашенного
+алюминия с полками в отделке из итальянской
+экокожи</p>
+                        <div class="price">от 35 000 ₽</div>
+                        <a href="./shop.html?category=shoerack" class="btn btn-primary">Смотреть модели</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="main-content">
+        <section class="about-section" id="about">
+            <h2 class="section-title">О нас и о нашей продукции</h2>
+            
+            <div class="about-content">
+                <p>Наша компания была создана как подразделение строительной группы более 7 лет назад для
+изготовления мебели и элементов отделки интерьеров. В результате проработки, в том числе
+пространства гардеробных комнат, мы успели поработать с многими комплектующими от европейских,
+китайских и российских производителей. Путем долгих поисков мы отобрали отдельные продукты
+фабрик, которые, на наш взгляд, максимально заслуживают внимания по соотношению цена-качество и
+мы с радостью хотим поделиться этими продуктами с вами!</p>
+                
+                <div class="about-features">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                        </div>
+                        <h3>Фабричное производство</h3>
+                        <p>Вся продукция выпускается на нескольких фабричных
+производствах в Китае</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h3>Индивидуальный подход</h3>
+                        <p>Помощь в подборе комплектующих, возможность заказа
+многих изделий с персонализацией цветов и широкий выбор
+размеров</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h3>Сроки от 4 недель</h3>
+                        <p>Сроки получения заказанных товаров зависят от
+загруженности производств и транспортной логистики,
+занимая время от 4-х до 10-ти недель</p>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h3>Складская программа</h3>
+                        <p>Стараемся поддерживать в наличии, как минимум, образцы
+самых популярных товаров, а так же небольшой ассортимент
+продуктов в самых ходовых размерах</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <div class="divider"></div>
+
+        <!-- Обновленная секция - Мини-превью магазина -->
+        
+
+        <div class="divider"></div>
+
+        <section class="catalog-cta">
+            <div class="luxury-catalog-box">
+                <h3>ПОЛНЫЙ КАТАЛОГ СИСТЕМ ХРАНЕНИЯ</h3>
+                <div class="divider-gold"></div>
+                <p class="luxury-text">
+                    Мы специализируемся на наполнении гардеробной
+комнаты и кухни системами хранения и другими аксессуарами
+                </p>
+                <a href="https://t.me/Ma_Furniture_ru" class="btn btn-luxury-catalog">
+                    <span class="btn-text">ПОЛУЧИТЬ КОНСУЛЬТАЦИЮ В TELEGRAM</span>
+                    <span class="btn-icon"><i class="fab fa-telegram-plane"></i></span>
+                </a>
+            </div>
+        </section>
+
+        <section id="faq">
+            <h2 class="section-title">ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ</h2>
+            
+            <div class="faq-container">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="question-text">Сколько времени занимает изготовление?</span>
+                        <span class="faq-toggle"><i class="fas fa-plus"></i></span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Итоговые сроки зависят от загруженности фабрики на данный
+момент времени и от ассортимента вашего заказа (количества
+позиций, персонализации цвета и т. д). Стандартный срок
+изготовления на фабрике занимает 3-4 недели, но всегда нужно
+брать во внимание то, что в Китае бывают длинные не рабочие
+периоды, связанные с национальными праздниками</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="question-text">Сколько времени занимает доставка после изготовления?</span>
+                        <span class="faq-toggle"><i class="fas fa-plus"></i></span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Стандартный срок доставки составляет 16-20 дней до распределительного
+пункта в г. Москва, дальнейшая отправка возможна любой транспортной
+компанией на выбор клиента до конечного адреса. Всегда нужно брать во
+внимание то, что сроки доставки из-за границы сильно зависят от очередей на
+таможенном оформлении и от вносимых изменений в различные
+законодательные документы.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="question-text">Дизайны окончательные, или есть возможность доработки внешнего вида?</span>
+                        <span class="faq-toggle"><i class="fas fa-plus"></i></span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Многие, предложенные нами
+товары, могут быть изготовлены
+фабриками в нескольких цветах
+на заказ</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span class="question-text">Какие материалы используются в производстве?</span>
+                        <span class="faq-toggle"><i class="fas fa-plus"></i></span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Отобранные нами фабрики, в
+основном, используют
+качественную экокожу и
+пластик, массив дерева и
+алюминий. Электромоторы и
+направляющие используются
+собственного производства и
+от компании Hettich</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>MA Furniture</h3>
+                    <p>Комплектация и
+наполнение гардеробных
+премиум и бизнес класса</p>
+                    <div class="social-links">
+                        <a href="https://t.me/Ma_Furniture_ru" aria-label="Telegram">
+                            <i class="fab fa-telegram-plane"></i>
+                        </a>
+                        <a href="#" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" aria-label="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Навигация</h4>
+                    <ul>
+                        <li><a href="/">Главная</a></li>
+                        <li><a href="/index.html#about">О компании</a></li>
+                        <li><a href="/shop.html">Магазин</a></li>
+                        <li><a href="/index.html#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Категории</h4>
+                    <ul>
+                        <li><a href="/shop.html?category=pantograph">Пантографы</a></li>
+                        <li><a href="/shop.html?category=wardrobe">Гардеробные системы</a></li>
+                        <li><a href="/shop.html?category=premium">Премиум коллекция</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Контакты</h4>
+                    <ul>
+                        <li><i class="fas fa-phone"></i> +7 (910) 005-34-24</li>
+                        <li><i class="fas fa-envelope"></i> ma.furniture@mail.ru</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Москва, Россия</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 MA Furniture. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="./js/data-manager.js"></script>
+</body>
+</html>
