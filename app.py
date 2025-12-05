@@ -23,9 +23,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = 'sqlite:////data/ma_furniture.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Папки для загрузок
+    # Папки для загрузок - ВСЕ В /data
     UPLOAD_FOLDER = '/data/uploads'
-    STATIC_UPLOAD_FOLDER = 'static/uploads'
+    BACKUP_FOLDER = '/data/backups'
+    STATIC_UPLOAD_FOLDER = '/data/static_uploads'  # Симлинк для статических файлов
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     STATIC_FOLDER = 'static'
     
@@ -45,25 +46,36 @@ app.config.from_object(Config)
 db = SQLAlchemy(app)
 CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "*"}})
 
-# Создаем необходимые директории при старте
+# Создаем необходимые директории в /data при старте
 def init_directories():
-    # Создаем /data если её нет
-    data_dir = '/data'
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir, exist_ok=True)
-        logger.info(f"Создана директория {data_dir}")
+    directories = [
+        '/data',
+        app.config['UPLOAD_FOLDER'],
+        app.config['BACKUP_FOLDER'],
+        app.config['STATIC_UPLOAD_FOLDER']
+    ]
     
-    # Создаем директорию для загрузок
-    uploads_dir = app.config['UPLOAD_FOLDER']
-    if not os.path.exists(uploads_dir):
-        os.makedirs(uploads_dir, exist_ok=True)
-        logger.info(f"Создана директория загрузок {uploads_dir}")
+    for directory in directories:
+        if not os.path.exists(directory):
+            os.makedirs(directory, exist_ok=True)
+            logger.info(f"✅ Создана директория {directory}")
     
-    # Создаем директорию для статических загрузок
-    static_uploads_dir = os.path.join(app.static_folder, 'uploads')
-    if not os.path.exists(static_uploads_dir):
-        os.makedirs(static_uploads_dir, exist_ok=True)
-        logger.info(f"Создана статическая директория загрузок {static_uploads_dir}")
+    # Создаем симлинк из static/uploads в /data/static_uploads если его нет
+    static_uploads_symlink = os.path.join(app.static_folder, 'uploads')
+    static_uploads_target = app.config['STATIC_UPLOAD_FOLDER']
+    
+    if not os.path.exists(static_uploads_symlink):
+        try:
+            if os.path.exists(static_uploads_symlink):
+                os.remove(static_uploads_symlink)
+            os.symlink(static_uploads_target, static_uploads_symlink)
+            logger.info(f"✅ Создан симлинк {static_uploads_symlink} -> {static_uploads_target}")
+        except Exception as e:
+            logger.warning(f"⚠️ Не удалось создать симлинк: {e}")
+            # Создаем обычную директорию как fallback
+            if not os.path.exists(static_uploads_symlink):
+                os.makedirs(static_uploads_symlink, exist_ok=True)
+                logger.info(f"✅ Создана директория {static_uploads_symlink}")
 
 # Инициализируем директории
 init_directories()
@@ -735,8 +747,9 @@ def create_order():
         try:
             # Проверяем наличие токена и ID чата
             if app.config['TELEGRAM_BOT_TOKEN'] and app.config['TELEGRAM_CHAT_ID']:
-                from telegram_service import send_order_to_telegram
-                if send_order_to_telegram(order):
+                # Импортируем функцию отправки в Telegram
+                telegram_result = send_order_to_telegram(order)
+                if telegram_result.get('success'):
                     order.telegram_sent = True
                     telegram_sent = True
                     db.session.commit()
@@ -783,7 +796,62 @@ def complete_order(order_id):
         logger.error(f"Complete order error: {e}")
         return jsonify({'error': str(e)}), 500
 
-# API для загрузки изображений
+# Функция отправки заказа в Telegram
+def send_order_to_telegram(order):
+    """Отправляет заказ в Telegram"""
+    try:
+        import requests
+        
+        bot_token = app.config['TELEGRAM_BOT_TOKEN']
+        chat_id = app.config['TELEGRAM_CHAT_ID']
+        
+        if not bot_token or not chat_id:
+            return {'success': False, 'error': 'Telegram credentials not configured'}
+        
+        # Формируем сообщение
+        items_text = ""
+        items = json.loads(order.items) if isinstance(order.items, str) else order.items
+        
+        for item in items:
+            items_text += f"• {item.get('name', 'Товар')} - {item.get('quantity', 1)} шт. × {item.get('price', 0)}₽\n"
+        
+        message = f"""
+📦 *НОВЫЙ ЗАКАЗ #{order.id}*
+
+👤 *Клиент:* {order.customer_name}
+📞 *Телефон:* {order.customer_phone}
+📧 *Email:* {order.customer_email or 'не указан'}
+📍 *Адрес:* {order.customer_address or 'не указан'}
+💬 *Комментарий:* {order.customer_comment or 'нет'}
+
+🛒 *Состав заказа:*
+{items_text}
+💰 *Итого:* {order.total}₽
+
+📅 *Дата:* {order.created_at.strftime('%d.%m.%Y %H:%M') if order.created_at else 'не указана'}
+        """
+        
+        # Отправляем сообщение
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            'chat_id': chat_id,
+            'text': message,
+            'parse_mode': 'Markdown'
+        }
+        
+        response = requests.post(url, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            return {'success': True}
+        else:
+            logger.error(f"Telegram API error: {response.status_code} - {response.text}")
+            return {'success': False, 'error': f"Telegram API error: {response.status_code}"}
+            
+    except Exception as e:
+        logger.error(f"Telegram send error: {e}")
+        return {'success': False, 'error': str(e)}
+
+# API для загрузки изображений - ВСЕ ФАЙЛЫ В /data
 @app.route('/api/upload/images', methods=['POST'])
 def upload_images():
     try:
@@ -797,31 +865,36 @@ def upload_images():
             if file.filename == '':
                 continue
                 
-            if file:
+            if file and file.filename:
                 # Создаем безопасное имя файла
                 timestamp = int(time.time())
                 original_name = secure_filename(file.filename)
                 filename = f"{timestamp}_{original_name}"
                 
-                # Сохраняем в /data/uploads
+                # Сохраняем В /data/uploads
                 upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(upload_path)
+                logger.info(f"✅ Файл сохранен в {upload_path}")
                 
-                # Копируем в статическую папку для доступа через веб
-                static_path = os.path.join(app.static_folder, 'uploads', filename)
-                shutil.copy2(upload_path, static_path)
+                # Также копируем в /data/static_uploads для веб-доступа
+                static_upload_path = os.path.join(app.config['STATIC_UPLOAD_FOLDER'], filename)
+                shutil.copy2(upload_path, static_upload_path)
+                logger.info(f"✅ Файл скопирован в {static_upload_path}")
                 
-                # Создаем URL для файла
+                # Создаем URL для файла (через симлинк static/uploads)
                 file_url = f"/static/uploads/{filename}"
                 uploaded_images.append({
                     'filename': filename,
-                    'url': file_url
+                    'url': file_url,
+                    'path': upload_path,
+                    'size': os.path.getsize(upload_path)
                 })
         
         return jsonify({
             'success': True,
             'images': uploaded_images,
-            'count': len(uploaded_images)
+            'count': len(uploaded_images),
+            'upload_folder': app.config['UPLOAD_FOLDER']
         })
     except Exception as e:
         logger.error(f"Upload images error: {e}")
@@ -833,11 +906,12 @@ def get_settings():
     try:
         return jsonify({
             'admin_username': app.config['ADMIN_USERNAME'],
-            'telegram_bot_token': app.config['TELEGRAM_BOT_TOKEN'],
-            'telegram_chat_id': app.config['TELEGRAM_CHAT_ID'],
+            'telegram_bot_token': '***' if app.config['TELEGRAM_BOT_TOKEN'] else '',
+            'telegram_chat_id': '***' if app.config['TELEGRAM_CHAT_ID'] else '',
             'site_title': 'MA Furniture',
             'upload_folder': app.config['UPLOAD_FOLDER'],
-            'database_path': '/data/ma_furniture.db'
+            'database_path': '/data/ma_furniture.db',
+            'backup_folder': app.config['BACKUP_FOLDER']
         })
     except Exception as e:
         logger.error(f"Get settings error: {e}")
@@ -848,7 +922,7 @@ def update_settings():
     try:
         data = request.get_json()
         
-        # В реальном приложении здесь нужно сохранять настройки в БД или файл
+        # В реальном приложении здесь нужно сохранять настройки в БД
         # Пока просто возвращаем успех
         
         return jsonify({
@@ -860,48 +934,69 @@ def update_settings():
         logger.error(f"Update settings error: {e}")
         return jsonify({'error': str(e)}), 500
 
-# API для информации о хранилище
+# API для информации о хранилище - РАБОТАЕТ С /data
 @app.route('/api/storage', methods=['GET'])
 def get_storage_info():
     try:
         uploads_dir = app.config['UPLOAD_FOLDER']
         db_path = '/data/ma_furniture.db'
+        backup_dir = app.config['BACKUP_FOLDER']
         
         # Размер папки uploads
         uploads_size = 0
-        file_count = 0
+        uploads_count = 0
         if os.path.exists(uploads_dir):
             for root, dirs, files in os.walk(uploads_dir):
                 for file in files:
                     filepath = os.path.join(root, file)
                     uploads_size += os.path.getsize(filepath)
-                    file_count += 1
+                    uploads_count += 1
+        
+        # Размер папки backups
+        backups_size = 0
+        backups_count = 0
+        if os.path.exists(backup_dir):
+            for root, dirs, files in os.walk(backup_dir):
+                for file in files:
+                    filepath = os.path.join(root, file)
+                    backups_size += os.path.getsize(filepath)
+                    backups_count += 1
         
         # Размер БД
         db_size = os.path.getsize(db_path) if os.path.exists(db_path) else 0
         
-        total_size = uploads_size + db_size
+        total_size = uploads_size + backups_size + db_size
         
         def format_bytes(bytes_num):
             if bytes_num == 0:
                 return '0 Bytes'
             k = 1024
             sizes = ['Bytes', 'KB', 'MB', 'GB']
-            i = int(math.floor(math.log(bytes_num) / math.log(k)))
-            return f"{bytes_num / math.pow(k, i):.2f} {sizes[i]}"
-        
-        import math
+            i = int((len(str(bytes_num)) - 1) / 3)
+            if i >= len(sizes):
+                i = len(sizes) - 1
+            return f"{bytes_num / (k ** i):.2f} {sizes[i]}"
         
         return jsonify({
             'used_space': total_size,
             'formatted_used_space': format_bytes(total_size),
             'uploads_size': uploads_size,
             'formatted_uploads_size': format_bytes(uploads_size),
+            'uploads_count': uploads_count,
+            'backups_size': backups_size,
+            'formatted_backups_size': format_bytes(backups_size),
+            'backups_count': backups_count,
             'database_size': db_size,
             'formatted_database_size': format_bytes(db_size),
             'total_space': 1024 * 1024 * 1024,  # 1GB
             'formatted_total_space': '1.00 GB',
-            'file_count': file_count
+            'file_count': uploads_count + backups_count,
+            'paths': {
+                'uploads': uploads_dir,
+                'database': db_path,
+                'backups': backup_dir,
+                'static_uploads': app.config['STATIC_UPLOAD_FOLDER']
+            }
         })
     except Exception as e:
         logger.error(f"Get storage info error: {e}")
@@ -909,13 +1004,15 @@ def get_storage_info():
 
 @app.route('/api/storage/cleanup', methods=['POST'])
 def cleanup_storage():
+    """Очистка старых файлов В /data"""
     try:
         uploads_dir = app.config['UPLOAD_FOLDER']
+        backup_dir = app.config['BACKUP_FOLDER']
         deleted_count = 0
         freed_space = 0
         
+        # Очищаем папку uploads (файлы старше 30 дней)
         if os.path.exists(uploads_dir):
-            # Удаляем файлы старше 30 дней
             cutoff_time = time.time() - (30 * 24 * 3600)
             
             for filename in os.listdir(uploads_dir):
@@ -926,18 +1023,39 @@ def cleanup_storage():
                         file_size = os.path.getsize(filepath)
                         os.remove(filepath)
                         
-                        # Также удаляем из статической папки
-                        static_path = os.path.join(app.static_folder, 'uploads', filename)
+                        # Также удаляем из static_uploads
+                        static_path = os.path.join(app.config['STATIC_UPLOAD_FOLDER'], filename)
                         if os.path.exists(static_path):
                             os.remove(static_path)
                         
                         deleted_count += 1
                         freed_space += file_size
+                        logger.info(f"🗑️ Удален старый файл: {filepath}")
+        
+        # Очищаем папку backups (кроме последних 5 файлов)
+        if os.path.exists(backup_dir):
+            backup_files = []
+            for filename in os.listdir(backup_dir):
+                filepath = os.path.join(backup_dir, filename)
+                if os.path.isfile(filepath) and filename.endswith('.db'):
+                    backup_files.append((filepath, os.path.getmtime(filepath)))
+            
+            # Сортируем по дате создания (новые сначала)
+            backup_files.sort(key=lambda x: x[1], reverse=True)
+            
+            # Удаляем все, кроме последних 5 файлов
+            for filepath, _ in backup_files[5:]:
+                file_size = os.path.getsize(filepath)
+                os.remove(filepath)
+                deleted_count += 1
+                freed_space += file_size
+                logger.info(f"🗑️ Удален старый backup: {filepath}")
         
         return jsonify({
             'success': True,
             'deleted_count': deleted_count,
-            'freed_space': freed_space
+            'freed_space': freed_space,
+            'message': f'Удалено {deleted_count} файлов, освобождено {freed_space} байт'
         })
     except Exception as e:
         logger.error(f"Cleanup storage error: {e}")
@@ -950,29 +1068,53 @@ def system_info():
         import sys
         import platform
         
+        # Информация о файловой системе
+        statvfs = os.statvfs('/data') if hasattr(os, 'statvfs') else None
+        
         return jsonify({
             'api_version': '2.0.0',
             'database': 'SQLite',
             'db_path': '/data/ma_furniture.db',
+            'db_size': os.path.getsize('/data/ma_furniture.db') if os.path.exists('/data/ma_furniture.db') else 0,
             'server': 'Flask',
             'flask_version': '2.3.2',
-            'uploads_path': app.config['UPLOAD_FOLDER'],
+            'paths': {
+                'uploads': app.config['UPLOAD_FOLDER'],
+                'backups': app.config['BACKUP_FOLDER'],
+                'static_uploads': app.config['STATIC_UPLOAD_FOLDER'],
+                'database': '/data/ma_furniture.db'
+            },
             'python_version': sys.version,
             'platform': platform.platform(),
             'server_time': datetime.now().isoformat(),
-            'environment': 'production'
+            'environment': 'production',
+            'data_directory_exists': os.path.exists('/data'),
+            'data_directory_size': sum(os.path.getsize(os.path.join(dirpath, filename)) 
+                                      for dirpath, dirnames, filenames in os.walk('/data') 
+                                      for filename in filenames) if os.path.exists('/data') else 0,
+            'filesystem_info': {
+                'total_space': statvfs.f_frsize * statvfs.f_blocks if statvfs else 0,
+                'free_space': statvfs.f_frsize * statvfs.f_bfree if statvfs else 0,
+                'used_space': statvfs.f_frsize * (statvfs.f_blocks - statvfs.f_bfree) if statvfs else 0
+            } if statvfs else None
         })
     except Exception as e:
         logger.error(f"System info error: {e}")
         return jsonify({'error': str(e)}), 500
 
-# API для резервного копирования БД
+# API для резервного копирования БД - В /data/backups
 @app.route('/api/db/backup', methods=['POST'])
 def backup_database():
     try:
         db_path = '/data/ma_furniture.db'
+        backup_dir = app.config['BACKUP_FOLDER']
+        
+        if not os.path.exists(db_path):
+            return jsonify({'error': 'Database file not found'}), 404
+        
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_path = f'/data/ma_furniture_backup_{timestamp}.db'
+        backup_filename = f"ma_furniture_backup_{timestamp}.db"
+        backup_path = os.path.join(backup_dir, backup_filename)
         
         # Копируем файл БД
         shutil.copy2(db_path, backup_path)
@@ -985,14 +1127,17 @@ def backup_database():
                 return '0 Bytes'
             k = 1024
             sizes = ['Bytes', 'KB', 'MB', 'GB']
-            i = int(math.floor(math.log(bytes_num) / math.log(k)))
-            return f"{bytes_num / math.pow(k, i):.2f} {sizes[i]}"
+            i = int((len(str(bytes_num)) - 1) / 3)
+            if i >= len(sizes):
+                i = len(sizes) - 1
+            return f"{bytes_num / (k ** i):.2f} {sizes[i]}"
         
-        import math
+        logger.info(f"✅ Создана резервная копия БД: {backup_path} ({format_bytes(backup_size)})")
         
         return jsonify({
             'success': True,
-            'filename': os.path.basename(backup_path),
+            'filename': backup_filename,
+            'path': backup_path,
             'size': backup_size,
             'formatted_size': format_bytes(backup_size),
             'timestamp': timestamp,
@@ -1007,12 +1152,31 @@ def backup_database():
 def check_db():
     try:
         db.session.execute('SELECT 1')
+        db_size = os.path.getsize('/data/ma_furniture.db') if os.path.exists('/data/ma_furniture.db') else 0
+        
+        def format_bytes(bytes_num):
+            if bytes_num == 0:
+                return '0 Bytes'
+            k = 1024
+            sizes = ['Bytes', 'KB', 'MB', 'GB']
+            i = int((len(str(bytes_num)) - 1) / 3)
+            if i >= len(sizes):
+                i = len(sizes) - 1
+            return f"{bytes_num / (k ** i):.2f} {sizes[i]}"
+        
         return jsonify({
             'status': 'ok', 
             'message': 'Database connection successful',
             'database': 'SQLite',
             'path': '/data/ma_furniture.db',
-            'connected': True
+            'size': db_size,
+            'formatted_size': format_bytes(db_size),
+            'connected': True,
+            'tables': {
+                'sections': Section.query.count(),
+                'products': Product.query.count(),
+                'orders': Order.query.count()
+            }
         })
     except Exception as e:
         logger.error(f"Database connection error: {e}")
@@ -1045,6 +1209,7 @@ def init_database():
                 db.session.add(section)
             
             db.session.commit()
+            logger.info(f"✅ Создано {len(basic_sections)} базовых разделов")
         
         products_count = Product.query.count()
         if products_count == 0:
@@ -1052,8 +1217,10 @@ def init_database():
             beds_section = Section.query.filter_by(code='beds').first()
             sofas_section = Section.query.filter_by(code='sofas').first()
             
+            demo_products = []
+            
             if beds_section:
-                demo_products = [
+                demo_products.extend([
                     Product(
                         name='Двуспальная кровать "Люкс"',
                         description='Элегантная двуспальная кровать из массива дуба',
@@ -1074,13 +1241,10 @@ def init_database():
                         active=True,
                         display_order=2
                     )
-                ]
-                
-                for product in demo_products:
-                    db.session.add(product)
+                ])
             
             if sofas_section:
-                demo_products = [
+                demo_products.append(
                     Product(
                         name='Угловой диван "Неаполь"',
                         description='Вместительный угловой диван с механизмом трансформации',
@@ -1091,19 +1255,22 @@ def init_database():
                         active=True,
                         display_order=1
                     )
-                ]
-                
-                for product in demo_products:
-                    db.session.add(product)
+                )
+            
+            for product in demo_products:
+                db.session.add(product)
             
             db.session.commit()
+            logger.info(f"✅ Создано {len(demo_products)} демо товаров")
         
         return jsonify({
             'success': True,
-            'message': 'Database initialized',
+            'message': 'Database initialized successfully',
             'sections': Section.query.count(),
             'products': Product.query.count(),
-            'orders': Order.query.count()
+            'orders': Order.query.count(),
+            'database_path': '/data/ma_furniture.db',
+            'database_size': os.path.getsize('/data/ma_furniture.db') if os.path.exists('/data/ma_furniture.db') else 0
         })
         
     except Exception as e:
@@ -1151,6 +1318,7 @@ def serve_image_files(filename):
 
 @app.route('/static/uploads/<path:filename>')
 def serve_upload_files(filename):
+    # Файлы будут доступны через симлинк static/uploads -> /data/static_uploads
     return send_from_directory('static/uploads', filename)
 
 # API маршруты
@@ -1159,8 +1327,19 @@ def health():
     try:
         db.session.execute('SELECT 1')
         db_status = 'connected'
-    except:
-        db_status = 'disconnected'
+        db_size = os.path.getsize('/data/ma_furniture.db') if os.path.exists('/data/ma_furniture.db') else 0
+    except Exception as e:
+        db_status = f'disconnected: {str(e)}'
+        db_size = 0
+    
+    # Проверяем доступность директорий в /data
+    data_dirs = {
+        'data_root': os.path.exists('/data'),
+        'uploads': os.path.exists(app.config['UPLOAD_FOLDER']),
+        'backups': os.path.exists(app.config['BACKUP_FOLDER']),
+        'static_uploads': os.path.exists(app.config['STATIC_UPLOAD_FOLDER']),
+        'database': os.path.exists('/data/ma_furniture.db')
+    }
     
     return jsonify({
         "status": "healthy", 
@@ -1169,8 +1348,15 @@ def health():
         "database": db_status,
         "database_type": "SQLite",
         "database_path": "/data/ma_furniture.db",
+        "database_size": db_size,
         "timestamp": time.time(),
-        "uptime": time.time() - app_start_time
+        "uptime": time.time() - app_start_time,
+        "data_directories": data_dirs,
+        "paths": {
+            "uploads": app.config['UPLOAD_FOLDER'],
+            "backups": app.config['BACKUP_FOLDER'],
+            "static_uploads": app.config['STATIC_UPLOAD_FOLDER']
+        }
     })
 
 app_start_time = time.time()
@@ -1182,7 +1368,16 @@ def api_info():
         "version": "2.0.0",
         "environment": "production",
         "admin_panel": "/admin/",
-        "documentation": "Доступны endpoints: /api/products, /api/sections, /api/orders"
+        "database": "SQLite в /data/ma_furniture.db",
+        "endpoints": {
+            "products": "/api/products",
+            "sections": "/api/sections",
+            "orders": "/api/orders",
+            "auth": "/api/auth/login",
+            "health": "/api/health",
+            "storage": "/api/storage",
+            "system": "/api/system/info"
+        }
     })
 
 # Обработка ошибок
@@ -1217,20 +1412,49 @@ with app.app_context():
             for section in sections:
                 db.session.add(section)
             db.session.commit()
-            logger.info(f"Создано {len(sections)} базовых разделов")
+            logger.info(f"✅ Создано {len(sections)} базовых разделов")
+        
+        # Проверяем файлы в /data
+        if os.path.exists('/data'):
+            data_contents = os.listdir('/data')
+            logger.info(f"📁 Содержимое /data: {data_contents}")
+            
+            # Проверяем размер файлов
+            for item in data_contents:
+                item_path = os.path.join('/data', item)
+                if os.path.isfile(item_path):
+                    size = os.path.getsize(item_path)
+                    logger.info(f"📄 Файл {item}: {size} байт")
+                elif os.path.isdir(item_path):
+                    file_count = len([f for f in os.listdir(item_path) if os.path.isfile(os.path.join(item_path, f))])
+                    logger.info(f"📁 Папка {item}: {file_count} файлов")
     except Exception as e:
         logger.error(f"⚠️ Ошибка инициализации БД: {e}")
 
 if __name__ == '__main__':
-    print("=" * 50)
-    print("MA Furniture - Production Server")
-    print("=" * 50)
+    print("=" * 60)
+    print("🚀 MA Furniture - Production Server with SQLite in /data")
+    print("=" * 60)
     print(f"🔐 Админка: {app.config['ADMIN_USERNAME']} / {app.config['ADMIN_PASSWORD']}")
-    print("📁 База данных: SQLite в /data/ma_furniture.db")
-    print("📁 Загрузки: /data/uploads")
+    print(f"📁 База данных: SQLite в {app.config['SQLALCHEMY_DATABASE_URI']}")
+    print(f"📁 Загрузки: {app.config['UPLOAD_FOLDER']}")
+    print(f"💾 Резервные копии: {app.config['BACKUP_FOLDER']}")
+    print(f"🌐 Статические файлы: {app.config['STATIC_UPLOAD_FOLDER']}")
     print("🏥 Health check: /api/health")
-    print("🚀 Запуск Flask...")
-    print("=" * 50)
+    print("📊 Админ панель: /admin/")
+    print("=" * 60)
+    
+    # Проверяем доступность /data
+    if not os.path.exists('/data'):
+        print("⚠️  ВНИМАНИЕ: Директория /data не существует!")
+        print("   Для локальной разработки создайте её:")
+        print("   mkdir /data")
+    else:
+        print(f"✅ Директория /data доступна")
+        print(f"   Содержимое: {os.listdir('/data')}")
     
     port = int(os.environ.get('PORT', 5000))
+    print(f"🌐 Запуск сервера на порту {port}...")
+    print("=" * 60)
+    
     app.run(host='0.0.0.0', port=port, debug=False)
