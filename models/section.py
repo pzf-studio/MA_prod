@@ -1,7 +1,6 @@
 # models/section.py
 from database.db import db
-from datetime import datetime
-import json
+from sqlalchemy.orm import relationship
 
 class Section(db.Model):
     __tablename__ = 'sections'
@@ -9,30 +8,68 @@ class Section(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     code = db.Column(db.String(50), unique=True, nullable=False)
-    active = db.Column(db.Boolean, default=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    active = db.Column(db.Boolean, default=True)
+    display_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), 
+                          onupdate=db.func.current_timestamp())
+    
+    products = relationship('Product', back_populates='section_rel', lazy='dynamic')
     
     def to_dict(self):
-        from models.product import Product
-        try:
-            product_count = Product.query.filter_by(section=self.code, active=True).count()
-        except:
-            product_count = 0
-        
         return {
             'id': self.id,
             'name': self.name,
             'code': self.code,
             'active': self.active,
-            'product_count': product_count,
+            'display_order': self.display_order,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'product_count': self.products.count()
+        }
+
+# models/product.py
+from database.db import db
+import json
+
+class Product(db.Model):
+    __tablename__ = 'products'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    price = db.Column(db.Integer, nullable=False)  # В копейках для точности
+    section_id = db.Column(db.Integer, db.ForeignKey('sections.id'))
+    images = db.Column(db.Text)  # JSON список изображений
+    badge = db.Column(db.String(50))
+    active = db.Column(db.Boolean, default=True)
+    display_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), 
+                          onupdate=db.func.current_timestamp())
+    
+    section_rel = db.relationship('Section', back_populates='products')
+    
+    def to_dict(self):
+        images = []
+        if self.images:
+            try:
+                images = json.loads(self.images)
+            except:
+                images = [self.images]
+        
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'price': self.price,
+            'section': self.section_rel.code if self.section_rel else None,
+            'section_name': self.section_rel.name if self.section_rel else None,
+            'section_id': self.section_id,
+            'images': images,
+            'badge': self.badge,
+            'active': self.active,
+            'display_order': self.display_order,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
-    
-    @classmethod
-    def get_active_sections(cls):
-        try:
-            return cls.query.filter_by(active=True).all()
-        except:
-            return []
