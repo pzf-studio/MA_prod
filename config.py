@@ -2,20 +2,17 @@
 import os
 
 class Config:
-    # Настройки базы данных PostgreSQL Amvera
-    DB_USER = os.environ.get('DB_USER', 'mikhail')
-    DB_PASSWORD = os.environ.get('DB_PASSWORD', 'svGrts412')
-    DB_HOST = os.environ.get('DB_HOST', 'amvera-mikhailast-cnpg-flask-rw')
-    DB_PORT = os.environ.get('DB_PORT', '5432')
-    DB_NAME = os.environ.get('DB_NAME', 'flaskDB')
-    
-    # Формируем строку подключения
-    SQLALCHEMY_DATABASE_URI = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-    
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'ma-furniture-admin-secret-key-2024'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:////data/ma_furniture.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    UPLOAD_FOLDER = '/data/uploads'
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+    STATIC_FOLDER = 'static'
     
-    # Папка для загрузок
-    UPLOAD_FOLDER = 'static/uploads'
+    # Админские учетные данные
+    ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME') or 'admin'
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or 'admin123'
     
-    # Секретный ключ
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key')
+    # Telegram бот (опционально)
+    TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+    TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '')

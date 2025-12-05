@@ -1,20 +1,20 @@
 ================================================================================
 🏗️  АРХИТЕКТУРА ПРОЕКТА
 ================================================================================
-📅 Сгенерировано: 2025-12-04 17:13:25
+📅 Сгенерировано: 2025-12-04 17:24:15
 📁 Корневая директория: C:\Users\GAME\Documents\GitHub\MA_prod
 
 
 📊 СТАТИСТИКА:
    📁 Папок: 12
-   📄 Файлов: 46
-   📦 Всего: 58 элементов
+   📄 Файлов: 42
+   📦 Всего: 54 элементов
 
 └── 📁 
     ├── 📄 amvera.yml (300.0 B)
     ├── 📄 app.py (14.0 KB)
     ├── 📄 arch.py (4.8 KB)
-    ├── 📄 arch.txt (2.2 KB)
+    ├── 📄 arch.txt (2.9 KB)
     ├── 📁 backend
     │   └── 📁 middleware
     │       └── 📄 auth.js (667.0 B)
@@ -22,15 +22,6 @@
     ├── 📁 database
     │   └── 📄 db.py (60.0 B)
     ├── 📄 gunicorn.conf.py (114.0 B)
-    ├── 📁 images
-    │   ├── 📄 1.png (1.6 MB)
-    │   ├── 📄 2.jpeg (118.3 KB)
-    │   ├── 📄 3.jpg (12.5 KB)
-    │   ├── 📄 4.jpg (30.6 KB)
-    │   ├── 📄 example.png (6.4 KB)
-    │   ├── 📄 hero.jpg (430.2 KB)
-    │   ├── 📄 logo.png (265.4 KB)
-    │   └── 📄 logo2.png (210.5 KB)
     ├── 📄 init_db.py (1.9 KB)
     ├── 📄 LICENSE (1.1 KB)
     ├── 📁 models
@@ -47,14 +38,19 @@
     ├── 📄 server.js (0.0 B)
     ├── 📁 static
     │   ├── 📁 admin
-    │   │   ├── 📄 admin.css (20.8 KB)
-    │   │   ├── 📄 admin.html (19.9 KB)
-    │   │   ├── 📄 admin.js (40.3 KB)
-    │   │   └── 📄 login.html (9.0 KB)
     │   ├── 📁 css
     │   │   ├── 📄 index.css (28.4 KB)
     │   │   ├── 📄 piece.css (48.1 KB)
     │   │   └── 📄 shop.css (34.5 KB)
+    │   ├── 📁 images
+    │   │   ├── 📄 1.png (1.6 MB)
+    │   │   ├── 📄 2.jpeg (118.3 KB)
+    │   │   ├── 📄 3.jpg (12.5 KB)
+    │   │   ├── 📄 4.jpg (30.6 KB)
+    │   │   ├── 📄 example.png (6.4 KB)
+    │   │   ├── 📄 hero.jpg (430.2 KB)
+    │   │   ├── 📄 logo.png (265.4 KB)
+    │   │   └── 📄 logo2.png (210.5 KB)
     │   ├── 📄 index.html (18.3 KB)
     │   ├── 📁 js
     │   │   ├── 📄 auth.js (2.1 KB)
