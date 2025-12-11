@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MA Furniture - Управление товарами</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/admin-styles.css">
-    <link rel="icon" type="image/x-icon" href="../images/logo2.png">
+    <!-- ✅ Исправлено: -->
+    <link rel="stylesheet" href="/admin/css/admin-styles.css">
+    <link rel="icon" type="image/x-icon" href="/static/images/logo2.png">
     <style>
         /* Стили для прокрутки модального окна товара */
         .modal-content.modal-lg {
@@ -404,11 +405,12 @@
     </style>
 </head>
 <body>
-    <!-- Боковая панель (из admin-dashboard.html) -->
+    <!-- Боковая панель -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">
-                <img src="../images/logo2.png" alt="MA Furniture">
+                <!-- ✅ Исправлено: -->
+                <img src="/static/images/logo2.png" alt="MA Furniture">
                 <div class="logo-text">
                     <h2>MA Furniture</h2>
                     <small>Админ панель</small>
@@ -432,7 +434,7 @@
             
             <ul class="nav-links">
                 <li class="nav-item">
-                    <a href="admin-dashboard.html">
+                    <a href="/admin/dashboard">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Дашборд</span>
                     </a>
@@ -445,13 +447,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="orders-management.html">
+                    <a href="#">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Заказы</span>
                         <span class="badge" id="ordersBadge">0</span>
                     </a>
                 </li>
-                <!-- Остальные пункты меню -->
             </ul>
             
             <div class="sidebar-footer">
@@ -470,7 +471,7 @@
             <div class="topbar-left">
                 <h1 class="page-title">Управление товарами</h1>
                 <nav class="breadcrumb">
-                    <a href="admin-dashboard.html">Главная</a>
+                    <a href="/admin/dashboard">Главная</a>
                     <span>/</span>
                     <span class="current">Товары</span>
                 </nav>
@@ -765,9 +766,22 @@
         </div>
     </div>
 
-    <!-- Скрипты -->
-    <script src="./js/admin-auth.js"></script>
-    <script src="./js/admin-upload.js"></script>
-    <script src="./js/admin-products.js"></script>
+    <!-- ✅ Скрипты с исправленными путями -->
+    <script src="/static/js/data-manager.js"></script>
+    <script src="/admin/js/admin-auth.js"></script>
+    <script src="/admin/js/admin-products.js"></script>
+    
+    <script>
+        // Временный скрипт для проверки загрузки
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Products management page loaded');
+            console.log('dataManager exists:', typeof dataManager !== 'undefined');
+            
+            if (typeof dataManager !== 'undefined') {
+                console.log('dataManager.formatPrice exists:', typeof dataManager.formatPrice);
+                console.log('Test price format:', dataManager.formatPrice(15000));
+            }
+        });
+    </script>
 </body>
 </html>
