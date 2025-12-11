@@ -1,84 +1,76 @@
-// Data Manager для работы с Flask API
+// Data Manager для работы с Flask API (БЕЗ КЭШИРОВАНИЯ ТОВАРОВ)
 class DataManager {
     constructor() {
         this.API_BASE = window.location.origin;
-        this.isOnline = false;
+        console.log('DataManager инициализирован, API_BASE:', this.API_BASE);
+        
+        // Храним только корзину локально
         this.localData = {
-            products: JSON.parse(localStorage.getItem('products_cache') || '[]'),
-            sections: JSON.parse(localStorage.getItem('sections_cache') || '[]'),
             cart: JSON.parse(localStorage.getItem('ma_furniture_cart') || '[]')
         };
-        
-        this.checkConnection();
-        console.log('Data Manager инициализирован');
     }
 
-    async checkConnection() {
-        try {
-            const response = await fetch(`${this.API_BASE}/api/health`, { 
-                method: 'GET',
-                timeout: 3000 
-            });
-            this.isOnline = response.ok;
-        } catch (error) {
-            this.isOnline = false;
-            console.log('API недоступен, используем локальные данные');
-        }
-    }
-
-    // ========== ТОВАРЫ ==========
+    // ========== ТОВАРЫ (ВСЕГДА С СЕРВЕРА) ==========
     async getAllProducts() {
-        if (this.isOnline) {
-            try {
-                const response = await fetch(`${this.API_BASE}/api/products?status=active`);
-                const data = await response.json();
-                if (data.success) {
-                    // Кэшируем данные локально
-                    this.localData.products = data.products;
-                    localStorage.setItem('products_cache', JSON.stringify(data.products));
-                    return data.products;
-                }
-            } catch (error) {
-                console.error('Ошибка получения товаров:', error);
+        try {
+            console.log('Запрос товаров с сервера...');
+            const response = await fetch(`${this.API_BASE}/api/products?status=active`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
             }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log(`Получено товаров: ${data.products.length}`);
+                return data.products;
+            } else {
+                throw new Error(data.error || 'Unknown error');
+            }
+        } catch (error) {
+            console.error('Ошибка получения товаров:', error);
+            // Возвращаем пустой массив при ошибке
+            return [];
         }
-        return this.localData.products;
     }
 
     async getActiveProducts() {
-        const products = await this.getAllProducts();
-        return products.filter(p => p.status === 'active');
+        // Просто вызываем getAllProducts, так как сервер уже фильтрует по status=active
+        return await this.getAllProducts();
     }
 
     async getProductById(id) {
-        if (this.isOnline) {
-            try {
-                const response = await fetch(`${this.API_BASE}/api/products/${id}`);
-                const data = await response.json();
-                if (data.success) return data.product;
-            } catch (error) {
-                console.error('Ошибка получения товара:', error);
+        try {
+            const response = await fetch(`${this.API_BASE}/api/products/${id}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                return data.product;
+            } else {
+                throw new Error(data.error || 'Товар не найден');
             }
+        } catch (error) {
+            console.error('Ошибка получения товара:', error);
+            return null;
         }
-        return this.localData.products.find(p => p.id === parseInt(id));
     }
 
-    // ========== РАЗДЕЛЫ ==========
+    // ========== РАЗДЕЛЫ (ВСЕГДА С СЕРВЕРА) ==========
     async getAllSections() {
-        if (this.isOnline) {
-            try {
-                const response = await fetch(`${this.API_BASE}/api/sections`);
-                const data = await response.json();
-                if (data.success) {
-                    this.localData.sections = data.sections;
-                    localStorage.setItem('sections_cache', JSON.stringify(data.sections));
-                    return data.sections;
-                }
-            } catch (error) {
-                console.error('Ошибка получения разделов:', error);
+        try {
+            const response = await fetch(`${this.API_BASE}/api/sections`);
+            const data = await response.json();
+            
+            if (data.success) {
+                return data.sections;
+            } else {
+                throw new Error(data.error || 'Unknown error');
             }
+        } catch (error) {
+            console.error('Ошибка получения разделов:', error);
+            return [];
         }
-        return this.localData.sections;
     }
 
     async getActiveSections() {
@@ -86,7 +78,7 @@ class DataManager {
         return sections.filter(s => s.active);
     }
 
-    // ========== КОРЗИНА ==========
+    // ========== КОРЗИНА (ЛОКАЛЬНАЯ) ==========
     getCart() {
         return this.localData.cart;
     }
@@ -98,48 +90,16 @@ class DataManager {
 
     // ========== ЗАКАЗЫ ==========
     async submitOrder(orderData) {
-        if (this.isOnline) {
-            try {
-                const response = await fetch(`${this.API_BASE}/api/orders`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderData)
-                });
-                return await response.json();
-            } catch (error) {
-                console.error('Ошибка отправки заказа:', error);
-                return { success: false, error: 'Ошибка сети' };
-            }
-        }
-        
-        // Офлайн режим: сохраняем в localStorage
-        const orders = JSON.parse(localStorage.getItem('pending_orders') || '[]');
-        orderData.id = Date.now();
-        orderData.status = 'pending';
-        orders.push(orderData);
-        localStorage.setItem('pending_orders', JSON.stringify(orders));
-        
-        return { 
-            success: true, 
-            offline: true,
-            message: 'Заказ сохранен локально. Отправится при подключении.' 
-        };
-    }
-
-    // ========== ЗАГРУЗКА ФАЙЛОВ ==========
-    async uploadImage(file) {
-        const formData = new FormData();
-        formData.append('file', file);
-
         try {
-            const response = await fetch(`${this.API_BASE}/api/upload`, {
+            const response = await fetch(`${this.API_BASE}/api/orders`, {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
             });
             return await response.json();
         } catch (error) {
-            console.error('Ошибка загрузки файла:', error);
-            return { success: false, error: 'Ошибка загрузки' };
+            console.error('Ошибка отправки заказа:', error);
+            return { success: false, error: 'Ошибка сети' };
         }
     }
 
@@ -152,36 +112,10 @@ class DataManager {
         }).format(price);
     }
 
-    // ========== СИНХРОНИЗАЦИЯ ==========
-    async syncPendingOrders() {
-        if (!this.isOnline) return;
-        
-        const orders = JSON.parse(localStorage.getItem('pending_orders') || '[]');
-        if (orders.length === 0) return;
-        
-        for (const order of orders) {
-            const result = await this.submitOrder(order);
-            if (result.success && !result.offline) {
-                // Удаляем успешно отправленный заказ
-                const index = orders.findIndex(o => o.id === order.id);
-                if (index !== -1) {
-                    orders.splice(index, 1);
-                }
-            }
-        }
-        
-        localStorage.setItem('pending_orders', JSON.stringify(orders));
-    }
-
     // ========== ДЕБАГ ==========
     debug() {
         console.log('=== Data Manager Debug ===');
-        console.log('API доступен:', this.isOnline);
-        console.log('Товаров в кэше:', this.localData.products.length);
-        console.log('Разделов в кэше:', this.localData.sections.length);
         console.log('Товаров в корзине:', this.localData.cart.length);
-        console.log('Ожидающих заказов:', 
-            JSON.parse(localStorage.getItem('pending_orders') || '[]').length);
         console.log('========================');
     }
 }
@@ -189,9 +123,10 @@ class DataManager {
 // Глобальный инстанс
 window.dataManager = new DataManager();
 
-// Запускаем синхронизацию при загрузке
+// Запускаем проверку подключения при загрузке
 window.addEventListener('load', () => {
-    setTimeout(() => dataManager.syncPendingOrders(), 5000);
+    // Просто инициализируем, но не кэшируем товары
+    console.log('Магазин загружен, данные будут запрашиваться с сервера');
 });
 
 window.formatPrice = function(price) {

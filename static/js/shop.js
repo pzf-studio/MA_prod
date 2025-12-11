@@ -390,15 +390,9 @@ class CartSystem {
             const result = await dataManager.submitOrder(orderData);
             
             if (result.success) {
-                if (result.offline) {
-                    showNotification(result.message, 'info');
-                    this.closeCheckoutModal();
-                    this.clearCart();
-                } else {
-                    showNotification('Заказ успешно отправлен! Мы свяжемся с вами.', 'success');
-                    this.closeCheckoutModal();
-                    this.clearCart();
-                }
+                showNotification('Заказ успешно отправлен! Мы свяжемся с вами.', 'success');
+                this.closeCheckoutModal();
+                this.clearCart();
             } else {
                 showNotification(`Ошибка: ${result.error}`, 'error');
             }
@@ -438,7 +432,9 @@ function initializeCart() {
     console.log('Корзина инициализирована');
 }
 
+// ========== ГЛАВНАЯ ФУНКЦИЯ ДЛЯ ТОВАРОВ ==========
 async function initializeProducts() {
+    console.log('MA Furniture Shop - загрузка товаров с сервера...');
     const productsGrid = document.getElementById('productsGrid');
     const pagination = document.getElementById('pagination');
     const itemsPerPage = 15;
@@ -447,7 +443,10 @@ async function initializeProducts() {
 
     async function renderProducts() {
         try {
+            console.log('Запрос активных товаров...');
             const activeProducts = await dataManager.getActiveProducts();
+            console.log(`Получено товаров: ${activeProducts.length}`);
+            
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
             
@@ -467,14 +466,15 @@ async function initializeProducts() {
                     productsGrid.innerHTML = `
                         <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
                             <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                            <h3>Товары не найдены</h3>
-                            <p>${activeProducts.length === 0 ? 'Нет активных товаров' : 'Нет товаров в выбранном разделе'}</p>
+                            <h3>${activeProducts.length === 0 ? 'Нет активных товаров' : 'Нет товаров в выбранном разделе'}</h3>
+                            <p>${activeProducts.length === 0 ? 'Добавьте товары через админ-панель' : 'Попробуйте выбрать другой раздел'}</p>
                         </div>
                     `;
                     if (pagination) pagination.innerHTML = '';
                     return;
                 }
                 
+                console.log(`Отображение ${productsToShow.length} товаров`);
                 productsToShow.forEach(product => {
                     const productCard = createProductCard(product);
                     productsGrid.appendChild(productCard);
@@ -487,13 +487,16 @@ async function initializeProducts() {
             attachProductEventListeners();
             
         } catch (error) {
-            console.error('Ошибка рендеринга товаров:', error);
+            console.error('Критическая ошибка рендеринга товаров:', error);
             if (productsGrid) {
                 productsGrid.innerHTML = `
                     <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                         <h3>Ошибка загрузки товаров</h3>
-                        <p>Попробуйте обновить страницу</p>
+                        <p>Попробуйте обновить страницу или проверьте подключение к интернету</p>
+                        <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 1rem;">
+                            Обновить страницу
+                        </button>
                     </div>
                 `;
             }
