@@ -1,0 +1,21 @@
+# Запрещаем выполнение PHP файлов
+<Files *.php>
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# Запрещаем листинг директории
+Options -Indexes
+
+# Разрешаем доступ к изображениям
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Заголовки кэширования для изображений
+<FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
+    ExpiresActive On
+    ExpiresDefault "access plus 1 year"
+    Header append Cache-Control "public"
+</FilesMatch>
