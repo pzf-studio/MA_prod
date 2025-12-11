@@ -1,232 +1,178 @@
-// index.js - обновленный файл
+// Главная страница MA Furniture
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
+    initializeMainPage();
 });
 
-function initializeApp() {
-    migrateProductImages();
-    initializeSmoothScroll();
-    initializeFAQ();
+async function initializeMainPage() {
+    console.log('Главная страница инициализируется...');
+    
     initializeMobileMenu();
-    
-    loadRecommendedProducts();
-    loadRandomProducts();
-    
-    window.addEventListener('productsDataUpdated', () => {
-        console.log('Index: Данные обновлены');
-        loadRecommendedProducts();
-        loadRandomProducts();
-    });
+    initializeCart();
+    loadFeaturedProducts();
+    setupAnimations();
 }
 
-function migrateProductImages() {
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    let needsUpdate = false;
-    
-    products.forEach(product => {
-        if (product.image && (!product.images || product.images.length === 0)) {
-            product.images = [product.image];
-            needsUpdate = true;
-        }
-    });
-    
-    if (needsUpdate) {
-        localStorage.setItem('products', JSON.stringify(products));
-        console.log('Миграция изображений завершена');
+function initializeCart() {
+    if (!window.cartSystem && window.CartSystem) {
+        window.cartSystem = new CartSystem();
     }
 }
 
-function initializeSmoothScroll() {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href').substring(1);
-            const targetElement = document.getElementById(targetId);
-            
-            if (targetElement) {
-                targetElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
+async function loadFeaturedProducts() {
+    try {
+        const products = await dataManager.getActiveProducts();
+        const featuredProducts = products
+            .filter(p => p.recommended || p.badge === 'Хит продаж' || p.badge === 'Новинка')
+            .slice(0, 6);
+        
+        renderFeaturedProducts(featuredProducts);
+    } catch (error) {
+        console.error('Ошибка загрузки рекомендуемых товаров:', error);
+    }
 }
 
-function initializeFAQ() {
-    const faqItems = document.querySelectorAll('.faq-item');
+function renderFeaturedProducts(products) {
+    const container = document.getElementById('featuredProducts');
+    if (!container || products.length === 0) return;
     
-    faqItems.forEach(item => {
-        const question = item.querySelector('.faq-question');
+    let html = '';
+    
+    products.forEach(product => {
+        const imageUrl = product.images?.[0] || '';
+        const badge = product.badge ? `<span class="product-badge">${product.badge}</span>` : '';
         
-        question.addEventListener('click', () => {
-            const isActive = item.classList.contains('active');
+        html += `
+            <div class="featured-product-card">
+                <div class="product-image">
+                    ${imageUrl ? 
+                        `<img src="${imageUrl}" alt="${product.name}" loading="lazy">` : 
+                        '<div class="image-placeholder"><i class="fas fa-couch"></i></div>'
+                    }
+                    ${badge}
+                </div>
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <p class="product-description">${product.description?.substring(0, 100)}...</p>
+                    <div class="product-price">${dataManager.formatPrice(product.price)}</div>
+                    <div class="product-actions">
+                        <a href="piece.html?id=${product.id}" class="btn btn-outline">Подробнее</a>
+                        <button class="btn btn-primary add-to-cart" data-id="${product.id}">
+                            <i class="fas fa-shopping-cart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    // Обработчики для кнопок "В корзину"
+    container.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const productId = parseInt(this.dataset.id);
+            const product = await dataManager.getProductById(productId);
             
-            faqItems.forEach(otherItem => {
-                otherItem.classList.remove('active');
-            });
-            
-            if (!isActive) {
-                item.classList.add('active');
+            if (product && window.cartSystem) {
+                window.cartSystem.addToCart(product);
             }
         });
     });
 }
 
 function initializeMobileMenu() {
-    const menuToggle = document.querySelector('.menu-toggle');
+    const menuToggle = document.getElementById('menuToggle');
     const mainNav = document.querySelector('.main-nav');
     
     if (menuToggle && mainNav) {
         menuToggle.addEventListener('click', () => {
             mainNav.classList.toggle('active');
-            
-            const spans = menuToggle.querySelectorAll('span');
-            if (mainNav.classList.contains('active')) {
-                spans[0].style.transform = 'rotate(45deg) translate(6px, 6px)';
-                spans[1].style.opacity = '0';
-                spans[2].style.transform = 'rotate(-45deg) translate(6px, -6px)';
-            } else {
-                spans[0].style.transform = 'none';
-                spans[1].style.opacity = '1';
-                spans[2].style.transform = 'none';
-            }
+            menuToggle.classList.toggle('active');
         });
     }
-}
-
-function loadRecommendedProducts() {
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    const recommendedGrid = document.querySelector('.recommended-products-grid');
     
-    if (!recommendedGrid) return;
-    
-    const recommendedProducts = products.filter(product => product.recommended === 'true');
-    
-    if (recommendedProducts.length === 0) {
-        recommendedGrid.innerHTML = `
-            <div class="empty-products">
-                <i class="fas fa-box-open"></i>
-                <p>Рекомендуемые товары появятся здесь</p>
-            </div>
-        `;
-        return;
-    }
-    
-    recommendedGrid.innerHTML = '';
-    
-    recommendedProducts.forEach(product => {
-        const productCard = createProductCard(product);
-        recommendedGrid.appendChild(productCard);
+    document.querySelectorAll('.main-nav a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (mainNav) mainNav.classList.remove('active');
+            if (menuToggle) menuToggle.classList.remove('active');
+        });
     });
 }
 
-function loadRandomProducts() {
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    const randomGrid = document.querySelector('.random-products-grid');
+function setupAnimations() {
+    // Анимация появления элементов при скролле
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
     
-    if (!randomGrid) return;
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+            }
+        });
+    }, observerOptions);
     
-    const shuffled = [...products].sort(() => 0.5 - Math.random());
-    const randomProducts = shuffled.slice(0, 3);
-    
-    if (randomProducts.length === 0) {
-        randomGrid.innerHTML = `
-            <div class="empty-products">
-                <i class="fas fa-box-open"></i>
-                <p>Случайные товары появятся здесь</p>
-            </div>
-        `;
-        return;
-    }
-    
-    randomGrid.innerHTML = '';
-    
-    randomProducts.forEach(product => {
-        const productCard = createRandomProductCard(product);
-        randomGrid.appendChild(productCard);
+    // Наблюдаем за секциями
+    document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
     });
 }
 
-function createProductCard(product) {
-    const card = document.createElement('div');
-    card.className = 'product-card';
-    
-    const productImage = (product.images && product.images.length > 0) 
-        ? product.images[0] 
-        : product.image || null;
-    
-    card.innerHTML = `
-        <div class="product-image">
-            ${productImage ? `<img src="${productImage}" alt="${product.name}" loading="lazy">` : 
-              '<div class="no-image"><i class="fas fa-box"></i><p>Изображение отсутствует</p></div>'}
-            ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
-        </div>
-        <div class="product-info">
-            <h3 class="product-title">${product.name}</h3>
-            <p class="product-description">${product.description || 'Описание товара'}</p>
-            <div class="product-price">${formatPrice(product.price)}</div>
-        </div>
+// FAQ аккордеон
+document.querySelectorAll('.faq-question').forEach(question => {
+    question.addEventListener('click', function() {
+        const answer = this.nextElementSibling;
+        const icon = this.querySelector('i');
+        
+        answer.classList.toggle('active');
+        icon.classList.toggle('fa-chevron-down');
+        icon.classList.toggle('fa-chevron-up');
+    });
+});
+
+// Плавная прокрутка для якорных ссылок
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+            window.scrollTo({
+                top: targetElement.offsetTop - 80,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
+        color: white;
+        border-radius: 8px;
+        z-index: 1000;
     `;
     
-    return card;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.3s';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
-function createRandomProductCard(product) {
-    const card = document.createElement('div');
-    card.className = 'random-product-card';
-    
-    const productImage = (product.images && product.images.length > 0) 
-        ? product.images[0] 
-        : product.image || null;
-    
-    card.innerHTML = `
-        <div class="random-product-image">
-            ${productImage ? `<img src="${productImage}" alt="${product.name}" loading="lazy">` : 
-              '<div class="no-image"><i class="fas fa-box"></i><p>Изображение отсутствует</p></div>'}
-            ${product.badge ? `<span class="random-product-badge">${product.badge}</span>` : ''}
-        </div>
-        <div class="random-product-content">
-            <div class="random-product-category">${product.category || 'Категория'}</div>
-            <h3 class="random-product-title">${product.name}</h3>
-            <div class="random-product-price">${formatPrice(product.price)}</div>
-            <ul class="random-product-features">
-                <li>Высокое качество</li>
-                <li>Быстрая доставка</li>
-                <li>Гарантия возврата</li>
-            </ul>
-            <div class="random-product-actions">
-                <a href="shop.html?product=${product.id}" class="btn btn-small">
-                    <i class="fas fa-eye"></i> Подробнее
-                </a>
-            </div>
-        </div>
-    `;
-    
-    return card;
-}
-
-function formatPrice(price) {
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'RUB',
-        minimumFractionDigits: 0
-    }).format(price);
-}
-
-const style = document.createElement('style');
-style.textContent = `
-    .empty-products {
-        grid-column: 1 / -1;
-        text-align: center;
-        padding: 3rem;
-        color: var(--text-light);
-    }
-    
-    .empty-products i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        color: #ddd;
-    }
-`;
-document.head.appendChild(style);
+// Экспорты
+window.showNotification = showNotification;

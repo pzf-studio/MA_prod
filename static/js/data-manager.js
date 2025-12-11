@@ -1,223 +1,149 @@
-// data-manager.js - Версия для Amvera
+// Data Manager для работы с Flask API
 class DataManager {
     constructor() {
-        this.baseURL = '/api';
-        this.token = localStorage.getItem('admin_token');
-        this.initialized = false;
-        console.log('DataManager: Base URL:', this.baseURL);
+        this.API_BASE = window.location.origin;
+        this.isOnline = false;
+        this.localData = {
+            products: JSON.parse(localStorage.getItem('products_cache') || '[]'),
+            sections: JSON.parse(localStorage.getItem('sections_cache') || '[]'),
+            cart: JSON.parse(localStorage.getItem('ma_furniture_cart') || '[]')
+        };
+        
+        this.checkConnection();
+        console.log('Data Manager инициализирован');
     }
 
-    async initialize() {
-        if (this.initialized) return;
-
+    async checkConnection() {
         try {
-            const response = await fetch(`${this.baseURL}/health`);
-            if (!response.ok) throw new Error('API недоступен');
-            
-            const data = await response.json();
-            console.log('✅ DataManager инициализирован:', data);
-            this.initialized = true;
+            const response = await fetch(`${this.API_BASE}/api/health`, { 
+                method: 'GET',
+                timeout: 3000 
+            });
+            this.isOnline = response.ok;
         } catch (error) {
-            console.error('❌ Ошибка инициализации:', error);
-            this.initialized = true; // Продолжаем работу
+            this.isOnline = false;
+            console.log('API недоступен, используем локальные данные');
         }
     }
 
-    // 📦 Товары
-    async getProducts() {
-        await this.ensureInitialized();
-        try {
-            const response = await fetch(`${this.baseURL}/products`);
-            if (!response.ok) throw new Error('Ошибка получения товаров');
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching products:', error);
-            return [];
+    // ========== ТОВАРЫ ==========
+    async getAllProducts() {
+        if (this.isOnline) {
+            try {
+                const response = await fetch(`${this.API_BASE}/api/products?status=active`);
+                const data = await response.json();
+                if (data.success) {
+                    // Кэшируем данные локально
+                    this.localData.products = data.products;
+                    localStorage.setItem('products_cache', JSON.stringify(data.products));
+                    return data.products;
+                }
+            } catch (error) {
+                console.error('Ошибка получения товаров:', error);
+            }
         }
+        return this.localData.products;
     }
 
     async getActiveProducts() {
-        await this.ensureInitialized();
-        try {
-            const response = await fetch(`${this.baseURL}/products/active`);
-            return response.ok ? await response.json() : [];
-        } catch (error) {
-            console.error('Error fetching active products:', error);
-            return [];
-        }
+        const products = await this.getAllProducts();
+        return products.filter(p => p.status === 'active');
     }
 
     async getProductById(id) {
-        await this.ensureInitialized();
-        try {
-            const response = await fetch(`${this.baseURL}/products/${id}`);
-            if (!response.ok) throw new Error('Товар не найден');
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching product:', error);
-            throw error;
+        if (this.isOnline) {
+            try {
+                const response = await fetch(`${this.API_BASE}/api/products/${id}`);
+                const data = await response.json();
+                if (data.success) return data.product;
+            } catch (error) {
+                console.error('Ошибка получения товара:', error);
+            }
         }
+        return this.localData.products.find(p => p.id === parseInt(id));
     }
 
-    async addProduct(productData) {
-        return await this.authenticatedRequest('/admin/products', {
-            method: 'POST',
-            body: JSON.stringify(productData)
-        });
-    }
-
-    async updateProduct(id, productData) {
-        return await this.authenticatedRequest(`/admin/products/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(productData)
-        });
-    }
-
-    async deleteProduct(id) {
-        await this.authenticatedRequest(`/admin/products/${id}`, {
-            method: 'DELETE'
-        });
-        return true;
-    }
-
-    // 📁 Разделы
-    async getSections() {
-        await this.ensureInitialized();
-        try {
-            const response = await fetch(`${this.baseURL}/sections`);
-            return response.ok ? await response.json() : [];
-        } catch (error) {
-            console.error('Error fetching sections:', error);
-            return [];
+    // ========== РАЗДЕЛЫ ==========
+    async getAllSections() {
+        if (this.isOnline) {
+            try {
+                const response = await fetch(`${this.API_BASE}/api/sections`);
+                const data = await response.json();
+                if (data.success) {
+                    this.localData.sections = data.sections;
+                    localStorage.setItem('sections_cache', JSON.stringify(data.sections));
+                    return data.sections;
+                }
+            } catch (error) {
+                console.error('Ошибка получения разделов:', error);
+            }
         }
+        return this.localData.sections;
     }
 
     async getActiveSections() {
-        await this.ensureInitialized();
-        try {
-            const response = await fetch(`${this.baseURL}/sections/active`);
-            return response.ok ? await response.json() : [];
-        } catch (error) {
-            console.error('Error fetching active sections:', error);
-            return [];
+        const sections = await this.getAllSections();
+        return sections.filter(s => s.active);
+    }
+
+    // ========== КОРЗИНА ==========
+    getCart() {
+        return this.localData.cart;
+    }
+
+    saveCart(cart) {
+        this.localData.cart = cart;
+        localStorage.setItem('ma_furniture_cart', JSON.stringify(cart));
+    }
+
+    // ========== ЗАКАЗЫ ==========
+    async submitOrder(orderData) {
+        if (this.isOnline) {
+            try {
+                const response = await fetch(`${this.API_BASE}/api/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Ошибка отправки заказа:', error);
+                return { success: false, error: 'Ошибка сети' };
+            }
         }
-    }
-
-    async addSection(sectionData) {
-        return await this.authenticatedRequest('/admin/sections', {
-            method: 'POST',
-            body: JSON.stringify(sectionData)
-        });
-    }
-
-    async updateSection(id, sectionData) {
-        return await this.authenticatedRequest(`/admin/sections/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(sectionData)
-        });
-    }
-
-    async deleteSection(id) {
-        await this.authenticatedRequest(`/admin/sections/${id}`, {
-            method: 'DELETE'
-        });
-        return true;
-    }
-
-    // 🔐 Аутентификация
-    async login(username, password) {
-        // Демо-аутентификация
-        if (username === 'admin' && password === 'mafurniture2024') {
-            this.token = 'demo-token-' + Date.now();
-            localStorage.setItem('admin_token', this.token);
-            return { success: true, token: this.token };
-        }
-        throw new Error('Неверные учетные данные');
-    }
-
-    logout() {
-        this.token = null;
-        localStorage.removeItem('admin_token');
-    }
-
-    handleUnauthorized() {
-        this.logout();
-        if (window.location.pathname.includes('admin')) {
-            window.location.href = '/admin/admin-login.html';
-        }
-    }
-
-    async ensureInitialized() {
-        if (!this.initialized) await this.initialize();
-        if (!this.token) this.token = localStorage.getItem('admin_token');
-    }
-
-    async authenticatedRequest(endpoint, options = {}) {
-        await this.ensureInitialized();
         
-        if (!this.token) throw new Error('Требуется авторизация');
-
-        const url = `${this.baseURL}${endpoint}`;
-        const defaultOptions = {
-            headers: {
-                'Authorization': `Bearer ${this.token}`,
-                'Content-Type': 'application/json',
-            }
+        // Офлайн режим: сохраняем в localStorage
+        const orders = JSON.parse(localStorage.getItem('pending_orders') || '[]');
+        orderData.id = Date.now();
+        orderData.status = 'pending';
+        orders.push(orderData);
+        localStorage.setItem('pending_orders', JSON.stringify(orders));
+        
+        return { 
+            success: true, 
+            offline: true,
+            message: 'Заказ сохранен локально. Отправится при подключении.' 
         };
+    }
+
+    // ========== ЗАГРУЗКА ФАЙЛОВ ==========
+    async uploadImage(file) {
+        const formData = new FormData();
+        formData.append('file', file);
 
         try {
-            const response = await fetch(url, { ...defaultOptions, ...options });
-            
-            if (response.status === 401) {
-                this.handleUnauthorized();
-                throw new Error('Сессия истекла');
-            }
-
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
+            const response = await fetch(`${this.API_BASE}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
             return await response.json();
         } catch (error) {
-            console.error('API request error:', error);
-            throw error;
+            console.error('Ошибка загрузки файла:', error);
+            return { success: false, error: 'Ошибка загрузки' };
         }
     }
 
-    // 🛒 Заказы
-    async submitOrder(orderData) {
-        console.log('Order submitted:', orderData);
-        return {
-            success: true,
-            telegram_sent: true,
-            message: 'Заказ успешно отправлен! Мы свяжемся с вами.'
-        };
-    }
-
-    openTelegramFallback(orderData) {
-        const message = this.formatOrderForTelegram(orderData);
-        const telegramUrl = `https://t.me/Ma_Furniture_ru?text=${encodeURIComponent(message)}`;
-        window.open(telegramUrl, '_blank');
-        return { success: true };
-    }
-
-    formatOrderForTelegram(orderData) {
-        let message = `🛍️ Новый заказ из MA Furniture\n\n`;
-        message += `👤 Клиент: ${orderData.customer_name}\n`;
-        message += `📞 Телефон: ${orderData.customer_phone}\n`;
-        if (orderData.customer_email) message += `📧 Email: ${orderData.customer_email}\n`;
-        if (orderData.customer_address) message += `🏠 Адрес: ${orderData.customer_address}\n`;
-        
-        message += `\n🛒 Состав заказа:\n`;
-        orderData.items.forEach(item => {
-            message += `• ${item.name} - ${item.quantity} шт. x ${this.formatPrice(item.price)}\n`;
-        });
-        
-        message += `\n💰 Итого: ${this.formatPrice(orderData.total)}\n`;
-        if (orderData.customer_comment) message += `\n💬 Комментарий: ${orderData.customer_comment}\n`;
-        message += `\n📅 Дата: ${new Date().toLocaleString('ru-RU')}`;
-        
-        return message;
-    }
-
+    // ========== ФОРМАТИРОВАНИЕ ==========
     formatPrice(price) {
         return new Intl.NumberFormat('ru-RU', {
             style: 'currency',
@@ -225,13 +151,45 @@ class DataManager {
             minimumFractionDigits: 0
         }).format(price);
     }
+
+    // ========== СИНХРОНИЗАЦИЯ ==========
+    async syncPendingOrders() {
+        if (!this.isOnline) return;
+        
+        const orders = JSON.parse(localStorage.getItem('pending_orders') || '[]');
+        if (orders.length === 0) return;
+        
+        for (const order of orders) {
+            const result = await this.submitOrder(order);
+            if (result.success && !result.offline) {
+                // Удаляем успешно отправленный заказ
+                const index = orders.findIndex(o => o.id === order.id);
+                if (index !== -1) {
+                    orders.splice(index, 1);
+                }
+            }
+        }
+        
+        localStorage.setItem('pending_orders', JSON.stringify(orders));
+    }
+
+    // ========== ДЕБАГ ==========
+    debug() {
+        console.log('=== Data Manager Debug ===');
+        console.log('API доступен:', this.isOnline);
+        console.log('Товаров в кэше:', this.localData.products.length);
+        console.log('Разделов в кэше:', this.localData.sections.length);
+        console.log('Товаров в корзине:', this.localData.cart.length);
+        console.log('Ожидающих заказов:', 
+            JSON.parse(localStorage.getItem('pending_orders') || '[]').length);
+        console.log('========================');
+    }
 }
 
-// Глобальный экземпляр
-const dataManager = new DataManager();
-window.dataManager = dataManager;
+// Глобальный инстанс
+window.dataManager = new DataManager();
 
-// Авто-инициализация
-document.addEventListener('DOMContentLoaded', () => {
-    dataManager.initialize().catch(console.error);
+// Запускаем синхронизацию при загрузке
+window.addEventListener('load', () => {
+    setTimeout(() => dataManager.syncPendingOrders(), 5000);
 });
