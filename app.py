@@ -230,6 +230,46 @@ def init_database():
 # Инициализируем базу данных при запуске
 init_database()
 
+@app.route('/debug/admin-files')
+def debug_admin_files():
+    """Проверка файлов админки"""
+    import json
+    
+    admin_dir = os.path.join(STATIC_DIR, 'admin')
+    
+    result = {
+        'admin_dir': admin_dir,
+        'exists': os.path.exists(admin_dir),
+        'important_files': {}
+    }
+    
+    # Важные файлы для проверки
+    important_files = [
+        ('admin-login.html', 'admin/admin-login.html'),
+        ('admin-dashboard.html', 'admin/admin-dashboard.html'),
+        ('admin-styles.css', 'admin/css/admin-styles.css'),
+        ('admin-auth.js', 'admin/js/admin-auth.js'),
+    ]
+    
+    for name, rel_path in important_files:
+        full_path = os.path.join(STATIC_DIR, rel_path)
+        result['important_files'][name] = {
+            'expected_path': rel_path,
+            'full_path': full_path,
+            'exists': os.path.exists(full_path),
+            'size': os.path.getsize(full_path) if os.path.exists(full_path) else 0
+        }
+    
+    return jsonify(result)
+
+@app.route('/test-static/<path:filename>')
+def test_static(filename):
+    """Тест отдачи статических файлов"""
+    try:
+        return send_from_directory(STATIC_DIR, filename)
+    except Exception as e:
+        return jsonify({'error': str(e), 'filename': filename}), 404
+
 # ========== FAVICON ==========
 @app.route('/favicon.ico')
 def favicon():
@@ -326,15 +366,27 @@ def piece():
 @app.route('/admin')
 @app.route('/admin/')
 def admin_root():
-    """Корень админки"""
-    logger.info(f"GET /admin")
+    """Главная страница админки"""
     try:
-        admin_login_path = os.path.join(STATIC_DIR, 'admin/admin-login.html')
-        if os.path.exists(admin_login_path):
-            return send_file(admin_login_path)
-        return "Admin panel not found", 404
+        login_path = os.path.join(STATIC_DIR, 'admin/admin-login.html')
+        if os.path.exists(login_path):
+            return send_file(login_path)
+        return "Admin login not found", 404
     except Exception as e:
-        logger.error(f"Ошибка загрузки админки: {e}")
+        logger.error(f"Admin root error: {e}")
+        return str(e), 500
+
+@app.route('/admin/dashboard')
+@app.route('/admin/dashboard/')
+def admin_dashboard():
+    """Дашборд админки"""
+    try:
+        dashboard_path = os.path.join(STATIC_DIR, 'admin/admin-dashboard.html')
+        if os.path.exists(dashboard_path):
+            return send_file(dashboard_path)
+        return "Dashboard not found", 404
+    except Exception as e:
+        logger.error(f"Dashboard error: {e}")
         return str(e), 500
 
 @app.route('/admin/<path:filename>')
@@ -850,24 +902,23 @@ def serve_images(filename):
         logger.error(f"Ошибка отдачи изображений: {e}")
         return '', 404
 
+# Эти маршруты должны работать для админской статики:
 @app.route('/admin/css/<path:filename>')
 def serve_admin_css(filename):
-    """Отдача CSS админки"""
+    """CSS админки"""
     try:
-        admin_css_dir = os.path.join(STATIC_DIR, 'admin/css')
-        return send_from_directory(admin_css_dir, filename)
+        return send_from_directory(os.path.join(STATIC_DIR, 'admin/css'), filename)
     except Exception as e:
-        logger.error(f"Ошибка отдачи CSS админки: {e}")
+        logger.error(f"Admin CSS error: {e}")
         return '', 404
 
 @app.route('/admin/js/<path:filename>')
 def serve_admin_js(filename):
-    """Отдача JS админки"""
+    """JS админки"""
     try:
-        admin_js_dir = os.path.join(STATIC_DIR, 'admin/js')
-        return send_from_directory(admin_js_dir, filename)
+        return send_from_directory(os.path.join(STATIC_DIR, 'admin/js'), filename)
     except Exception as e:
-        logger.error(f"Ошибка отдачи JS админки: {e}")
+        logger.error(f"Admin JS error: {e}")
         return '', 404
 
 # Альтернативно, добавьте catch-all для админки
