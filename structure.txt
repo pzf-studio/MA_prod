@@ -1,0 +1,31 @@
+📁 MA_prod/
+├── 📁 data
+├── 📁 static
+│   ├── 📁 admin
+│   ├── 📁 css
+│   │   ├── 📄 index.css
+│   │   ├── 📄 piece.css
+│   │   └── 📄 shop.css
+│   ├── 📁 images
+│   │   ├── 📄 1.png
+│   │   ├── 📄 2.jpeg
+│   │   ├── 📄 3.jpg
+│   │   ├── 📄 4.jpg
+│   │   ├── 📄 example.png
+│   │   ├── 📄 hero.jpg
+│   │   ├── 📄 logo.png
+│   │   └── 📄 logo2.png
+│   ├── 📁 js
+│   │   ├── 📄 index.js
+│   │   ├── 📄 piece.js
+│   │   └── 📄 shop.js
+│   ├── 📁 uploads
+│   ├── 📄 index.html
+│   ├── 📄 piece.html
+│   └── 📄 shop.html
+├── 📄 amvera.yml
+├── 📄 arch.py
+├── 📄 arch.txt
+├── 📄 LICENSE
+├── 📄 photo_2025-11-30_03-24-55.jpg
+└── 📄 requirements.txt

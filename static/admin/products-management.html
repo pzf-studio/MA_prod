@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MA Furniture - Управление товарами</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/admin-styles.css">
+    <link rel="icon" type="image/x-icon" href="../images/logo2.png">
+    <style>
+        /* Дополнительные стили для управления товарами */
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .products-table th,
+        .products-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .products-table th {
+            font-weight: 600;
+            background: var(--light-color);
+            color: #6c757d;
+        }
+        
+        .products-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .product-image-cell img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .no-image {
+            width: 60px;
+            height: 60px;
+            background: var(--light-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #adb5bd;
+        }
+        
+        .status-toggle {
+            width: 40px;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .status-toggle.active {
+            background: var(--success-color);
+        }
+        
+        .status-toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: var(--transition);
+        }
+        
+        .status-toggle.active::after {
+            left: 22px;
+        }
+        
+        .badge-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 2px;
+        }
+        
+        .badge-new { background: #e3f2fd; color: #1976d2; }
+        .badge-hit { background: #ffebee; color: #d32f2f; }
+        .badge-sale { background: #fff3e0; color: #f57c00; }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn:hover {
+            background: var(--light-color);
+        }
+        
+        .action-btn.edit { color: var(--secondary-color); }
+        .action-btn.delete { color: var(--danger-color); }
+        .action-btn.view { color: var(--success-color); }
+        
+        /* Модальное окно товара */
+        .modal-lg {
+            max-width: 800px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .image-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .image-upload-area:hover {
+            border-color: var(--secondary-color);
+            background: #f8f9fa;
+        }
+        
+        .image-upload-area i {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+        
+        .image-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .preview-item {
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .preview-item img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+        }
+        
+        .preview-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        /* Фильтры и поиск */
+        .products-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .search-input {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            width: 300px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: white;
+            min-width: 150px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+        }
+        
+        .page-item {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        
+        .page-item:hover,
+        .page-item.active {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        
+        /* Адаптивность таблицы */
+        @media (max-width: 1200px) {
+            .products-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .search-input {
+                width: 200px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .products-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .filter-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковая панель (из admin-dashboard.html) -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="../images/logo2.png" alt="MA Furniture">
+                <div class="logo-text">
+                    <h2>MA Furniture</h2>
+                    <small>Админ панель</small>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="user-details">
+                    <h4 id="adminName">Администратор</h4>
+                    <small id="adminRole">Владелец</small>
+                </div>
+            </div>
+            
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a href="admin-dashboard.html">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Дашборд</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="products-management.html">
+                        <i class="fas fa-box"></i>
+                        <span>Товары</span>
+                        <span class="badge" id="productsBadge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="orders-management.html">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Заказы</span>
+                        <span class="badge" id="ordersBadge">0</span>
+                    </a>
+                </li>
+                <!-- Остальные пункты меню -->
+            </ul>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <!-- Верхняя панель -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Управление товарами</h1>
+                <nav class="breadcrumb">
+                    <a href="admin-dashboard.html">Главная</a>
+                    <span>/</span>
+                    <span class="current">Товары</span>
+                </nav>
+            </div>
+            
+            <div class="topbar-right">
+                <button class="btn btn-primary" id="addProductBtn">
+                    <i class="fas fa-plus"></i>
+                    Добавить товар
+                </button>
+            </div>
+        </header>
+
+        <!-- Фильтры и поиск -->
+        <section class="products-header">
+            <div class="search-box">
+                <input type="text" 
+                       class="search-input" 
+                       id="productSearch"
+                       placeholder="Поиск по названию...">
+                <button class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
+            <div class="filters">
+                <select class="filter-select" id="categoryFilter">
+                    <option value="">Все категории</option>
+                    <option value="pantograph">Пантографы</option>
+                    <option value="wardrobe">Гардеробные системы</option>
+                    <option value="shoerack">Обувницы</option>
+                    <option value="premium">Премиум коллекция</option>
+                </select>
+                
+                <select class="filter-select" id="statusFilter">
+                    <option value="">Все статусы</option>
+                    <option value="active">Активные</option>
+                    <option value="inactive">Неактивные</option>
+                </select>
+                
+                <select class="filter-select" id="sortBy">
+                    <option value="newest">Сначала новые</option>
+                    <option value="oldest">Сначала старые</option>
+                    <option value="price_asc">Цена: по возрастанию</option>
+                    <option value="price_desc">Цена: по убыванию</option>
+                    <option value="name_asc">Название: А-Я</option>
+                    <option value="name_desc">Название: Я-А</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Таблица товаров -->
+        <section class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="products-table" id="productsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">ID</th>
+                                <th style="width: 80px;">Изображение</th>
+                                <th>Название</th>
+                                <th style="width: 100px;">Категория</th>
+                                <th style="width: 120px;">Цена</th>
+                                <th style="width: 100px;">Статус</th>
+                                <th style="width: 120px;">Бейдж</th>
+                                <th style="width: 150px;">Дата добавления</th>
+                                <th style="width: 120px;">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <!-- Товары загружаются динамически -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Пагинация -->
+                <div class="pagination" id="pagination">
+                    <!-- Пагинация генерируется динамически -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Футер -->
+        <footer class="main-footer">
+            <p>&copy; 2024 MA Furniture Admin Panel. Все права защищены.</p>
+        </footer>
+    </main>
+
+    <!-- Модальное окно добавления/редактирования товара -->
+    <div class="modal" id="productModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="modalTitle">Добавить новый товар</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <form id="productForm">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productName">Название товара *</label>
+                            <input type="text" 
+                                   id="productName" 
+                                   name="productName" 
+                                   class="form-control" 
+                                   required 
+                                   placeholder="Например: Электрический пантограф Premium">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productCode">Артикул</label>
+                            <input type="text" 
+                                   id="productCode" 
+                                   name="productCode" 
+                                   class="form-control" 
+                                   placeholder="PROD-001">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productCategory">Категория *</label>
+                            <select id="productCategory" name="productCategory" class="form-control" required>
+                                <option value="">Выберите категорию</option>
+                                <option value="pantograph">Пантографы</option>
+                                <option value="wardrobe">Гардеробные системы</option>
+                                <option value="shoerack">Обувницы</option>
+                                <option value="premium">Премиум коллекция</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productSection">Раздел</label>
+                            <select id="productSection" name="productSection" class="form-control">
+                                <option value="">Без раздела</option>
+                                <!-- Разделы загружаются динамически -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productPrice">Цена (₽) *</label>
+                            <input type="number" 
+                                   id="productPrice" 
+                                   name="productPrice" 
+                                   class="form-control" 
+                                   required 
+                                   min="0" 
+                                   step="100"
+                                   placeholder="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productOldPrice">Старая цена (₽)</label>
+                            <input type="number" 
+                                   id="productOldPrice" 
+                                   name="productOldPrice" 
+                                   class="form-control" 
+                                   min="0" 
+                                   step="100"
+                                   placeholder="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productBadge">Бейдж</label>
+                            <select id="productBadge" name="productBadge" class="form-control">
+                                <option value="">Без бейджа</option>
+                                <option value="Новинка">Новинка</option>
+                                <option value="Хит продаж">Хит продаж</option>
+                                <option value="Акция">Акция</option>
+                                <option value="Эксклюзив">Эксклюзив</option>
+                                <option value="Премиум">Премиум</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productRecommended">Рекомендуемый</label>
+                            <select id="productRecommended" name="productRecommended" class="form-control">
+                                <option value="false">Нет</option>
+                                <option value="true">Да</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productDescription">Описание товара *</label>
+                        <textarea id="productDescription" 
+                                  name="productDescription" 
+                                  class="form-control" 
+                                  required 
+                                  rows="4"
+                                  placeholder="Подробное описание товара..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productSpecifications">Характеристики</label>
+                        <textarea id="productSpecifications" 
+                                  name="productSpecifications" 
+                                  class="form-control" 
+                                  rows="3"
+                                  placeholder="Материал: алюминий
+Размеры: 120x80x40 см
+Цвет: черный матовый"></textarea>
+                        <small class="text-muted">Укажите каждую характеристику с новой строки</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Изображения товара</label>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Перетащите сюда изображения или кликните для выбора</p>
+                            <input type="file" 
+                                   id="imageUpload" 
+                                   accept="image/*" 
+                                   multiple 
+                                   style="display: none;">
+                            <p class="text-muted" style="margin-top: 10px;">
+                                Рекомендуемый размер: 800x600px. Форматы: JPG, PNG, WebP
+                            </p>
+                        </div>
+                        
+                        <div class="image-preview" id="imagePreview">
+                            <!-- Препросмотр изображений -->
+                        </div>
+                        
+                        <small class="text-muted">
+                            Первое изображение будет использоваться как основное в каталоге
+                        </small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productStatus">Статус</label>
+                            <select id="productStatus" name="productStatus" class="form-control">
+                                <option value="active">Активный</option>
+                                <option value="inactive">Неактивный</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productStock">Количество на складе</label>
+                            <input type="number" 
+                                   id="productStock" 
+                                   name="productStock" 
+                                   class="form-control" 
+                                   min="0" 
+                                   value="10"
+                                   placeholder="Количество">
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="productId" name="productId">
+                    <input type="hidden" id="productImages" name="productImages">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="modalCancel">
+                        Отмена
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="modalSubmit">
+                        <i class="fas fa-save"></i>
+                        Сохранить товар
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Подтверждение удаления</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить этот товар? Это действие нельзя отменить.</p>
+                <input type="hidden" id="deleteProductId">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="deleteCancel">
+                    Отмена
+                </button>
+                <button type="button" class="btn btn-danger" id="deleteConfirm">
+                    <i class="fas fa-trash"></i>
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="./js/admin-auth.js"></script>
+    <script src="./js/admin-products.js"></script>
+</body>
+</html>
