@@ -2,6 +2,18 @@
 ├── 📁 data
 ├── 📁 static
 │   ├── 📁 admin
+│   │   ├── 📁 css
+│   │   │   ├── 📄 admin-login.css
+│   │   │   └── 📄 admin-styles.css
+│   │   ├── 📁 js
+│   │   │   ├── 📄 admin-auth.js
+│   │   │   ├── 📄 admin-products.js
+│   │   │   └── 📄 admin-upload.js
+│   │   ├── 📄 admin-dashboard.html
+│   │   ├── 📄 admin-login.html
+│   │   ├── 📄 cleanup-uploads.php
+│   │   ├── 📄 products-management.html
+│   │   └── 📄 upload-handler.php
 │   ├── 📁 css
 │   │   ├── 📄 index.css
 │   │   ├── 📄 piece.css
@@ -16,16 +28,22 @@
 │   │   ├── 📄 logo.png
 │   │   └── 📄 logo2.png
 │   ├── 📁 js
+│   │   ├── 📄 data-manager.js
 │   │   ├── 📄 index.js
 │   │   ├── 📄 piece.js
 │   │   └── 📄 shop.js
 │   ├── 📁 uploads
+│   │   ├── 📁 products
+│   │   ├── 📁 temp
+│   │   ├── 📄 .gitkeep
+│   │   └── 📄 .htaccess
 │   ├── 📄 index.html
 │   ├── 📄 piece.html
 │   └── 📄 shop.html
 ├── 📄 amvera.yml
+├── 📄 app.py
 ├── 📄 arch.py
-├── 📄 arch.txt
 ├── 📄 LICENSE
 ├── 📄 photo_2025-11-30_03-24-55.jpg
-└── 📄 requirements.txt
+├── 📄 requirements.txt
+└── 📄 structure.txt

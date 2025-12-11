@@ -9,7 +9,10 @@ from flask_cors import CORS
 import hashlib
 import uuid
 from werkzeug.utils import secure_filename
-
+import sys
+print(f"Current directory: {os.getcwd()}")
+print(f"Script directory: {os.path.dirname(os.path.abspath(__file__))}")
+print(f"Files in current dir: {os.listdir('.')}")
 # ========== НАСТРОЙКА ==========
 app = Flask(__name__, static_folder='../static', static_url_path='')
 CORS(app)  # Разрешаем кросс-доменные запросы
