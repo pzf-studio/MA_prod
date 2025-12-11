@@ -20,7 +20,7 @@ class AdminProductsManager {
     
     async checkAuth() {
         if (!this.authToken) {
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin';
             return;
         }
         
@@ -30,10 +30,10 @@ class AdminProductsManager {
             });
             
             if (!response.ok) {
-                window.location.href = 'admin-login.html';
+                window.location.href = '/admin';
             }
         } catch (error) {
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin';
         }
     }
     
@@ -41,7 +41,7 @@ class AdminProductsManager {
         try {
             const response = await fetch(`${this.API_BASE}/api/admin/products`, {
                 headers: { 
-                    'Authorization': this.authToken,
+                    'Authorization': `Bearer ${this.authToken}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -57,7 +57,7 @@ class AdminProductsManager {
             }
         } catch (error) {
             console.error('Ошибка загрузки товаров:', error);
-            showNotification(`Ошибка: ${error.message}`, 'error');
+            this.showNotification(`Ошибка: ${error.message}`, 'error');
         }
     }
     
@@ -105,7 +105,7 @@ class AdminProductsManager {
             const isActive = product.status === 'active';
             const statusToggle = `
                 <div class="status-toggle ${isActive ? 'active' : ''}" 
-                     onclick="adminProducts.toggleStatus(${product.id})">
+                     onclick="window.adminProducts.toggleStatus(${product.id})">
                 </div>
             `;
             
@@ -123,12 +123,23 @@ class AdminProductsManager {
             // Бейдж
             let badgeHTML = '';
             if (product.badge) {
-                badgeHTML = `<span class="badge-tag">${product.badge}</span>`;
+                const badgeClass = product.badge.toLowerCase().includes('новинка') ? 'badge-new' :
+                                  product.badge.toLowerCase().includes('хит') ? 'badge-hit' :
+                                  product.badge.toLowerCase().includes('акция') ? 'badge-sale' : '';
+                badgeHTML = `<span class="badge-tag ${badgeClass}">${product.badge}</span>`;
             }
             
             // Дата
             const date = new Date(product.created_at);
             const formattedDate = date.toLocaleDateString('ru-RU');
+            
+            // Цена - исправлено: используем dataManager если есть, иначе локальный метод
+            let priceFormatted = '0 ₽';
+            if (typeof dataManager !== 'undefined' && dataManager.formatPrice) {
+                priceFormatted = dataManager.formatPrice(product.price);
+            } else {
+                priceFormatted = this.formatPrice(product.price);
+            }
             
             row.innerHTML = `
                 <td>${product.id}</td>
@@ -139,19 +150,19 @@ class AdminProductsManager {
                     <small class="text-muted">${product.description?.substring(0, 100)}...</small>
                 </td>
                 <td>${product.category || '-'}</td>
-                <td>${dataManager.formatPrice(product.price)}</td>
+                <td>${priceFormatted}</td>
                 <td>${statusToggle}</td>
                 <td>${badgeHTML}</td>
                 <td>${formattedDate}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="action-btn view" onclick="adminProducts.viewProduct(${product.id})">
+                        <button class="action-btn view" onclick="window.adminProducts.viewProduct(${product.id})">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="action-btn edit" onclick="adminProducts.editProduct(${product.id})">
+                        <button class="action-btn edit" onclick="window.adminProducts.editProduct(${product.id})">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete" onclick="adminProducts.confirmDelete(${product.id})">
+                        <button class="action-btn delete" onclick="window.adminProducts.confirmDelete(${product.id})">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -179,7 +190,7 @@ class AdminProductsManager {
         
         html += `
             <button class="page-item ${this.currentPage === 1 ? 'disabled' : ''}" 
-                    onclick="adminProducts.changePage(${this.currentPage - 1})">
+                    onclick="window.adminProducts.changePage(${this.currentPage - 1})">
                 <i class="fas fa-chevron-left"></i>
             </button>
         `;
@@ -188,7 +199,7 @@ class AdminProductsManager {
             if (i === 1 || i === totalPages || (i >= this.currentPage - 2 && i <= this.currentPage + 2)) {
                 html += `
                     <button class="page-item ${i === this.currentPage ? 'active' : ''}" 
-                            onclick="adminProducts.changePage(${i})">
+                            onclick="window.adminProducts.changePage(${i})">
                         ${i}
                     </button>
                 `;
@@ -199,7 +210,7 @@ class AdminProductsManager {
         
         html += `
             <button class="page-item ${this.currentPage === totalPages ? 'disabled' : ''}" 
-                    onclick="adminProducts.changePage(${this.currentPage + 1})">
+                    onclick="window.adminProducts.changePage(${this.currentPage + 1})">
                 <i class="fas fa-chevron-right"></i>
             </button>
         `;
@@ -237,7 +248,7 @@ class AdminProductsManager {
             const response = await fetch(`${this.API_BASE}/api/admin/products/${productId}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': this.authToken,
+                    'Authorization': `Bearer ${this.authToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ status: newStatus })
@@ -250,13 +261,13 @@ class AdminProductsManager {
                 this.renderProducts();
                 
                 const statusText = newStatus === 'active' ? 'активирован' : 'деактивирован';
-                showNotification(`Товар "${product.name}" ${statusText}`, 'success');
+                this.showNotification(`Товар "${product.name}" ${statusText}`, 'success');
             } else {
                 throw new Error(data.error);
             }
         } catch (error) {
             console.error('Ошибка изменения статуса:', error);
-            showNotification(`Ошибка: ${error.message}`, 'error');
+            this.showNotification(`Ошибка: ${error.message}`, 'error');
         }
     }
     
@@ -274,13 +285,13 @@ class AdminProductsManager {
                 this.renderProducts();
                 this.updateProductsBadge();
                 
-                showNotification('Товар успешно удален', 'success');
+                this.showNotification('Товар успешно удален', 'success');
             } else {
                 throw new Error(data.error);
             }
         } catch (error) {
             console.error('Ошибка удаления товара:', error);
-            showNotification(`Ошибка: ${error.message}`, 'error');
+            this.showNotification(`Ошибка: ${error.message}`, 'error');
         }
     }
     
@@ -304,7 +315,27 @@ class AdminProductsManager {
             productForm.addEventListener('submit', (e) => this.handleProductSubmit(e));
         }
         
-        // Фильтры
+        // Закрытие модального окна
+        const modalClose = document.getElementById('modalClose');
+        const modalCancel = document.getElementById('modalCancel');
+        if (modalClose) modalClose.addEventListener('click', () => this.closeModal());
+        if (modalCancel) modalCancel.addEventListener('click', () => this.closeModal());
+        
+        // Подтверждение удаления
+        const deleteCancel = document.getElementById('deleteCancel');
+        const deleteConfirm = document.getElementById('deleteConfirm');
+        if (deleteCancel) deleteCancel.addEventListener('click', () => this.closeDeleteModal());
+        if (deleteConfirm) deleteConfirm.addEventListener('click', () => this.confirmDeleteAction());
+        
+        // Загрузка изображений
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const imageUpload = document.getElementById('imageUpload');
+        if (imageUploadArea && imageUpload) {
+            imageUploadArea.addEventListener('click', () => imageUpload.click());
+            imageUpload.addEventListener('change', (e) => this.handleImageUpload(e));
+        }
+        
+        // Фильтры и поиск
         const filters = ['categoryFilter', 'statusFilter', 'sortBy'];
         filters.forEach(filterId => {
             const element = document.getElementById(filterId);
@@ -328,6 +359,15 @@ class AdminProductsManager {
                     // Здесь можно добавить поиск
                     this.renderProducts();
                 }, 500);
+            });
+        }
+        
+        // Выход
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.logout();
             });
         }
     }
@@ -386,7 +426,7 @@ class AdminProductsManager {
                 previewItem.className = 'preview-item';
                 previewItem.innerHTML = `
                     <img src="${image}" alt="Превью">
-                    <button class="preview-remove" onclick="this.closest('.preview-item').remove(); adminProducts.updateImagesField()">
+                    <button class="preview-remove" onclick="this.closest('.preview-item').remove(); window.adminProducts.updateImagesField()">
                         <i class="fas fa-times"></i>
                     </button>
                 `;
@@ -429,7 +469,7 @@ class AdminProductsManager {
             const response = await fetch(url, {
                 method,
                 headers: {
-                    'Authorization': this.authToken,
+                    'Authorization': `Bearer ${this.authToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(productData)
@@ -440,18 +480,82 @@ class AdminProductsManager {
             if (data.success) {
                 await this.loadProducts(); // Перезагружаем список
                 
-                const modal = document.getElementById('productModal');
-                if (modal) modal.classList.remove('active');
+                this.closeModal();
                 
                 const message = productId ? 'Товар обновлен' : 'Товар добавлен';
-                showNotification(message, 'success');
+                this.showNotification(message, 'success');
             } else {
                 throw new Error(data.error);
             }
         } catch (error) {
             console.error('Ошибка сохранения товара:', error);
-            showNotification(`Ошибка: ${error.message}`, 'error');
+            this.showNotification(`Ошибка: ${error.message}`, 'error');
         }
+    }
+    
+    async handleImageUpload(e) {
+        const files = Array.from(e.target.files);
+        
+        for (const file of files) {
+            if (!file.type.startsWith('image/')) {
+                this.showNotification('Пожалуйста, загружайте только изображения', 'error');
+                continue;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                this.showNotification(`Файл ${file.name} слишком большой (максимум 5MB)`, 'error');
+                continue;
+            }
+            
+            const result = await this.uploadImage(file);
+            
+            if (result.success) {
+                this.addImagePreview(result);
+            } else {
+                this.showNotification(`Ошибка загрузки: ${result.error}`, 'error');
+            }
+        }
+        
+        // Очищаем input
+        e.target.value = '';
+    }
+    
+    async uploadImage(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Admin-Request': 'true',
+                    'Authorization': `Bearer ${this.authToken}`
+                }
+            });
+            
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+    
+    addImagePreview(fileInfo) {
+        const imagePreview = document.getElementById('imagePreview');
+        if (!imagePreview) return;
+        
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
+        previewItem.innerHTML = `
+            <img src="${fileInfo.url}" alt="${fileInfo.original_name}">
+            <button class="preview-remove" onclick="this.closest('.preview-item').remove(); window.adminProducts.updateImagesField()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        imagePreview.appendChild(previewItem);
+        this.updateImagesField();
     }
     
     updateImagesField() {
@@ -470,9 +574,28 @@ class AdminProductsManager {
         imagesField.value = JSON.stringify(images);
     }
     
+    formatPrice(price) {
+        if (!price && price !== 0) return '0 ₽';
+        return new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: 'RUB',
+            minimumFractionDigits: 0
+        }).format(price).replace('₽', '₽');
+    }
+    
+    closeModal() {
+        const modal = document.getElementById('productModal');
+        if (modal) modal.classList.remove('active');
+    }
+    
+    closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        if (modal) modal.classList.remove('active');
+    }
+    
     // Методы для кнопок действий
     viewProduct(productId) {
-        window.open(`../piece.html?id=${productId}`, '_blank');
+        window.open(`/piece?id=${productId}`, '_blank');
     }
     
     editProduct(productId) {
@@ -480,98 +603,96 @@ class AdminProductsManager {
     }
     
     confirmDelete(productId) {
-        if (confirm('Вы уверены, что хотите удалить этот товар?')) {
+        const modal = document.getElementById('deleteModal');
+        const deleteProductId = document.getElementById('deleteProductId');
+        
+        if (modal && deleteProductId) {
+            deleteProductId.value = productId;
+            modal.classList.add('active');
+        } else {
+            // Fallback
+            if (confirm('Вы уверены, что хотите удалить этот товар?')) {
+                this.deleteProduct(productId);
+            }
+        }
+    }
+    
+    confirmDeleteAction() {
+        const productId = document.getElementById('deleteProductId')?.value;
+        if (productId) {
             this.deleteProduct(productId);
+            this.closeDeleteModal();
         }
     }
     
     changePage(page) {
+        if (page < 1 || page > Math.ceil(this.products.length / this.itemsPerPage)) return;
         this.currentPage = page;
         this.renderProducts();
+    }
+    
+    logout() {
+        if (confirm('Вы уверены, что хотите выйти?')) {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_session');
+            window.location.href = '/admin';
+        }
+    }
+    
+    showNotification(message, type = 'success') {
+        // Удаляем старые уведомления
+        const existingNotifications = document.querySelectorAll('.notification');
+        existingNotifications.forEach(notification => notification.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        let icon = 'info-circle';
+        if (type === 'success') icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        if (type === 'warning') icon = 'exclamation-triangle';
+        
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${icon}"></i>
+                ${message}
+            </div>
+        `;
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: ${type === 'success' ? '#27ae60' : 
+                        type === 'error' ? '#e74c3c' : '#f39c12'};
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 400px;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+        
+        setTimeout(() => {
+            notification.style.transform = 'translateX(120%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 3000);
     }
 }
 
 // Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
     window.adminProducts = new AdminProductsManager();
-    
-    // Инициализация загрузки изображений
-    initializeImageUpload();
 });
-
-function initializeImageUpload() {
-    const uploadArea = document.getElementById('imageUploadArea');
-    const fileInput = document.getElementById('imageUpload');
-    
-    if (!uploadArea || !fileInput) return;
-    
-    uploadArea.addEventListener('click', () => fileInput.click());
-    
-    fileInput.addEventListener('change', async function(e) {
-        const files = Array.from(e.target.files);
-        
-        for (const file of files) {
-            if (!file.type.startsWith('image/')) {
-                showNotification('Пожалуйста, загружайте только изображения', 'error');
-                continue;
-            }
-            
-            if (file.size > 5 * 1024 * 1024) {
-                showNotification(`Файл ${file.name} слишком большой (максимум 5MB)`, 'error');
-                continue;
-            }
-            
-            const result = await dataManager.uploadImage(file);
-            
-            if (result.success) {
-                addImagePreview(result);
-            } else {
-                showNotification(`Ошибка загрузки: ${result.error}`, 'error');
-            }
-        }
-        
-        // Очищаем input
-        e.target.value = '';
-    });
-}
-
-function addImagePreview(fileInfo) {
-    const imagePreview = document.getElementById('imagePreview');
-    if (!imagePreview) return;
-    
-    const previewItem = document.createElement('div');
-    previewItem.className = 'preview-item';
-    previewItem.innerHTML = `
-        <img src="${fileInfo.url}" alt="${fileInfo.original_name}">
-        <button class="preview-remove" onclick="this.closest('.preview-item').remove(); adminProducts.updateImagesField()">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    imagePreview.appendChild(previewItem);
-    adminProducts.updateImagesField();
-}
-
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        background: ${type === 'success' ? '#27ae60' : '#e74c3c'};
-        color: white;
-        border-radius: 8px;
-        z-index: 1000;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.3s';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
