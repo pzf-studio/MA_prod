@@ -1,0 +1,19 @@
+{
+  "id": 3,
+  "name": "Обувница Modern",
+  "code": "SHOE-001",
+  "category": "shoerack",
+  "section": "shoeracks",
+  "price": 18500,
+  "badge": "Акция",
+  "recommended": false,
+  "description": "Современная обувница на 12 пар с регулируемыми полками. Экономит пространство, удобна в использовании.",
+  "specifications": "Материал: металл/МДФ\nКоличество полок: 4\nВместимость: 12 пар\nЦвет: серый/черный\nРазмеры: 80x35x100см",
+  "status": "active",
+  "stock": 12,
+  "images": [
+    "/static/images/3.jpg"
+  ],
+  "created_at": "2024-01-05T09:15:00",
+  "updated_at": "2024-01-05T09:15:00"
+}
