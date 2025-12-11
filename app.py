@@ -67,6 +67,57 @@ os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def check_static_structure():
+    """Проверка структуры статических файлов"""
+    print("\n" + "=" * 60)
+    print("STATIC STRUCTURE CHECK")
+    print("=" * 60)
+    
+    paths_to_check = [
+        STATIC_DIR,
+        os.path.join(STATIC_DIR, 'admin'),
+        os.path.join(STATIC_DIR, 'admin/css'),
+        os.path.join(STATIC_DIR, 'admin/js'),
+        os.path.join(STATIC_DIR, 'css'),
+        os.path.join(STATIC_DIR, 'js'),
+        os.path.join(STATIC_DIR, 'images'),
+        os.path.join(STATIC_DIR, 'uploads/products'),
+    ]
+    
+    for path in paths_to_check:
+        exists = os.path.exists(path)
+        print(f"{'✅' if exists else '❌'} {path}")
+        if exists and os.path.isdir(path):
+            try:
+                files = os.listdir(path)
+                print(f"   Файлов: {len(files)}")
+                if len(files) <= 5:  # Показываем только если немного файлов
+                    for f in files[:10]:
+                        print(f"   - {f}")
+                else:
+                    print(f"   Первые 10 файлов:")
+                    for f in files[:10]:
+                        print(f"   - {f}")
+            except Exception as e:
+                print(f"   Ошибка чтения: {e}")
+    
+    # Проверяем конкретные файлы
+    print("\nВажные файлы:")
+    important_files = [
+        ('index.html', os.path.join(STATIC_DIR, 'index.html')),
+        ('shop.html', os.path.join(STATIC_DIR, 'shop.html')),
+        ('piece.html', os.path.join(STATIC_DIR, 'piece.html')),
+        ('admin-login.html', os.path.join(STATIC_DIR, 'admin/admin-login.html')),
+    ]
+    
+    for name, path in important_files:
+        exists = os.path.exists(path)
+        print(f"{'✅' if exists else '❌'} {name}: {path}")
+    
+    print("=" * 60)
+
+check_static_structure()
+
 def generate_filename(original_name):
     """Генерация уникального имени файла"""
     timestamp = int(datetime.now().timestamp())
@@ -766,6 +817,69 @@ def get_stats():
     except Exception as e:
         logger.error(f"Ошибка получения статистики: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# ========== ДОПОЛНИТЕЛЬНЫЕ СТАТИЧЕСКИЕ МАРШРУТЫ ==========
+
+@app.route('/css/<path:filename>')
+def serve_css(filename):
+    """Отдача CSS файлов"""
+    try:
+        css_dir = os.path.join(STATIC_DIR, 'css')
+        return send_from_directory(css_dir, filename)
+    except Exception as e:
+        logger.error(f"Ошибка отдачи CSS: {e}")
+        return '', 404
+
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    """Отдача JS файлов"""
+    try:
+        js_dir = os.path.join(STATIC_DIR, 'js')
+        return send_from_directory(js_dir, filename)
+    except Exception as e:
+        logger.error(f"Ошибка отдачи JS: {e}")
+        return '', 404
+
+@app.route('/images/<path:filename>')
+def serve_images(filename):
+    """Отдача изображений"""
+    try:
+        images_dir = os.path.join(STATIC_DIR, 'images')
+        return send_from_directory(images_dir, filename)
+    except Exception as e:
+        logger.error(f"Ошибка отдачи изображений: {e}")
+        return '', 404
+
+@app.route('/admin/css/<path:filename>')
+def serve_admin_css(filename):
+    """Отдача CSS админки"""
+    try:
+        admin_css_dir = os.path.join(STATIC_DIR, 'admin/css')
+        return send_from_directory(admin_css_dir, filename)
+    except Exception as e:
+        logger.error(f"Ошибка отдачи CSS админки: {e}")
+        return '', 404
+
+@app.route('/admin/js/<path:filename>')
+def serve_admin_js(filename):
+    """Отдача JS админки"""
+    try:
+        admin_js_dir = os.path.join(STATIC_DIR, 'admin/js')
+        return send_from_directory(admin_js_dir, filename)
+    except Exception as e:
+        logger.error(f"Ошибка отдачи JS админки: {e}")
+        return '', 404
+
+# Альтернативно, добавьте catch-all для админки
+@app.route('/admin/<path:path>')
+def serve_admin(path):
+    """Отдача любых файлов админки"""
+    try:
+        admin_dir = os.path.join(STATIC_DIR, 'admin')
+        return send_from_directory(admin_dir, path)
+    except Exception as e:
+        logger.error(f"Ошибка отдачи админки {path}: {e}")
+        return '', 404
 
 # ========== ЗАГРУЗКА ФАЙЛОВ ==========
 @app.route('/api/upload', methods=['POST'])
