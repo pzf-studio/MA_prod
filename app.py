@@ -3,30 +3,50 @@ import os
 import json
 import logging
 import sqlite3
+import sys
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory, send_file, make_response
 from flask_cors import CORS
 import hashlib
 import uuid
 from werkzeug.utils import secure_filename
-import sys
-print(f"Current directory: {os.getcwd()}")
-print(f"Script directory: {os.path.dirname(os.path.abspath(__file__))}")
-print(f"Files in current dir: {os.listdir('.')}")
-# ========== НАСТРОЙКА ==========
-app = Flask(__name__, static_folder='../static', static_url_path='')
-CORS(app)  # Разрешаем кросс-доменные запросы
 
-# Конфигурация
+# ========== НАСТРОЙКА ПУТЕЙ ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, '../static/uploads/products')
-TEMP_FOLDER = os.path.join(BASE_DIR, '../static/uploads/temp')
-DB_PATH = os.path.join(BASE_DIR, '../data/ma_furniture.db')
 
-# Создаем необходимые папки
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(TEMP_FOLDER, exist_ok=True)
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+# Отладочная информация
+print("=" * 60)
+print("MA FURNITURE - DEBUG INFO")
+print("=" * 60)
+print(f"Python version: {sys.version}")
+print(f"Current working directory: {os.getcwd()}")
+print(f"BASE_DIR: {BASE_DIR}")
+print(f"\nFiles in BASE_DIR:")
+for item in sorted(os.listdir(BASE_DIR)):
+    print(f"  - {item}")
+
+# Определяем правильные пути (исправлено!)
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+UPLOAD_FOLDER = os.path.join(STATIC_DIR, 'uploads/products')
+TEMP_FOLDER = os.path.join(STATIC_DIR, 'uploads/temp')
+DB_PATH = os.path.join(BASE_DIR, 'data/ma_furniture.db')
+
+print(f"\nSTATIC_DIR: {STATIC_DIR}")
+print(f"STATIC_DIR exists: {os.path.exists(STATIC_DIR)}")
+if os.path.exists(STATIC_DIR):
+    print(f"Files in STATIC_DIR:")
+    for item in sorted(os.listdir(STATIC_DIR)):
+        print(f"  - {item}")
+else:
+    print(f"WARNING: STATIC_DIR does not exist!")
+
+print(f"\nUPLOAD_FOLDER: {UPLOAD_FOLDER}")
+print(f"DB_PATH: {DB_PATH}")
+print("=" * 60)
+
+# ========== ИНИЦИАЛИЗАЦИЯ APP ==========
+app = Flask(__name__, static_folder='static', static_url_path='')
+CORS(app)  # Разрешаем кросс-доменные запросы
 
 # Настройки загрузки файлов
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -35,8 +55,13 @@ app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 # Настройка логирования
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = app.logger
+
+# Создаем необходимые папки
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(TEMP_FOLDER, exist_ok=True)
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
 # ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
 def allowed_file(filename):
@@ -154,30 +179,134 @@ def init_database():
 # Инициализируем базу данных при запуске
 init_database()
 
-# ========== МАРШРУТЫ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ==========
+# ========== FAVICON ==========
+@app.route('/favicon.ico')
+def favicon():
+    """Отдача favicon.ico"""
+    try:
+        # Пробуем найти favicon.ico
+        favicon_paths = [
+            os.path.join(STATIC_DIR, 'favicon.ico'),
+            os.path.join(STATIC_DIR, 'images/favicon.ico'),
+            os.path.join(BASE_DIR, 'favicon.ico'),
+        ]
+        
+        for path in favicon_paths:
+            if os.path.exists(path):
+                logger.info(f"Serving favicon from: {path}")
+                return send_file(path, mimetype='image/x-icon')
+        
+        # Если favicon не найден, возвращаем пустой ответ
+        return '', 204
+        
+    except Exception as e:
+        logger.error(f"Ошибка загрузки favicon: {e}")
+        return '', 204
 
+# ========== МАРШРУТЫ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ==========
 @app.route('/')
 def index():
     """Главная страница магазина"""
-    return send_file(os.path.join(BASE_DIR, '../static/index.html'))
+    logger.info(f"GET / - Serving index.html")
+    try:
+        index_path = os.path.join(STATIC_DIR, 'index.html')
+        if os.path.exists(index_path):
+            logger.info(f"Found index.html at: {index_path}")
+            return send_file(index_path)
+        else:
+            logger.warning(f"index.html NOT FOUND at {index_path}")
+            # Возвращаем простую страницу
+            return '''
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>MA Furniture - Мебельная фабрика</title>
+                <style>
+                    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                    h1 { color: #333; }
+                    .status { background: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; display: inline-block; margin: 20px; }
+                    .api-link { display: inline-block; margin: 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+                    .api-link:hover { background: #0056b3; }
+                    .warning { color: #ff9800; background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px; }
+                </style>
+            </head>
+            <body>
+                <h1>MA Furniture</h1>
+                <div class="status">✅ Backend успешно запущен!</div>
+                <div class="warning">index.html не найден. Загрузите статические файлы.</div>
+                <p>API endpoints:</p>
+                <a class="api-link" href="/api/health">/api/health</a>
+                <a class="api-link" href="/api/products">/api/products</a>
+                <a class="api-link" href="/api/sections">/api/sections</a>
+                <a class="api-link" href="/admin">Админка</a>
+            </body>
+            </html>
+            '''
+    except Exception as e:
+        logger.error(f"Ошибка загрузки index.html: {e}")
+        return f'Error loading index.html: {str(e)}', 500
 
 @app.route('/shop')
 def shop():
     """Страница каталога"""
-    return send_file(os.path.join(BASE_DIR, '../static/shop.html'))
+    logger.info(f"GET /shop")
+    try:
+        shop_path = os.path.join(STATIC_DIR, 'shop.html')
+        if os.path.exists(shop_path):
+            return send_file(shop_path)
+        return "Shop page not found", 404
+    except Exception as e:
+        logger.error(f"Ошибка загрузки shop.html: {e}")
+        return str(e), 500
 
 @app.route('/piece')
 def piece():
     """Страница товара"""
-    return send_file(os.path.join(BASE_DIR, '../static/piece.html'))
+    logger.info(f"GET /piece")
+    try:
+        piece_path = os.path.join(STATIC_DIR, 'piece.html')
+        if os.path.exists(piece_path):
+            return send_file(piece_path)
+        return "Product page not found", 404
+    except Exception as e:
+        logger.error(f"Ошибка загрузки piece.html: {e}")
+        return str(e), 500
+
+@app.route('/admin')
+@app.route('/admin/')
+def admin_root():
+    """Корень админки"""
+    logger.info(f"GET /admin")
+    try:
+        admin_login_path = os.path.join(STATIC_DIR, 'admin/admin-login.html')
+        if os.path.exists(admin_login_path):
+            return send_file(admin_login_path)
+        return "Admin panel not found", 404
+    except Exception as e:
+        logger.error(f"Ошибка загрузки админки: {e}")
+        return str(e), 500
 
 @app.route('/admin/<path:filename>')
 def admin_static(filename):
     """Статические файлы админки"""
-    admin_path = os.path.join(BASE_DIR, '../admin')
-    return send_from_directory(admin_path, filename)
+    try:
+        admin_path = os.path.join(STATIC_DIR, 'admin')
+        return send_from_directory(admin_path, filename)
+    except Exception as e:
+        logger.error(f"Ошибка отдачи статики админки: {e}")
+        return str(e), 404
 
 # ========== API ДЛЯ МАГАЗИНА ==========
+@app.route('/api/health')
+def health_check():
+    """Проверка здоровья API"""
+    return jsonify({
+        'status': 'ok',
+        'service': 'MA Furniture API',
+        'timestamp': datetime.now().isoformat(),
+        'static_dir': STATIC_DIR,
+        'static_exists': os.path.exists(STATIC_DIR)
+    })
 
 @app.route('/api/products', methods=['GET'])
 def get_products():
@@ -348,8 +477,7 @@ def create_order():
         conn.commit()
         conn.close()
         
-        # Здесь можно добавить отправку уведомления в Telegram
-        # telegram_send_order(order_number, data)
+        logger.info(f"Создан заказ #{order_number}")
         
         return jsonify({
             'success': True,
@@ -363,7 +491,6 @@ def create_order():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== API ДЛЯ АДМИНКИ ==========
-
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
     """Авторизация администратора"""
@@ -405,6 +532,8 @@ def admin_login():
         
         conn.close()
         
+        logger.info(f"Admin logged in: {username}")
+        
         return jsonify({
             'success': True,
             'admin': admin_data,
@@ -415,6 +544,15 @@ def admin_login():
     except Exception as e:
         logger.error(f"Ошибка авторизации: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/verify')
+def verify_admin():
+    """Проверка токена администратора"""
+    token = request.headers.get('Authorization')
+    if token and token.startswith('Bearer '):
+        # Здесь должна быть логика проверки токена
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
 
 @app.route('/api/admin/products', methods=['GET'])
 def admin_get_products():
@@ -499,6 +637,8 @@ def admin_create_product():
         conn.commit()
         conn.close()
         
+        logger.info(f"Создан товар #{product_id}: {data['name']}")
+        
         return jsonify({
             'success': True,
             'product_id': product_id,
@@ -559,6 +699,8 @@ def admin_update_product(product_id):
         conn.commit()
         conn.close()
         
+        logger.info(f"Обновлен товар #{product_id}")
+        
         return jsonify({
             'success': True,
             'message': 'Товар успешно обновлен'
@@ -567,26 +709,6 @@ def admin_update_product(product_id):
     except Exception as e:
         logger.error(f"Ошибка обновления товара: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/health')
-def health_check():
-    return jsonify({'status': 'ok'})
-
-@app.route('/api/admin/verify')
-def verify_admin():
-    token = request.headers.get('Authorization')
-    if token == 'valid_token':  # Здесь ваша логика проверки
-        return jsonify({'success': True})
-    return jsonify({'success': False}), 401
-
-@app.route('/api/stats')
-def get_stats():
-    # Логика подсчета товаров и заказов
-    return jsonify({
-        'success': True,
-        'products_count': 0,
-        'orders_count': 0
-    })
 
 @app.route('/api/admin/products/<int:product_id>', methods=['DELETE'])
 def admin_delete_product(product_id):
@@ -609,6 +731,8 @@ def admin_delete_product(product_id):
         conn.commit()
         conn.close()
         
+        logger.info(f"Удален товар #{product_id}")
+        
         return jsonify({
             'success': True,
             'message': 'Товар успешно удален'
@@ -618,8 +742,32 @@ def admin_delete_product(product_id):
         logger.error(f"Ошибка удаления товара: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== ЗАГРУЗКА ФАЙЛОВ ==========
+@app.route('/api/stats')
+def get_stats():
+    """Получение статистики"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT COUNT(*) as count FROM products WHERE status = 'active'")
+        products_count = cursor.fetchone()['count']
+        
+        cursor.execute("SELECT COUNT(*) as count FROM orders")
+        orders_count = cursor.fetchone()['count']
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'products_count': products_count,
+            'orders_count': orders_count
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения статистики: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
+# ========== ЗАГРУЗКА ФАЙЛОВ ==========
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     """Загрузка файла на сервер"""
@@ -695,12 +843,14 @@ def delete_file():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
-
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     """Отдача статических файлов"""
-    static_path = os.path.join(BASE_DIR, '../static')
-    return send_from_directory(static_path, filename)
+    try:
+        return send_from_directory(STATIC_DIR, filename)
+    except Exception as e:
+        logger.error(f"Ошибка отдачи статического файла: {e}")
+        return str(e), 404
 
 @app.route('/uploads/products/<filename>')
 def serve_uploaded_file(filename):
@@ -708,11 +858,12 @@ def serve_uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # ========== ОБРАБОТКА ОШИБОК ==========
-
 @app.errorhandler(404)
 def not_found_error(error):
     """Обработка 404 ошибок"""
-    # Сначала проверяем favicon
+    logger.warning(f"404 Not Found: {request.path}")
+    
+    # Для favicon возвращаем 204
     if request.path == '/favicon.ico':
         return '', 204
     
@@ -720,39 +871,33 @@ def not_found_error(error):
     if request.path.startswith('/api/'):
         return jsonify({'success': False, 'error': 'Ресурс не найден'}), 404
     
-    # Для остальных запросов пробуем отдать index.html
+    # Пробуем отдать index.html для SPA роутинга
     try:
-        index_path = os.path.join(BASE_DIR, '../static/index.html')
+        index_path = os.path.join(STATIC_DIR, 'index.html')
         if os.path.exists(index_path):
             return send_file(index_path)
-        else:
-            return f"File not found: {index_path}", 404
+        return f"Page not found and index.html not found at {index_path}", 404
     except Exception as e:
-        logger.error(f"Error serving index.html: {e}")
-        return str(e), 500
-    
+        logger.error(f"Ошибка в 404 handler: {e}")
+        return jsonify({'success': False, 'error': 'Ресурс не найден'}), 404
+
 @app.errorhandler(500)
 def internal_error(error):
     """Обработка 500 ошибок"""
-    logger.error(f"Internal server error: {error}")
+    logger.error(f"500 Internal Server Error: {error}")
     if request.path.startswith('/api/'):
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
     return "Internal server error", 500
 
-@app.before_request
-def log_request():
-    logger.info(f"Request: {request.method} {request.path}")
-
-@app.after_request
-def log_response(response):
-    logger.info(f"Response: {response.status}")
-    return response
-
 # ========== ЗАПУСК ПРИЛОЖЕНИЯ ==========
-
 if __name__ == '__main__':
     # Для разработки
+    print("\n" + "=" * 60)
+    print("Starting Flask development server...")
+    print("=" * 60)
     app.run(host='0.0.0.0', port=5000, debug=True)
 else:
     # Для production (WSGI)
-    logger.info("MA Furniture application initialized")
+    print("\n" + "=" * 60)
+    print("MA Furniture WSGI application initialized")
+    print("=" * 60)

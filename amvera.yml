@@ -12,3 +12,9 @@ run:
   command: "gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 wsgi:app"
   persistenceMount: /data
   containerPort: 5000
+  workingDirectory: /app
+  env:
+    - name: PYTHONUNBUFFERED
+      value: "1"
+    - name: FLASK_ENV
+      value: "production"

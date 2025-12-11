@@ -46,4 +46,5 @@
 ├── 📄 LICENSE
 ├── 📄 photo_2025-11-30_03-24-55.jpg
 ├── 📄 requirements.txt
-└── 📄 structure.txt
+├── 📄 structure.txt
+└── 📄 wsgi.py
