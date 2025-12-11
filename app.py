@@ -277,6 +277,24 @@ def health_check():
         'storage_type': 'file_based'
     })
 
+@app.route('/debug/storage')
+def debug_storage():
+    """Отладка хранилища товаров"""
+    try:
+        products_count = len(get_all_products())
+        sections = load_sections()
+        
+        return jsonify({
+            'status': 'ok',
+            'products_count': products_count,
+            'sections_count': len(sections),
+            'products_dir': PRODUCTS_DIR,
+            'products_dir_exists': os.path.exists(PRODUCTS_DIR),
+            'sample_products': get_all_products()[:3] if products_count > 0 else []
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/products', methods=['GET'])
 def get_products():
     """Получение списка товаров с фильтрацией"""
