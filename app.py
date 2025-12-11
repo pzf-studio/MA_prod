@@ -712,11 +712,25 @@ def serve_uploaded_file(filename):
 @app.errorhandler(404)
 def not_found_error(error):
     """Обработка 404 ошибок"""
+    # Сначала проверяем favicon
+    if request.path == '/favicon.ico':
+        return '', 204
+    
+    # Для API запросов возвращаем JSON
     if request.path.startswith('/api/'):
         return jsonify({'success': False, 'error': 'Ресурс не найден'}), 404
-    # Для не-API запросов пытаемся отдать index.html
-    return send_file(os.path.join(BASE_DIR, '../static/index.html'))
-
+    
+    # Для остальных запросов пробуем отдать index.html
+    try:
+        index_path = os.path.join(BASE_DIR, '../static/index.html')
+        if os.path.exists(index_path):
+            return send_file(index_path)
+        else:
+            return f"File not found: {index_path}", 404
+    except Exception as e:
+        logger.error(f"Error serving index.html: {e}")
+        return str(e), 500
+    
 @app.errorhandler(500)
 def internal_error(error):
     """Обработка 500 ошибок"""
@@ -724,6 +738,15 @@ def internal_error(error):
     if request.path.startswith('/api/'):
         return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
     return "Internal server error", 500
+
+@app.before_request
+def log_request():
+    logger.info(f"Request: {request.method} {request.path}")
+
+@app.after_request
+def log_response(response):
+    logger.info(f"Response: {response.status}")
+    return response
 
 # ========== ЗАПУСК ПРИЛОЖЕНИЯ ==========
 
