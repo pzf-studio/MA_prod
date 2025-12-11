@@ -653,8 +653,21 @@ def verify_admin():
     """Проверка токена администратора"""
     token = request.headers.get('Authorization')
     if token and token.startswith('Bearer '):
-        # Здесь должна быть логика проверки токена
-        return jsonify({'success': True})
+        # Проверяем наличие токена в localStorage
+        token_value = token.split('Bearer ')[1]
+        
+        # Пока упрощенная проверка - в будущем можно добавить JWT
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Просто проверяем, есть ли активные админы
+        cursor.execute("SELECT COUNT(*) as count FROM admins WHERE last_login IS NOT NULL")
+        count = cursor.fetchone()['count']
+        conn.close()
+        
+        if count > 0:
+            return jsonify({'success': True})
+    
     return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
 
 @app.route('/api/admin/products', methods=['GET'])

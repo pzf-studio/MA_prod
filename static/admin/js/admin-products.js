@@ -26,7 +26,7 @@ class AdminProductsManager {
         
         try {
             const response = await fetch(`${this.API_BASE}/api/admin/verify`, {
-                headers: { 'Authorization': this.authToken }
+                headers: { 'Authorization': `Bearer ${this.authToken}` }
             });
             
             if (!response.ok) {
@@ -264,7 +264,7 @@ class AdminProductsManager {
         try {
             const response = await fetch(`${this.API_BASE}/api/admin/products/${productId}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': this.authToken }
+                headers: { 'Authorization': `Bearer ${this.authToken}` }
             });
             
             const data = await response.json();

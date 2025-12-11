@@ -27,7 +27,7 @@ class AdminAuth {
     async verifyToken(token) {
         try {
             const response = await fetch(`${this.API_BASE}/api/admin/verify`, {
-                headers: { 'Authorization': token }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             
             if (!response.ok) {
