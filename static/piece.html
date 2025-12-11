@@ -103,8 +103,69 @@
             </nav>
 
             <!-- Product Details -->
+            <!-- Обновленный блок product-details в piece.html -->
             <div class="product-details" id="productDetails">
-                <!-- Product content will be loaded here -->
+                <div class="product-container">
+                    <!-- Сообщение об ошибке будет отображаться здесь при необходимости -->
+                    
+                    <div class="product-main">
+                        <!-- Левая колонка: изображения -->
+                        <div class="product-gallery">
+                            <div class="main-image-container">
+                                <img id="productMainImage" src="" alt="Основное изображение товара" class="main-image">
+                                <div class="image-placeholder" style="display: flex;">
+                                    <i class="fas fa-couch"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="thumbnails" id="productThumbnails">
+                                <!-- Миниатюры будут загружены динамически -->
+                            </div>
+                        </div>
+                        
+                        <!-- Правая колонка: информация о товаре -->
+                        <div class="product-info">
+                            <div class="product-header">
+                                <span class="product-badge" id="productBadge" style="display: none;"></span>
+                                <h1 class="product-title" id="productName">Загрузка...</h1>
+                            </div>
+                            
+                            <div class="product-price-section">
+                                <div class="price" id="productPrice">
+                                    <span class="current-price">0 ₽</span>
+                                </div>
+                                <div class="stock-status">
+                                    <span id="productStock" class="in-stock">Проверка наличия...</span>
+                                </div>
+                            </div>
+                            
+                            <div class="product-description-section">
+                                <h3>Описание</h3>
+                                <div class="description" id="productDescription">
+                                    Загрузка описания...
+                                </div>
+                            </div>
+                            
+                            <div class="product-specifications-section">
+                                <h3>Характеристики</h3>
+                                <ul class="specifications" id="productSpecifications">
+                                    <li>Характеристики загружаются...</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="product-actions">
+                                <button class="btn btn-primary btn-lg" id="addToCartBtn">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Добавить в корзину
+                                </button>
+                                <a href="./shop.html" class="btn btn-outline">
+                                    <i class="fas fa-arrow-left"></i>
+                                    Назад в каталог
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Related Products -->
