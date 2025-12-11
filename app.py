@@ -1,11 +1,10 @@
-# app.py
+# app.py - ВЕРСИЯ С ФАЙЛОВЫМ ХРАНИЛИЩЕМ
 import os
 import json
 import logging
-import sqlite3
 import sys
 from datetime import datetime
-from flask import Flask, request, jsonify, send_from_directory, send_file, make_response
+from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
 import hashlib
 import uuid
@@ -16,32 +15,34 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Отладочная информация
 print("=" * 60)
-print("MA FURNITURE - DEBUG INFO")
+print("MA FURNITURE - FILE-BASED STORAGE")
 print("=" * 60)
 print(f"Python version: {sys.version}")
 print(f"Current working directory: {os.getcwd()}")
 print(f"BASE_DIR: {BASE_DIR}")
-print(f"\nFiles in BASE_DIR:")
-for item in sorted(os.listdir(BASE_DIR)):
-    print(f"  - {item}")
 
-# Определяем правильные пути (исправлено!)
+# Пути к данным (в корне проекта)
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+PRODUCTS_DIR = os.path.join(DATA_DIR, 'products')
+SECTIONS_FILE = os.path.join(DATA_DIR, 'sections.json')
+
+# Статика
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 UPLOAD_FOLDER = os.path.join(STATIC_DIR, 'uploads/products')
 TEMP_FOLDER = os.path.join(STATIC_DIR, 'uploads/temp')
-DB_PATH = os.path.join(BASE_DIR, 'data/ma_furniture.db')
 
-print(f"\nSTATIC_DIR: {STATIC_DIR}")
-print(f"STATIC_DIR exists: {os.path.exists(STATIC_DIR)}")
-if os.path.exists(STATIC_DIR):
-    print(f"Files in STATIC_DIR:")
-    for item in sorted(os.listdir(STATIC_DIR)):
-        print(f"  - {item}")
-else:
-    print(f"WARNING: STATIC_DIR does not exist!")
+print(f"\nDATA_DIR: {DATA_DIR}")
+print(f"PRODUCTS_DIR: {PRODUCTS_DIR}")
+print(f"SECTIONS_FILE: {SECTIONS_FILE}")
+print(f"STATIC_DIR: {STATIC_DIR}")
 
-print(f"\nUPLOAD_FOLDER: {UPLOAD_FOLDER}")
-print(f"DB_PATH: {DB_PATH}")
+# Создаем необходимые папки (только если их нет)
+os.makedirs(PRODUCTS_DIR, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(TEMP_FOLDER, exist_ok=True)
+
+print(f"PRODUCTS_DIR exists: {os.path.exists(PRODUCTS_DIR)}")
+print(f"Folders created/verified")
 print("=" * 60)
 
 # ========== ИНИЦИАЛИЗАЦИЯ APP ==========
@@ -58,65 +59,9 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = app.logger
 
-# Создаем необходимые папки
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(TEMP_FOLDER, exist_ok=True)
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-
 # ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def check_static_structure():
-    """Проверка структуры статических файлов"""
-    print("\n" + "=" * 60)
-    print("STATIC STRUCTURE CHECK")
-    print("=" * 60)
-    
-    paths_to_check = [
-        STATIC_DIR,
-        os.path.join(STATIC_DIR, 'admin'),
-        os.path.join(STATIC_DIR, 'admin/css'),
-        os.path.join(STATIC_DIR, 'admin/js'),
-        os.path.join(STATIC_DIR, 'css'),
-        os.path.join(STATIC_DIR, 'js'),
-        os.path.join(STATIC_DIR, 'images'),
-        os.path.join(STATIC_DIR, 'uploads/products'),
-    ]
-    
-    for path in paths_to_check:
-        exists = os.path.exists(path)
-        print(f"{'✅' if exists else '❌'} {path}")
-        if exists and os.path.isdir(path):
-            try:
-                files = os.listdir(path)
-                print(f"   Файлов: {len(files)}")
-                if len(files) <= 5:  # Показываем только если немного файлов
-                    for f in files[:10]:
-                        print(f"   - {f}")
-                else:
-                    print(f"   Первые 10 файлов:")
-                    for f in files[:10]:
-                        print(f"   - {f}")
-            except Exception as e:
-                print(f"   Ошибка чтения: {e}")
-    
-    # Проверяем конкретные файлы
-    print("\nВажные файлы:")
-    important_files = [
-        ('index.html', os.path.join(STATIC_DIR, 'index.html')),
-        ('shop.html', os.path.join(STATIC_DIR, 'shop.html')),
-        ('piece.html', os.path.join(STATIC_DIR, 'piece.html')),
-        ('admin-login.html', os.path.join(STATIC_DIR, 'admin/admin-login.html')),
-    ]
-    
-    for name, path in important_files:
-        exists = os.path.exists(path)
-        print(f"{'✅' if exists else '❌'} {name}: {path}")
-    
-    print("=" * 60)
-
-check_static_structure()
 
 def generate_filename(original_name):
     """Генерация уникального имени файла"""
@@ -125,222 +70,153 @@ def generate_filename(original_name):
     ext = original_name.rsplit('.', 1)[1].lower() if '.' in original_name else 'jpg'
     return f"{timestamp}_{random_str}.{ext}"
 
-def get_db_connection():
-    """Создание подключения к базе данных"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+# ========== ФУНКЦИИ РАБОТЫ С ФАЙЛАМИ ==========
+def get_all_products():
+    """Получить все товары из файлов"""
+    products = []
+    
+    if not os.path.exists(PRODUCTS_DIR):
+        return products
+    
+    try:
+        for filename in sorted(os.listdir(PRODUCTS_DIR)):
+            if filename.endswith('.json'):
+                try:
+                    filepath = os.path.join(PRODUCTS_DIR, filename)
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        product = json.load(f)
+                        products.append(product)
+                except Exception as e:
+                    logger.error(f"Ошибка чтения файла {filename}: {e}")
+        
+        # Сортируем по дате создания (новые сначала)
+        products.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    except Exception as e:
+        logger.error(f"Ошибка получения товаров: {e}")
+    
+    return products
 
-def init_database():
-    """Инициализация базы данных"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
+def get_product_by_id(product_id):
+    """Получить товар по ID"""
+    filepath = os.path.join(PRODUCTS_DIR, f"{product_id}.json")
     
-    # Таблица товаров
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            code TEXT,
-            category TEXT,
-            section TEXT,
-            price INTEGER NOT NULL,
-            old_price INTEGER,
-            badge TEXT,
-            recommended BOOLEAN DEFAULT 0,
-            description TEXT,
-            specifications TEXT,
-            status TEXT DEFAULT 'active',
-            stock INTEGER DEFAULT 0,
-            images TEXT,  -- JSON массив путей к изображениям
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+    if os.path.exists(filepath):
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Ошибка чтения товара {product_id}: {e}")
     
-    # Таблица разделов
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sections (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            code TEXT UNIQUE NOT NULL,
-            name TEXT NOT NULL,
-            description TEXT,
-            active BOOLEAN DEFAULT 1,
-            display_order INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    # Таблица заказов
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_number TEXT UNIQUE NOT NULL,
-            customer_name TEXT NOT NULL,
-            customer_phone TEXT NOT NULL,
-            customer_email TEXT,
-            customer_address TEXT,
-            customer_comment TEXT,
-            items TEXT NOT NULL,  -- JSON массив товаров
-            total_amount INTEGER NOT NULL,
-            status TEXT DEFAULT 'new',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    # Таблица администраторов
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS admins (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            role TEXT DEFAULT 'admin',
-            last_login TIMESTAMP,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    # Создаем дефолтного администратора если его нет
-    cursor.execute("SELECT COUNT(*) as count FROM admins")
-    if cursor.fetchone()['count'] == 0:
-        default_password = hashlib.sha256('admin123'.encode()).hexdigest()
-        cursor.execute(
-            "INSERT INTO admins (username, password_hash) VALUES (?, ?)",
-            ('admin', default_password)
-        )
-    
-    # Создаем дефолтные разделы если их нет
-    cursor.execute("SELECT COUNT(*) as count FROM sections")
-    if cursor.fetchone()['count'] == 0:
-        default_sections = [
-            ('pantographs', 'Пантографы', 'Электрические пантографы для гардеробных', 1, 1),
-            ('wardrobes', 'Гардеробные системы', 'Полноценные гардеробные системы', 1, 2),
-            ('shoeracks', 'Обувницы', 'Обувницы и системы хранения обуви', 1, 3)
-        ]
-        cursor.executemany(
-            "INSERT INTO sections (code, name, description, active, display_order) VALUES (?, ?, ?, ?, ?)",
-            default_sections
-        )
-    
-    conn.commit()
-    conn.close()
-    logger.info("База данных инициализирована")
+    return None
 
-# Инициализируем базу данных при запуске
-init_database()
+def save_product(product_data):
+    """Сохранить товар в файл"""
+    try:
+        # Определяем ID товара
+        if 'id' in product_data and product_data['id']:
+            product_id = product_data['id']
+        else:
+            # Находим максимальный ID
+            max_id = 0
+            if os.path.exists(PRODUCTS_DIR):
+                for filename in os.listdir(PRODUCTS_DIR):
+                    if filename.endswith('.json'):
+                        try:
+                            file_id = int(filename.split('.')[0])
+                            max_id = max(max_id, file_id)
+                        except:
+                            continue
+            product_id = max_id + 1
+            product_data['id'] = product_id
+        
+        # Добавляем временные метки
+        if 'created_at' not in product_data:
+            product_data['created_at'] = datetime.now().isoformat()
+        product_data['updated_at'] = datetime.now().isoformat()
+        
+        # Сохраняем в файл
+        filepath = os.path.join(PRODUCTS_DIR, f"{product_id}.json")
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(product_data, f, ensure_ascii=False, indent=2)
+        
+        logger.info(f"Товар сохранен: {product_id}.json")
+        return product_id
+        
+    except Exception as e:
+        logger.error(f"Ошибка сохранения товара: {e}")
+        return None
 
-@app.route('/debug/admin-files')
-def debug_admin_files():
-    """Проверка файлов админки"""
-    import json
+def delete_product(product_id):
+    """Удалить товар"""
+    filepath = os.path.join(PRODUCTS_DIR, f"{product_id}.json")
     
-    admin_dir = os.path.join(STATIC_DIR, 'admin')
+    if os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+            logger.info(f"Товар удален: {product_id}.json")
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка удаления товара: {e}")
     
-    result = {
-        'admin_dir': admin_dir,
-        'exists': os.path.exists(admin_dir),
-        'important_files': {}
-    }
+    return False
+
+def load_sections():
+    """Загрузить разделы из файла"""
+    if os.path.exists(SECTIONS_FILE):
+        try:
+            with open(SECTIONS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            pass
     
-    # Важные файлы для проверки
-    important_files = [
-        ('admin-login.html', 'admin/admin-login.html'),
-        ('admin-dashboard.html', 'admin/admin-dashboard.html'),
-        ('admin-styles.css', 'admin/css/admin-styles.css'),
-        ('admin-auth.js', 'admin/js/admin-auth.js'),
+    # Дефолтные разделы
+    default_sections = [
+        {"id": 1, "code": "pantographs", "name": "Пантографы", "active": True},
+        {"id": 2, "code": "wardrobes", "name": "Гардеробные системы", "active": True},
+        {"id": 3, "code": "shoeracks", "name": "Обувницы", "active": True}
     ]
     
-    for name, rel_path in important_files:
-        full_path = os.path.join(STATIC_DIR, rel_path)
-        result['important_files'][name] = {
-            'expected_path': rel_path,
-            'full_path': full_path,
-            'exists': os.path.exists(full_path),
-            'size': os.path.getsize(full_path) if os.path.exists(full_path) else 0
-        }
-    
-    return jsonify(result)
+    # Сохраняем дефолтные
+    save_sections(default_sections)
+    return default_sections
 
-@app.route('/test-static/<path:filename>')
-def test_static(filename):
-    """Тест отдачи статических файлов"""
+def save_sections(sections):
+    """Сохранить разделы в файл"""
     try:
-        return send_from_directory(STATIC_DIR, filename)
+        with open(SECTIONS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(sections, f, ensure_ascii=False, indent=2)
     except Exception as e:
-        return jsonify({'error': str(e), 'filename': filename}), 404
-
-# ========== FAVICON ==========
-@app.route('/favicon.ico')
-def favicon():
-    """Отдача favicon.ico"""
-    try:
-        # Пробуем найти favicon.ico
-        favicon_paths = [
-            os.path.join(STATIC_DIR, 'favicon.ico'),
-            os.path.join(STATIC_DIR, 'images/favicon.ico'),
-            os.path.join(BASE_DIR, 'favicon.ico'),
-        ]
-        
-        for path in favicon_paths:
-            if os.path.exists(path):
-                logger.info(f"Serving favicon from: {path}")
-                return send_file(path, mimetype='image/x-icon')
-        
-        # Если favicon не найден, возвращаем пустой ответ
-        return '', 204
-        
-    except Exception as e:
-        logger.error(f"Ошибка загрузки favicon: {e}")
-        return '', 204
+        logger.error(f"Ошибка сохранения разделов: {e}")
 
 # ========== МАРШРУТЫ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ==========
 @app.route('/')
 def index():
     """Главная страница магазина"""
-    logger.info(f"GET / - Serving index.html")
     try:
         index_path = os.path.join(STATIC_DIR, 'index.html')
         if os.path.exists(index_path):
-            logger.info(f"Found index.html at: {index_path}")
             return send_file(index_path)
         else:
-            logger.warning(f"index.html NOT FOUND at {index_path}")
-            # Возвращаем простую страницу
             return '''
             <!DOCTYPE html>
             <html>
-            <head>
-                <title>MA Furniture - Мебельная фабрика</title>
-                <style>
-                    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                    h1 { color: #333; }
-                    .status { background: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; display: inline-block; margin: 20px; }
-                    .api-link { display: inline-block; margin: 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-                    .api-link:hover { background: #0056b3; }
-                    .warning { color: #ff9800; background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px; }
-                </style>
-            </head>
+            <head><title>MA Furniture</title></head>
             <body>
-                <h1>MA Furniture</h1>
-                <div class="status">✅ Backend успешно запущен!</div>
-                <div class="warning">index.html не найден. Загрузите статические файлы.</div>
-                <p>API endpoints:</p>
-                <a class="api-link" href="/api/health">/api/health</a>
-                <a class="api-link" href="/api/products">/api/products</a>
-                <a class="api-link" href="/api/sections">/api/sections</a>
-                <a class="api-link" href="/admin">Админка</a>
+                <h1>MA Furniture - Backend работает!</h1>
+                <p>Файловое хранилище активировано.</p>
+                <a href="/shop">Магазин</a> | 
+                <a href="/admin">Админка</a> |
+                <a href="/api/products">API товаров</a>
             </body>
             </html>
             '''
     except Exception as e:
         logger.error(f"Ошибка загрузки index.html: {e}")
-        return f'Error loading index.html: {str(e)}', 500
+        return f'Error: {str(e)}', 500
 
 @app.route('/shop')
 def shop():
     """Страница каталога"""
-    logger.info(f"GET /shop")
     try:
         shop_path = os.path.join(STATIC_DIR, 'shop.html')
         if os.path.exists(shop_path):
@@ -353,7 +229,6 @@ def shop():
 @app.route('/piece')
 def piece():
     """Страница товара"""
-    logger.info(f"GET /piece")
     try:
         piece_path = os.path.join(STATIC_DIR, 'piece.html')
         if os.path.exists(piece_path):
@@ -389,26 +264,17 @@ def admin_dashboard():
         logger.error(f"Dashboard error: {e}")
         return str(e), 500
 
-@app.route('/admin/<path:filename>')
-def admin_static(filename):
-    """Статические файлы админки"""
-    try:
-        admin_path = os.path.join(STATIC_DIR, 'admin')
-        return send_from_directory(admin_path, filename)
-    except Exception as e:
-        logger.error(f"Ошибка отдачи статики админки: {e}")
-        return str(e), 404
-
 # ========== API ДЛЯ МАГАЗИНА ==========
 @app.route('/api/health')
 def health_check():
     """Проверка здоровья API"""
     return jsonify({
         'status': 'ok',
-        'service': 'MA Furniture API',
+        'service': 'MA Furniture API (File Storage)',
         'timestamp': datetime.now().isoformat(),
-        'static_dir': STATIC_DIR,
-        'static_exists': os.path.exists(STATIC_DIR)
+        'products_dir': PRODUCTS_DIR,
+        'products_count': len(get_all_products()),
+        'storage_type': 'file_based'
     })
 
 @app.route('/api/products', methods=['GET'])
@@ -417,68 +283,40 @@ def get_products():
     try:
         category = request.args.get('category', 'all')
         section = request.args.get('section', '')
-        page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 15))
-        search = request.args.get('search', '')
         status = request.args.get('status', 'active')
+        search = request.args.get('search', '')
         
-        offset = (page - 1) * per_page
+        all_products = get_all_products()
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Базовый запрос
-        query = "SELECT * FROM products WHERE 1=1"
-        params = []
-        
-        if status:
-            query += " AND status = ?"
-            params.append(status)
-        
-        if category != 'all':
-            query += " AND category = ?"
-            params.append(category)
-        
-        if section:
-            query += " AND section = ?"
-            params.append(section)
-        
-        if search:
-            query += " AND (name LIKE ? OR description LIKE ? OR code LIKE ?)"
-            search_term = f"%{search}%"
-            params.extend([search_term, search_term, search_term])
-        
-        # Получаем общее количество
-        count_query = f"SELECT COUNT(*) as total FROM ({query})"
-        cursor.execute(count_query, params)
-        total = cursor.fetchone()['total']
-        
-        # Получаем данные для страницы
-        query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
-        params.extend([per_page, offset])
-        
-        cursor.execute(query, params)
-        products = [dict(row) for row in cursor.fetchall()]
-        
-        # Парсим JSON поля
-        for product in products:
-            if product.get('images'):
-                try:
-                    product['images'] = json.loads(product['images'])
-                except:
-                    product['images'] = []
-            else:
-                product['images'] = []
-        
-        conn.close()
+        # Фильтрация
+        filtered_products = []
+        for product in all_products:
+            # Фильтр по статусу
+            if status and product.get('status') != status:
+                continue
+            
+            # Фильтр по категории
+            if category != 'all' and product.get('category') != category:
+                continue
+            
+            # Фильтр по разделу
+            if section and product.get('section') != section:
+                continue
+            
+            # Поиск
+            if search:
+                search_lower = search.lower()
+                name = product.get('name', '').lower()
+                desc = product.get('description', '').lower()
+                if search_lower not in name and search_lower not in desc:
+                    continue
+            
+            filtered_products.append(product)
         
         return jsonify({
             'success': True,
-            'products': products,
-            'total': total,
-            'page': page,
-            'per_page': per_page,
-            'pages': (total + per_page - 1) // per_page
+            'products': filtered_products,
+            'total': len(filtered_products)
         })
         
     except Exception as e:
@@ -489,30 +327,12 @@ def get_products():
 def get_product(product_id):
     """Получение информации о конкретном товаре"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT * FROM products WHERE id = ?", (product_id,))
-        product = cursor.fetchone()
+        product = get_product_by_id(product_id)
         
         if not product:
-            conn.close()
             return jsonify({'success': False, 'error': 'Товар не найден'}), 404
         
-        product_dict = dict(product)
-        
-        # Парсим JSON поля
-        if product_dict.get('images'):
-            try:
-                product_dict['images'] = json.loads(product_dict['images'])
-            except:
-                product_dict['images'] = []
-        else:
-            product_dict['images'] = []
-        
-        conn.close()
-        
-        return jsonify({'success': True, 'product': product_dict})
+        return jsonify({'success': True, 'product': product})
         
     except Exception as e:
         logger.error(f"Ошибка получения товара: {e}")
@@ -522,75 +342,11 @@ def get_product(product_id):
 def get_sections():
     """Получение списка разделов"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT * FROM sections WHERE active = 1 ORDER BY display_order")
-        sections = [dict(row) for row in cursor.fetchall()]
-        
-        conn.close()
-        
+        sections = load_sections()
         return jsonify({'success': True, 'sections': sections})
         
     except Exception as e:
         logger.error(f"Ошибка получения разделов: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/orders', methods=['POST'])
-def create_order():
-    """Создание нового заказа"""
-    try:
-        data = request.get_json()
-        
-        # Валидация
-        required_fields = ['customer_name', 'customer_phone', 'items']
-        for field in required_fields:
-            if field not in data or not data[field]:
-                return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
-        
-        # Генерация номера заказа
-        order_number = f"ORD-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
-        
-        # Подсчет общей суммы
-        total_amount = 0
-        for item in data['items']:
-            total_amount += item.get('price', 0) * item.get('quantity', 1)
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO orders (
-                order_number, customer_name, customer_phone, customer_email,
-                customer_address, customer_comment, items, total_amount
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            order_number,
-            data['customer_name'],
-            data['customer_phone'],
-            data.get('customer_email', ''),
-            data.get('customer_address', ''),
-            data.get('customer_comment', ''),
-            json.dumps(data['items'], ensure_ascii=False),
-            total_amount
-        ))
-        
-        order_id = cursor.lastrowid
-        
-        conn.commit()
-        conn.close()
-        
-        logger.info(f"Создан заказ #{order_number}")
-        
-        return jsonify({
-            'success': True,
-            'order_id': order_id,
-            'order_number': order_number,
-            'message': 'Заказ успешно создан'
-        })
-        
-    except Exception as e:
-        logger.error(f"Ошибка создания заказа: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== API ДЛЯ АДМИНКИ ==========
@@ -605,44 +361,16 @@ def admin_login():
         if not username or not password:
             return jsonify({'success': False, 'error': 'Заполните все поля'}), 400
         
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute(
-            "SELECT * FROM admins WHERE username = ? AND password_hash = ?",
-            (username, password_hash)
-        )
-        admin = cursor.fetchone()
-        
-        if not admin:
-            conn.close()
+        # Простая проверка (для теста)
+        if username == 'admin' and password == 'admin123':
+            return jsonify({
+                'success': True,
+                'admin': {'username': 'admin', 'role': 'admin'},
+                'session_token': str(uuid.uuid4()),
+                'message': 'Авторизация успешна'
+            })
+        else:
             return jsonify({'success': False, 'error': 'Неверный логин или пароль'}), 401
-        
-        # Обновляем время последнего входа
-        cursor.execute(
-            "UPDATE admins SET last_login = CURRENT_TIMESTAMP WHERE id = ?",
-            (admin['id'],)
-        )
-        conn.commit()
-        
-        admin_data = dict(admin)
-        admin_data.pop('password_hash', None)  # Не отправляем хэш пароля
-        
-        # Создаем сессию
-        session_token = str(uuid.uuid4())
-        
-        conn.close()
-        
-        logger.info(f"Admin logged in: {username}")
-        
-        return jsonify({
-            'success': True,
-            'admin': admin_data,
-            'session_token': session_token,
-            'message': 'Авторизация успешна'
-        })
         
     except Exception as e:
         logger.error(f"Ошибка авторизации: {e}")
@@ -652,21 +380,9 @@ def admin_login():
 def verify_admin():
     """Проверка токена администратора"""
     token = request.headers.get('Authorization')
-    if token and token.startswith('Bearer '):
-        # Проверяем наличие токена в localStorage
-        token_value = token.split('Bearer ')[1]
-        
-        # Пока упрощенная проверка - в будущем можно добавить JWT
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Просто проверяем, есть ли активные админы
-        cursor.execute("SELECT COUNT(*) as count FROM admins WHERE last_login IS NOT NULL")
-        count = cursor.fetchone()['count']
-        conn.close()
-        
-        if count > 0:
-            return jsonify({'success': True})
+    if token:
+        # Упрощенная проверка для теста
+        return jsonify({'success': True})
     
     return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
 
@@ -674,29 +390,7 @@ def verify_admin():
 def admin_get_products():
     """Получение всех товаров для админки"""
     try:
-        # Проверка авторизации
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT * FROM products ORDER BY id DESC")
-        products = [dict(row) for row in cursor.fetchall()]
-        
-        # Парсим JSON поля
-        for product in products:
-            if product.get('images'):
-                try:
-                    product['images'] = json.loads(product['images'])
-                except:
-                    product['images'] = []
-            else:
-                product['images'] = []
-        
-        conn.close()
-        
+        products = get_all_products()
         return jsonify({'success': True, 'products': products})
         
     except Exception as e:
@@ -707,11 +401,6 @@ def admin_get_products():
 def admin_create_product():
     """Создание нового товара"""
     try:
-        # Проверка авторизации
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
         data = request.get_json()
         
         # Валидация обязательных полей
@@ -720,40 +409,11 @@ def admin_create_product():
             if field not in data or not str(data[field]).strip():
                 return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        # Сохраняем товар
+        product_id = save_product(data)
         
-        # Преобразуем изображения в JSON
-        images_json = json.dumps(data.get('images', []), ensure_ascii=False)
-        
-        cursor.execute('''
-            INSERT INTO products (
-                name, code, category, section, price, old_price,
-                badge, recommended, description, specifications,
-                status, stock, images
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            data['name'],
-            data.get('code', ''),
-            data.get('category', ''),
-            data.get('section', ''),
-            int(data['price']),
-            data.get('old_price'),
-            data.get('badge'),
-            bool(data.get('recommended', False)),
-            data['description'],
-            data.get('specifications', ''),
-            data.get('status', 'active'),
-            int(data.get('stock', 0)),
-            images_json
-        ))
-        
-        product_id = cursor.lastrowid
-        
-        conn.commit()
-        conn.close()
-        
-        logger.info(f"Создан товар #{product_id}: {data['name']}")
+        if not product_id:
+            return jsonify({'success': False, 'error': 'Ошибка сохранения'}), 500
         
         return jsonify({
             'success': True,
@@ -769,53 +429,22 @@ def admin_create_product():
 def admin_update_product(product_id):
     """Обновление товара"""
     try:
-        # Проверка авторизации
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
         data = request.get_json()
         
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Проверяем существование товара
-        cursor.execute("SELECT id FROM products WHERE id = ?", (product_id,))
-        if not cursor.fetchone():
-            conn.close()
+        # Получаем существующий товар
+        existing = get_product_by_id(product_id)
+        if not existing:
             return jsonify({'success': False, 'error': 'Товар не найден'}), 404
         
-        # Преобразуем изображения в JSON
-        images_json = json.dumps(data.get('images', []), ensure_ascii=False)
+        # Обновляем поля
+        for key, value in data.items():
+            existing[key] = value
         
-        cursor.execute('''
-            UPDATE products SET
-                name = ?, code = ?, category = ?, section = ?,
-                price = ?, old_price = ?, badge = ?, recommended = ?,
-                description = ?, specifications = ?, status = ?,
-                stock = ?, images = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        ''', (
-            data.get('name', ''),
-            data.get('code', ''),
-            data.get('category', ''),
-            data.get('section', ''),
-            int(data.get('price', 0)),
-            data.get('old_price'),
-            data.get('badge'),
-            bool(data.get('recommended', False)),
-            data.get('description', ''),
-            data.get('specifications', ''),
-            data.get('status', 'active'),
-            int(data.get('stock', 0)),
-            images_json,
-            product_id
-        ))
+        # Обновляем timestamp
+        existing['updated_at'] = datetime.now().isoformat()
         
-        conn.commit()
-        conn.close()
-        
-        logger.info(f"Обновлен товар #{product_id}")
+        # Сохраняем
+        save_product(existing)
         
         return jsonify({
             'success': True,
@@ -830,29 +459,13 @@ def admin_update_product(product_id):
 def admin_delete_product(product_id):
     """Удаление товара"""
     try:
-        # Проверка авторизации
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM products WHERE id = ?", (product_id,))
-        
-        if cursor.rowcount == 0:
-            conn.close()
+        if delete_product(product_id):
+            return jsonify({
+                'success': True,
+                'message': 'Товар успешно удален'
+            })
+        else:
             return jsonify({'success': False, 'error': 'Товар не найден'}), 404
-        
-        conn.commit()
-        conn.close()
-        
-        logger.info(f"Удален товар #{product_id}")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Товар успешно удален'
-        })
         
     except Exception as e:
         logger.error(f"Ошибка удаления товара: {e}")
@@ -862,100 +475,24 @@ def admin_delete_product(product_id):
 def get_stats():
     """Получение статистики"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT COUNT(*) as count FROM products WHERE status = 'active'")
-        products_count = cursor.fetchone()['count']
-        
-        cursor.execute("SELECT COUNT(*) as count FROM orders")
-        orders_count = cursor.fetchone()['count']
-        
-        conn.close()
+        products = get_all_products()
+        active_count = len([p for p in products if p.get('status') == 'active'])
         
         return jsonify({
             'success': True,
-            'products_count': products_count,
-            'orders_count': orders_count
+            'products_count': len(products),
+            'active_products': active_count
         })
         
     except Exception as e:
         logger.error(f"Ошибка получения статистики: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== ДОПОЛНИТЕЛЬНЫЕ СТАТИЧЕСКИЕ МАРШРУТЫ ==========
-
-@app.route('/css/<path:filename>')
-def serve_css(filename):
-    """Отдача CSS файлов"""
-    try:
-        css_dir = os.path.join(STATIC_DIR, 'css')
-        return send_from_directory(css_dir, filename)
-    except Exception as e:
-        logger.error(f"Ошибка отдачи CSS: {e}")
-        return '', 404
-
-@app.route('/js/<path:filename>')
-def serve_js(filename):
-    """Отдача JS файлов"""
-    try:
-        js_dir = os.path.join(STATIC_DIR, 'js')
-        return send_from_directory(js_dir, filename)
-    except Exception as e:
-        logger.error(f"Ошибка отдачи JS: {e}")
-        return '', 404
-
-@app.route('/images/<path:filename>')
-def serve_images(filename):
-    """Отдача изображений"""
-    try:
-        images_dir = os.path.join(STATIC_DIR, 'images')
-        return send_from_directory(images_dir, filename)
-    except Exception as e:
-        logger.error(f"Ошибка отдачи изображений: {e}")
-        return '', 404
-
-# Эти маршруты должны работать для админской статики:
-@app.route('/admin/css/<path:filename>')
-def serve_admin_css(filename):
-    """CSS админки"""
-    try:
-        return send_from_directory(os.path.join(STATIC_DIR, 'admin/css'), filename)
-    except Exception as e:
-        logger.error(f"Admin CSS error: {e}")
-        return '', 404
-
-@app.route('/admin/js/<path:filename>')
-def serve_admin_js(filename):
-    """JS админки"""
-    try:
-        return send_from_directory(os.path.join(STATIC_DIR, 'admin/js'), filename)
-    except Exception as e:
-        logger.error(f"Admin JS error: {e}")
-        return '', 404
-
-# Альтернативно, добавьте catch-all для админки
-@app.route('/admin/<path:path>')
-def serve_admin(path):
-    """Отдача любых файлов админки"""
-    try:
-        admin_dir = os.path.join(STATIC_DIR, 'admin')
-        return send_from_directory(admin_dir, path)
-    except Exception as e:
-        logger.error(f"Ошибка отдачи админки {path}: {e}")
-        return '', 404
-
 # ========== ЗАГРУЗКА ФАЙЛОВ ==========
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     """Загрузка файла на сервер"""
     try:
-        # Проверка авторизации для админки
-        if request.headers.get('X-Admin-Request'):
-            token = request.headers.get('Authorization')
-            if not token:
-                return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
         if 'file' not in request.files:
             return jsonify({'success': False, 'error': 'Файл не загружен'}), 400
         
@@ -1002,14 +539,12 @@ def delete_file():
         if not filename:
             return jsonify({'success': False, 'error': 'Имя файла не указано'}), 400
         
-        # Проверяем, что файл находится в папке uploads
         safe_filename = secure_filename(filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_filename)
         
         if not os.path.exists(file_path):
             return jsonify({'success': False, 'error': 'Файл не найден'}), 404
         
-        # Удаляем файл
         os.remove(file_path)
         
         logger.info(f"Файл удален: {safe_filename}")
@@ -1041,41 +576,28 @@ def not_found_error(error):
     """Обработка 404 ошибок"""
     logger.warning(f"404 Not Found: {request.path}")
     
-    # Для favicon возвращаем 204
     if request.path == '/favicon.ico':
         return '', 204
     
-    # Для API запросов возвращаем JSON
     if request.path.startswith('/api/'):
         return jsonify({'success': False, 'error': 'Ресурс не найден'}), 404
     
-    # Пробуем отдать index.html для SPA роутинга
     try:
         index_path = os.path.join(STATIC_DIR, 'index.html')
         if os.path.exists(index_path):
             return send_file(index_path)
-        return f"Page not found and index.html not found at {index_path}", 404
+        return jsonify({'success': False, 'error': 'Ресурс не найден'}), 404
     except Exception as e:
         logger.error(f"Ошибка в 404 handler: {e}")
         return jsonify({'success': False, 'error': 'Ресурс не найден'}), 404
 
-@app.errorhandler(500)
-def internal_error(error):
-    """Обработка 500 ошибок"""
-    logger.error(f"500 Internal Server Error: {error}")
-    if request.path.startswith('/api/'):
-        return jsonify({'success': False, 'error': 'Внутренняя ошибка сервера'}), 500
-    return "Internal server error", 500
-
 # ========== ЗАПУСК ПРИЛОЖЕНИЯ ==========
 if __name__ == '__main__':
-    # Для разработки
     print("\n" + "=" * 60)
     print("Starting Flask development server...")
     print("=" * 60)
     app.run(host='0.0.0.0', port=5000, debug=True)
 else:
-    # Для production (WSGI)
     print("\n" + "=" * 60)
-    print("MA Furniture WSGI application initialized")
+    print("MA Furniture File Storage initialized")
     print("=" * 60)

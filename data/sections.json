@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "code": "pantographs",
+    "name": "Пантографы",
+    "active": true,
+    "display_order": 1
+  },
+  {
+    "id": 2,
+    "code": "wardrobes",
+    "name": "Гардеробные системы",
+    "active": true,
+    "display_order": 2
+  },
+  {
+    "id": 3,
+    "code": "shoeracks",
+    "name": "Обувницы",
+    "active": true,
+    "display_order": 3
+  },
+  {
+    "id": 4,
+    "code": "premium",
+    "name": "Премиум коллекция",
+    "active": true,
+    "display_order": 4
+  }
+]
