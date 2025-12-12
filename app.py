@@ -587,6 +587,114 @@ def admin_delete_background(background_id):
         logger.error(f"Ошибка удаления фона: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ========== ФУНКЦИИ ДЛЯ АКТИВНОСТИ ==========
+def get_recent_activity():
+    """Получить последнюю активность"""
+    activity = []
+    
+    try:
+        # Получаем последние товары
+        products = get_all_products()
+        recent_products = sorted(products, key=lambda x: x.get('created_at', ''), reverse=True)[:3]
+        
+        for product in recent_products:
+            activity.append({
+                'type': 'product',
+                'title': 'Добавлен новый товар',
+                'description': product.get('name', 'Товар'),
+                'time': product.get('created_at', ''),
+                'icon': 'fas fa-box'
+            })
+        
+        # Получаем информацию о фоне
+        background = load_background()
+        if background and background.get('updated_at'):
+            activity.append({
+                'type': 'background',
+                'title': 'Обновлен фон',
+                'description': background.get('title', 'Главный фон'),
+                'time': background.get('updated_at', ''),
+                'icon': 'fas fa-image'
+            })
+        
+        # Сортируем по времени (новые сначала)
+        activity.sort(key=lambda x: x.get('time', ''), reverse=True)
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения активности: {e}")
+    
+    return activity
+
+# ========== API ДЛЯ ДАШБОРДА ==========
+@app.route('/api/admin/dashboard/stats', methods=['GET'])
+def admin_dashboard_stats():
+    """Получение статистики для дашборда"""
+    try:
+        # Количество товаров
+        products = get_all_products()
+        active_products = len([p for p in products if p.get('status') == 'active'])
+        
+        # Количество категорий
+        sections = load_sections()
+        active_sections = len([s for s in sections if s.get('active', True)])
+        
+        # Информация о фоне
+        background = load_background()
+        background_exists = bool(background and background.get('image_url'))
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_products': len(products),
+                'active_products': active_products,
+                'total_sections': len(sections),
+                'active_sections': active_sections,
+                'background_exists': background_exists
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения статистики дашборда: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/dashboard/activity', methods=['GET'])
+def admin_dashboard_activity():
+    """Получение последней активности"""
+    try:
+        activity = get_recent_activity()
+        return jsonify({
+            'success': True,
+            'activity': activity[:5]  # Ограничиваем 5 записями
+        })
+    except Exception as e:
+        logger.error(f"Ошибка получения активности: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/dashboard/popular-products', methods=['GET'])
+def admin_dashboard_popular_products():
+    """Получение популярных товаров"""
+    try:
+        products = get_all_products()
+        
+        # Фильтруем популярные товары (с бейджами или рекомендуемые)
+        popular_products = []
+        for product in products:
+            if product.get('status') == 'active':
+                badge = product.get('badge', '')
+                if badge in ['Хит продаж', 'Новинка', 'Акция'] or product.get('recommended'):
+                    popular_products.append(product)
+        
+        # Берем максимум 3 товара
+        popular_products = popular_products[:3]
+        
+        return jsonify({
+            'success': True,
+            'products': popular_products
+        })
+    except Exception as e:
+        logger.error(f"Ошибка получения популярных товаров: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ========== РОУТ ДЛЯ СТРАНИЦЫ УПРАВЛЕНИЯ МЕДИА ==========
 @app.route('/admin/media')
 @app.route('/admin/media/')

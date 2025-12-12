@@ -6,14 +6,123 @@
     <title>MA Furniture - Панель управления</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/admin/css/admin-styles.css">
-    <img src="/static/images/logo2.png" alt="MA Furniture">
+    <link rel="icon" type="image/x-icon" href="/static/images/logo2.png">
+    <style>
+        /* Стили для превью фона */
+        .background-preview {
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            background: white;
+        }
+        
+        .background-preview h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .preview-image-container {
+            width: 100%;
+            height: 120px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            background: #f8f9fa;
+        }
+        
+        .preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .no-background-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #6c757d;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .no-background-message i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .background-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .background-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .background-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Стили для активности */
+        .activity-content p {
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+        
+        .activity-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Анимация загрузки */
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .stat-card .loading-skeleton {
+            height: 40px;
+            width: 100px;
+            margin-bottom: 5px;
+        }
+        
+        .activity-item .loading-skeleton {
+            height: 20px;
+            width: 80%;
+            margin-bottom: 5px;
+        }
+        
+        .activity-item .loading-skeleton.time {
+            height: 15px;
+            width: 60%;
+        }
+    </style>
 </head>
 <body>
     <!-- Боковая панель -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">
-                <img src="../images/logo2.png" alt="MA Furniture">
                 <div class="logo-text">
                     <h2>MA Furniture</h2>
                     <small>Админ панель</small>
@@ -50,35 +159,16 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="orders-management.html">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>Заказы</span>
-                        <span class="badge" id="ordersBadge">0</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/admin/categories">
+                    <a href="categories-management.html">
                         <i class="fas fa-tags"></i>
-                        <span>Разделы</span>
+                        <span>Категории</span>
                         <span class="badge" id="categoriesBadge">0</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/admin/media-management.html">
+                    <a href="media-management.html">
                         <i class="fas fa-images"></i>
                         <span>Медиа</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Статистика</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#">
-                        <i class="fas fa-cog"></i>
-                        <span>Настройки</span>
                     </a>
                 </li>
             </ul>
@@ -107,13 +197,6 @@
             </div>
             
             <div class="topbar-right">
-                <button class="btn btn-notification" id="notificationBtn">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-count">3</span>
-                </button>
-                <button class="btn btn-search" id="searchBtn">
-                    <i class="fas fa-search"></i>
-                </button>
                 <div class="quick-actions">
                     <button class="btn btn-primary" onclick="window.location.href='products-management.html'">
                         <i class="fas fa-plus"></i>
@@ -135,51 +218,31 @@
                 </div>
                 <div class="stat-trend up">
                     <i class="fas fa-arrow-up"></i>
-                    <span>12%</span>
+                    <span id="productsTrend">0%</span>
                 </div>
             </div>
             
             <div class="stat-card">
                 <div class="stat-icon success">
-                    <i class="fas fa-shopping-cart"></i>
+                    <i class="fas fa-tags"></i>
                 </div>
                 <div class="stat-info">
-                    <h3 id="totalOrders">0</h3>
-                    <p>Всего заказов</p>
+                    <h3 id="totalCategories">0</h3>
+                    <p>Активных категорий</p>
                 </div>
                 <div class="stat-trend up">
                     <i class="fas fa-arrow-up"></i>
-                    <span>8%</span>
+                    <span id="categoriesTrend">0%</span>
                 </div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-card">
                 <div class="stat-icon warning">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-image"></i>
                 </div>
                 <div class="stat-info">
-                    <h3 id="activeUsers">0</h3>
-                    <p>Посетителей сегодня</p>
-                </div>
-                <div class="stat-trend down">
-                    <i class="fas fa-arrow-down"></i>
-                    <span>5%</span>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-card">
-                <div class="stat-icon danger">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="totalRevenue">0 ₽</h3>
-                    <p>Общая выручка</p>
-                </div>
-                <div class="stat-trend up">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>15%</span>
+                    <h3 id="backgroundStatusText">Нет</h3>
+                    <p>Фоновое изображение</p>
                 </div>
             </div>
         </section>
@@ -188,49 +251,7 @@
         <div class="content-grid">
             <!-- Левая колонка -->
             <div class="content-col">
-                <!-- Последние заказы -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Последние заказы</h3>
-                        <a href="orders-management.html" class="view-all">Показать все</a>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="orders-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Клиент</th>
-                                        <th>Дата</th>
-                                        <th>Сумма</th>
-                                        <th>Статус</th>
-                                        <th>Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recentOrders">
-                                    <!-- Заказы загружаются динамически -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Популярные товары -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Популярные товары</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="popular-products" id="popularProducts">
-                            <!-- Товары загружаются динамически -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Правая колонка -->
-            <div class="content-col">
-                <!-- Активность -->
+                <!-- Последняя активность -->
                 <div class="card">
                     <div class="card-header">
                         <h3>Последняя активность</h3>
@@ -238,10 +259,63 @@
                     <div class="card-body">
                         <div class="activity-feed" id="activityFeed">
                             <!-- Активность загружается динамически -->
+                            <div class="activity-item">
+                                <div class="activity-icon product">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="loading-skeleton"></div>
+                                    <div class="loading-skeleton time"></div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon product">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="loading-skeleton"></div>
+                                    <div class="loading-skeleton time"></div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon product">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="loading-skeleton"></div>
+                                    <div class="loading-skeleton time"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Превью фонового изображения -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Текущий фон главной страницы</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="background-preview" id="backgroundPreview">
+                            <div class="preview-image-container">
+                                <div class="no-background-message">
+                                    <i class="fas fa-image"></i>
+                                    <p>Фон не установлен</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="background-actions" style="margin-top: 15px;">
+                            <a href="media-management.html" class="btn btn-primary" style="width: 100%;">
+                                <i class="fas fa-edit"></i>
+                                Управление медиа
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Правая колонка -->
+            <div class="content-col">
                 <!-- Быстрые действия -->
                 <div class="card">
                     <div class="card-header">
@@ -253,46 +327,51 @@
                                 <i class="fas fa-box"></i>
                                 <span>Добавить товар</span>
                             </button>
-                            <button class="quick-action-btn" onclick="window.location.href='#'">
-                                <i class="fas fa-image"></i>
-                                <span>Загрузить фото</span>
-                            </button>
-                            <button class="quick-action-btn" onclick="window.location.href='#'">
+                            <button class="quick-action-btn" onclick="window.location.href='categories-management.html'">
                                 <i class="fas fa-tags"></i>
-                                <span>Создать акцию</span>
+                                <span>Управление категориями</span>
                             </button>
-                            <button class="quick-action-btn" onclick="window.location.href='#'">
-                                <i class="fas fa-chart-line"></i>
-                                <span>Смотреть отчет</span>
+                            <button class="quick-action-btn" onclick="window.location.href='media-management.html'">
+                                <i class="fas fa-image"></i>
+                                <span>Изменить фон</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="window.open('/', '_blank')">
+                                <i class="fas fa-eye"></i>
+                                <span>Посмотреть сайт</span>
                             </button>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Статус системы -->
+                <!-- Популярные товары -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Статус системы</h3>
+                        <h3>Популярные товары</h3>
+                        <a href="products-management.html" class="view-all">Все товары</a>
                     </div>
                     <div class="card-body">
-                        <div class="system-status">
-                            <div class="status-item">
-                                <span class="status-label">Хранилище</span>
-                                <div class="status-bar">
-                                    <div class="status-progress" style="width: 65%"></div>
+                        <div class="popular-products" id="popularProducts">
+                            <!-- Товары загружаются динамически -->
+                            <div class="popular-product loading">
+                                <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 4px; margin-right: 15px;"></div>
+                                <div style="flex: 1;">
+                                    <div class="loading-skeleton" style="height: 20px; width: 70%; margin-bottom: 8px;"></div>
+                                    <div class="loading-skeleton" style="height: 15px; width: 50%;"></div>
                                 </div>
-                                <span class="status-value">65%</span>
                             </div>
-                            <div class="status-item">
-                                <span class="status-label">Память</span>
-                                <div class="status-bar">
-                                    <div class="status-progress" style="width: 45%"></div>
+                            <div class="popular-product loading">
+                                <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 4px; margin-right: 15px;"></div>
+                                <div style="flex: 1;">
+                                    <div class="loading-skeleton" style="height: 20px; width: 70%; margin-bottom: 8px;"></div>
+                                    <div class="loading-skeleton" style="height: 15px; width: 50%;"></div>
                                 </div>
-                                <span class="status-value">45%</span>
                             </div>
-                            <div class="status-item">
-                                <span class="status-label">Посетители онлайн</span>
-                                <div class="status-value">12</div>
+                            <div class="popular-product loading">
+                                <div style="width: 60px; height: 60px; background: #f8f9fa; border-radius: 4px; margin-right: 15px;"></div>
+                                <div style="flex: 1;">
+                                    <div class="loading-skeleton" style="height: 20px; width: 70%; margin-bottom: 8px;"></div>
+                                    <div class="loading-skeleton" style="height: 15px; width: 50%;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -304,27 +383,14 @@
         <footer class="main-footer">
             <p>&copy; 2024 MA Furniture Admin Panel. Все права защищены.</p>
             <div class="footer-links">
-                <a href="#">Помощь</a>
-                <a href="#">Документация</a>
-                <a href="#">Контакты</a>
+                <a href="/" target="_blank">Посмотреть сайт</a>
+                <a href="mailto:ma.furniture@mail.ru">Техподдержка</a>
             </div>
         </footer>
     </main>
 
-    <!-- Модальные окна -->
-    <div class="modal" id="notificationModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Уведомления</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <!-- Уведомления будут здесь -->
-            </div>
-        </div>
-    </div>
-
     <!-- Скрипты -->
     <script src="/admin/js/admin-auth.js"></script>
+    <script src="/admin/js/admin-dashboard.js"></script>
 </body>
 </html>
