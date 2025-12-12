@@ -1,0 +1,9 @@
+{
+  "id": 1,
+  "title": "Главный фон сайта",
+  "description": "Фоновая фотография для главной страницы",
+  "image_url": "/static/images/hero.jpg",
+  "active": true,
+  "created_at": "2024-01-15T10:30:00",
+  "updated_at": "2024-01-15T10:30:00"
+}

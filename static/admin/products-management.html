@@ -453,6 +453,13 @@
                         <span class="badge" id="ordersBadge">0</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="/admin/categories">
+                        <i class="fas fa-tags"></i>
+                        <span>Разделы</span>
+                        <span class="badge" id="categoriesBadge">0</span>
+                    </a>
+                </li>
             </ul>
             
             <div class="sidebar-footer">
@@ -592,14 +599,11 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="productCategory">Категория *</label>
+                            <label for="productCategory">Наличие *</label>
                             <select id="productCategory" name="productCategory" class="form-control" required>
                                 <option value="">Выберите категорию</option>
-                                <option value="pantograph">Пантографы</option>
-                                <option value="wardrobe">Гардеробные системы</option>
-                                <option value="shoerack">Обувницы</option>
-                                <option value="premium">Премиум коллекция</option>
-                                <option value="other">Другое</option>
+                                <option value="1">В наличии</option>
+                                <option value="2">Под заказ</option>
                             </select>
                         </div>
                         

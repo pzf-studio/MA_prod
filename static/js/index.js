@@ -176,3 +176,36 @@ function showNotification(message, type = 'success') {
 
 // Экспорты
 window.showNotification = showNotification;
+
+async function loadBackgroundImage() {
+    try {
+        const response = await fetch(`${window.location.origin}/api/media/background`);
+        const data = await response.json();
+        
+        if (data.success && data.background && data.background.image_url && data.background.active) {
+            const heroBackground = document.getElementById('heroBackground');
+            if (heroBackground) {
+                // Создаем фоновое изображение
+                const img = new Image();
+                img.src = data.background.image_url;
+                img.onload = function() {
+                    heroBackground.style.backgroundImage = `url('${data.background.image_url}')`;
+                    heroBackground.style.backgroundSize = 'cover';
+                    heroBackground.style.backgroundPosition = 'center';
+                    heroBackground.style.backgroundRepeat = 'no-repeat';
+                };
+                img.onerror = function() {
+                    // Если изображение не загружается, используем дефолтный фон
+                    console.warn('Не удалось загрузить фоновое изображение');
+                };
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки фона:', error);
+    }
+}
+
+// Вызываем функцию загрузки фона
+if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+    loadBackgroundImage();
+}
