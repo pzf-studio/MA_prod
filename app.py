@@ -432,6 +432,175 @@ def admin_reorder_sections():
         logger.error(f"Ошибка изменения порядка разделов: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ========== КОНСТАНТЫ ДЛЯ МЕДИА ==========
+BACKGROUND_FILE = os.path.join(DATA_DIR, 'background.json')
+
+# ========== ФУНКЦИИ РАБОТЫ С МЕДИА ==========
+def load_background():
+    """Загрузить данные о фоне"""
+    if os.path.exists(BACKGROUND_FILE):
+        try:
+            with open(BACKGROUND_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            pass
+    return None
+
+def save_background(background_data):
+    """Сохранить данные о фоне"""
+    try:
+        # Добавляем временные метки
+        if 'id' not in background_data:
+            background_data['id'] = 1
+        if 'created_at' not in background_data:
+            background_data['created_at'] = datetime.now().isoformat()
+        background_data['updated_at'] = datetime.now().isoformat()
+        
+        with open(BACKGROUND_FILE, 'w', encoding='utf-8') as f:
+            json.dump(background_data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        logger.error(f"Ошибка сохранения фона: {e}")
+        return False
+
+# ========== API ДЛЯ МЕДИА (ГЛАВНЫЙ ФОН) ==========
+@app.route('/api/media/background', methods=['GET'])
+def get_background():
+    """Получение данных о главном фоне"""
+    try:
+        background = load_background()
+        
+        if not background:
+            return jsonify({
+                'success': False, 
+                'error': 'Фон не найден',
+                'background': None
+            }), 404
+        
+        return jsonify({
+            'success': True, 
+            'background': background
+        })
+    except Exception as e:
+        logger.error(f"Ошибка получения фона: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/media/background', methods=['GET'])
+def admin_get_background():
+    """Получение данных о фоне для админки"""
+    try:
+        background = load_background()
+        return jsonify({'success': True, 'background': background})
+    except Exception as e:
+        logger.error(f"Ошибка получения фона: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/media/background', methods=['POST'])
+def admin_create_background():
+    """Создание нового фона"""
+    try:
+        data = request.get_json()
+        
+        # Валидация
+        if not data.get('image_url'):
+            return jsonify({'success': False, 'error': 'Изображение обязательно'}), 400
+        
+        # Сохраняем фон
+        if save_background(data):
+            background = load_background()
+            return jsonify({
+                'success': True,
+                'background': background,
+                'message': 'Фон успешно создан'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Ошибка сохранения'}), 500
+        
+    except Exception as e:
+        logger.error(f"Ошибка создания фона: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/media/background/<int:background_id>', methods=['PUT'])
+def admin_update_background(background_id):
+    """Обновление фона"""
+    try:
+        data = request.get_json()
+        current_background = load_background()
+        
+        if not current_background or current_background.get('id') != background_id:
+            return jsonify({'success': False, 'error': 'Фон не найден'}), 404
+        
+        # Обновляем данные
+        for key, value in data.items():
+            if key in ['title', 'description', 'image_url', 'active']:
+                current_background[key] = value
+        
+        # Обновляем временную метку
+        current_background['updated_at'] = datetime.now().isoformat()
+        
+        # Сохраняем
+        if save_background(current_background):
+            return jsonify({
+                'success': True,
+                'background': current_background,
+                'message': 'Фон успешно обновлен'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Ошибка сохранения'}), 500
+        
+    except Exception as e:
+        logger.error(f"Ошибка обновления фона: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/media/background/<int:background_id>', methods=['DELETE'])
+def admin_delete_background(background_id):
+    """Удаление фона"""
+    try:
+        current_background = load_background()
+        
+        if not current_background or current_background.get('id') != background_id:
+            return jsonify({'success': False, 'error': 'Фон не найден'}), 404
+        
+        # Удаляем файл
+        if os.path.exists(BACKGROUND_FILE):
+            os.remove(BACKGROUND_FILE)
+            
+            # Удаляем изображение если оно в uploads
+            image_url = current_background.get('image_url', '')
+            if image_url and '/uploads/' in image_url:
+                try:
+                    filename = image_url.split('/')[-1]
+                    filepath = os.path.join(UPLOAD_FOLDER, filename)
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+                except:
+                    pass
+            
+            return jsonify({
+                'success': True,
+                'message': 'Фон успешно удален'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Файл фона не найден'}), 404
+        
+    except Exception as e:
+        logger.error(f"Ошибка удаления фона: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ========== РОУТ ДЛЯ СТРАНИЦЫ УПРАВЛЕНИЯ МЕДИА ==========
+@app.route('/admin/media')
+@app.route('/admin/media/')
+def admin_media():
+    """Страница управления медиа"""
+    try:
+        media_path = os.path.join(STATIC_DIR, 'admin/media-management.html')
+        if os.path.exists(media_path):
+            return send_file(media_path)
+        return "Media management page not found", 404
+    except Exception as e:
+        logger.error(f"Media page error: {e}")
+        return str(e), 500
+
 # ========== РОУТ ДЛЯ СТРАНИЦЫ УПРАВЛЕНИЯ КАТЕГОРИЯМИ ==========
 @app.route('/admin/categories')
 @app.route('/admin/categories/')

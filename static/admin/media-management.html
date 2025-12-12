@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MA Furniture - Управление медиа</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/admin-styles.css">
+    <link rel="icon" type="image/x-icon" href="/static/images/logo2.png">
+    <style>
+        .media-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .media-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .media-preview {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            background: white;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .current-background {
+            width: 100%;
+            height: 200px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .current-background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .no-background {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--light-color), #e9ecef);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #adb5bd;
+            margin-bottom: 15px;
+        }
+        
+        .no-background i {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .media-details {
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: white;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .image-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: #f8f9fa;
+            margin-top: 10px;
+        }
+        
+        .image-upload-area:hover {
+            border-color: var(--secondary-color);
+            background: #e9f7fe;
+        }
+        
+        .image-upload-area i {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+        
+        .image-upload-area input {
+            display: none;
+        }
+        
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .requirements {
+            background: #f8f9fa;
+            border-left: 4px solid var(--secondary-color);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: var(--border-radius);
+        }
+        
+        .requirements h4 {
+            margin-top: 0;
+            color: var(--secondary-color);
+        }
+        
+        .requirements ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+        
+        .requirements li {
+            margin-bottom: 5px;
+        }
+        
+        .image-size-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковая панель -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="/static/images/logo2.png" alt="MA Furniture">
+                <div class="logo-text">
+                    <h2>MA Furniture</h2>
+                    <small>Админ панель</small>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="user-details">
+                    <h4 id="adminName">Администратор</h4>
+                    <small id="adminRole">Владелец</small>
+                </div>
+            </div>
+            
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a href="/admin/dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Дашборд</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/products-management.html">
+                        <i class="fas fa-box"></i>
+                        <span>Товары</span>
+                        <span class="badge" id="productsBadge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/categories-management.html">
+                        <i class="fas fa-tags"></i>
+                        <span>Категории</span>
+                        <span class="badge" id="categoriesBadge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="/admin/media-management.html">
+                        <i class="fas fa-images"></i>
+                        <span>Медиа</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Заказы</span>
+                        <span class="badge" id="ordersBadge">0</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <!-- Верхняя панель -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Управление медиа</h1>
+                <nav class="breadcrumb">
+                    <a href="/admin/dashboard">Главная</a>
+                    <span>/</span>
+                    <span class="current">Медиа</span>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Основное содержимое -->
+        <section class="media-container">
+            <!-- Предпросмотр -->
+            <div class="media-preview">
+                <h3 style="margin-bottom: 15px;">Текущий фон</h3>
+                
+                <div id="currentBackgroundPreview">
+                    <!-- Предпросмотр загружается динамически -->
+                    <div class="no-background">
+                        <div style="text-align: center;">
+                            <i class="fas fa-image"></i>
+                            <p>Фон не установлен</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="backgroundInfo">
+                    <!-- Информация о фоне загружается динамически -->
+                    <p style="text-align: center; color: #6c757d;">Загрузите фоновое изображение</p>
+                </div>
+            </div>
+            
+            <!-- Форма управления -->
+            <div class="media-details">
+                <h3 style="margin-bottom: 20px;">Управление фоновым изображением</h3>
+                
+                <form id="backgroundForm">
+                    <div class="form-group">
+                        <label for="backgroundTitle">Название фона</label>
+                        <input type="text" 
+                               id="backgroundTitle" 
+                               name="title" 
+                               class="form-control" 
+                               placeholder="Например: Главный фон - Премиум коллекция">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="backgroundDescription">Описание</label>
+                        <textarea id="backgroundDescription" 
+                                  name="description" 
+                                  class="form-control" 
+                                  placeholder="Описание фонового изображения..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Изображение фона *</label>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Перетащите изображение или кликните для выбора</p>
+                            <input type="file" 
+                                   id="backgroundImage" 
+                                   accept="image/*"
+                                   style="display: none;">
+                            <div class="upload-hint">
+                                Рекомендуемый размер: 1920x1080px. Форматы: JPG, PNG, WebP
+                            </div>
+                        </div>
+                        
+                        <div class="image-size-info">
+                            <span>Максимальный размер: 10MB</span>
+                            <span id="selectedFileName"></span>
+                        </div>
+                        
+                        <div id="imagePreview" style="margin-top: 15px; display: none;">
+                            <!-- Препросмотр загруженного изображения -->
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="backgroundStatus">Статус</label>
+                        <select id="backgroundStatus" name="active" class="form-control">
+                            <option value="true">Активный</option>
+                            <option value="false">Неактивный</option>
+                        </select>
+                    </div>
+                    
+                    <input type="hidden" id="backgroundId" name="id">
+                    
+                    <div class="requirements">
+                        <h4>Требования к изображению:</h4>
+                        <ul>
+                            <li>Высокое разрешение (рекомендуется 1920x1080px или больше)</li>
+                            <li>Оптимизированный размер файла (до 10MB)</li>
+                            <li>Соответствие стилю бренда MA Furniture</li>
+                            <li>Отсутствие водяных знаков и логотипов</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="resetForm">
+                            Сбросить
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBackground">
+                            <i class="fas fa-save"></i>
+                            Сохранить фон
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        
+        <!-- Информация -->
+        <section class="card" style="margin-top: 20px;">
+            <div class="card-body">
+                <h3 style="margin-bottom: 15px;">Информация о медиа</h3>
+                <p>На этой странице вы можете управлять фоновым изображением главной страницы. Изображение должно соответствовать стилю бренда MA Furniture и оптимизировано для быстрой загрузки.</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <div style="background: #e9f7fe; padding: 15px; border-radius: 8px;">
+                        <h4 style="margin-top: 0; color: var(--secondary-color);"><i class="fas fa-sync-alt"></i> Автоматическое обновление</h4>
+                        <p>После сохранения фон автоматически обновится на главной странице</p>
+                    </div>
+                    
+                    <div style="background: #e9f7fe; padding: 15px; border-radius: 8px;">
+                        <h4 style="margin-top: 0; color: var(--secondary-color);"><i class="fas fa-mobile-alt"></i> Адаптивность</h4>
+                        <p>Изображение будет автоматически адаптироваться под разные устройства</p>
+                    </div>
+                    
+                    <div style="background: #e9f7fe; padding: 15px; border-radius: 8px;">
+                        <h4 style="margin-top: 0; color: var(--secondary-color);"><i class="fas fa-history"></i> История изменений</h4>
+                        <p>Дата последнего обновления: <span id="lastUpdated">-</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Футер -->
+        <footer class="main-footer">
+            <p>&copy; 2024 MA Furniture Admin Panel. Все права защищены.</p>
+        </footer>
+    </main>
+
+    <!-- Модальное окно подтверждения -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Подтверждение</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Вы уверены в этом действии?</p>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="confirmCancel">
+                    Отмена
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmOk">
+                    Подтвердить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="/admin/js/admin-auth.js"></script>
+    <script src="/admin/js/admin-media.js"></script>
+</body>
+</html>
