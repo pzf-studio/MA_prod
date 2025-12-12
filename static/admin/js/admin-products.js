@@ -8,10 +8,6 @@ class AdminProductsManager {
         this.itemsPerPage = 20;
         this.authToken = localStorage.getItem('admin_token');
         
-        // Для управления цветовыми копиями
-        this.currentProductForCopy = null;
-        this.colorPicker = null;
-        
         this.init();
     }
     
@@ -20,7 +16,6 @@ class AdminProductsManager {
         await this.loadProducts();
         await this.loadSections();
         this.initEventListeners();
-        this.initColorModal();
     }
     
     async checkAuth() {
@@ -91,7 +86,7 @@ class AdminProductsManager {
         if (productsToShow.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="10" style="text-align: center; padding: 40px;">
+                    <td colspan="9" style="text-align: center; padding: 40px;">
                         <i class="fas fa-box-open" style="font-size: 3rem; color: #ddd; margin-bottom: 15px;"></i>
                         <h3>Товары не найдены</h3>
                         <p>Нет добавленных товаров. Добавьте первый товар!</p>
@@ -138,19 +133,13 @@ class AdminProductsManager {
             const date = new Date(product.created_at);
             const formattedDate = date.toLocaleDateString('ru-RU');
             
-            // Цена
+            // Цена - исправлено: используем dataManager если есть, иначе локальный метод
             let priceFormatted = '0 ₽';
             if (typeof dataManager !== 'undefined' && dataManager.formatPrice) {
                 priceFormatted = dataManager.formatPrice(product.price);
             } else {
                 priceFormatted = this.formatPrice(product.price);
             }
-            
-            // Количество цветовых вариантов
-            const colorVariants = product.color_variants || [];
-            const copyCount = colorVariants.filter(v => !v.is_original).length;
-            const colorCountHTML = copyCount > 0 ? 
-                `<span class="color-count" title="${copyCount} цветовых копий">+${copyCount}</span>` : '';
             
             row.innerHTML = `
                 <td>${product.id}</td>
@@ -165,7 +154,6 @@ class AdminProductsManager {
                 <td>${statusToggle}</td>
                 <td>${badgeHTML}</td>
                 <td>${formattedDate}</td>
-                <td>${colorCountHTML}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="action-btn view" onclick="window.adminProducts.viewProduct(${product.id})">
@@ -173,9 +161,6 @@ class AdminProductsManager {
                         </button>
                         <button class="action-btn edit" onclick="window.adminProducts.editProduct(${product.id})">
                             <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn copy" onclick="window.adminProducts.openColorCopyModal(${product.id})" title="Создать цветовую копию">
-                            <i class="fas fa-palette"></i>
                         </button>
                         <button class="action-btn delete" onclick="window.adminProducts.confirmDelete(${product.id})">
                             <i class="fas fa-trash"></i>
@@ -330,7 +315,7 @@ class AdminProductsManager {
             productForm.addEventListener('submit', (e) => this.handleProductSubmit(e));
         }
         
-        // Закрытие модального окна товара
+        // Закрытие модального окна
         const modalClose = document.getElementById('modalClose');
         const modalCancel = document.getElementById('modalCancel');
         if (modalClose) modalClose.addEventListener('click', () => this.closeModal());
@@ -342,7 +327,7 @@ class AdminProductsManager {
         if (deleteCancel) deleteCancel.addEventListener('click', () => this.closeDeleteModal());
         if (deleteConfirm) deleteConfirm.addEventListener('click', () => this.confirmDeleteAction());
         
-        // Загрузка изображений для основного товара
+        // Загрузка изображений
         const imageUploadArea = document.getElementById('imageUploadArea');
         const imageUpload = document.getElementById('imageUpload');
         if (imageUploadArea && imageUpload) {
@@ -357,6 +342,7 @@ class AdminProductsManager {
             if (element) {
                 element.addEventListener('change', () => {
                     this.currentPage = 1;
+                    // Здесь можно добавить фильтрацию
                     this.renderProducts();
                 });
             }
@@ -385,252 +371,6 @@ class AdminProductsManager {
             });
         }
     }
-    
-    // ========== ЦВЕТОВЫЕ КОПИИ ==========
-    
-    initColorModal() {
-        const colorModal = document.getElementById('colorCopyModal');
-        const closeBtn = document.getElementById('colorModalClose');
-        const cancelBtn = document.getElementById('colorModalCancel');
-        const createBtn = document.getElementById('createColorCopyBtn');
-        const copyImageUploadArea = document.getElementById('copyImageUploadArea');
-        const copyImageUpload = document.getElementById('copyImageUpload');
-        
-        if (closeBtn) closeBtn.addEventListener('click', () => this.closeColorModal());
-        if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeColorModal());
-        if (createBtn) createBtn.addEventListener('click', () => this.createColorCopy());
-        
-        if (copyImageUploadArea && copyImageUpload) {
-            copyImageUploadArea.addEventListener('click', () => copyImageUpload.click());
-            copyImageUpload.addEventListener('change', (e) => this.handleCopyImageUpload(e));
-        }
-        
-        // Загрузка палитры цветов
-        this.loadColorPalette();
-    }
-    
-    async loadColorPalette() {
-        try {
-            const response = await fetch(`${this.API_BASE}/api/admin/colors/palette`);
-            const data = await response.json();
-            
-            if (data.success) {
-                // Если цветовой пикер уже инициализирован, обновляем палитру
-                if (this.colorPicker && data.palette) {
-                    this.colorPicker.setPalette(data.palette);
-                }
-            }
-        } catch (error) {
-            console.error('Ошибка загрузки палитры:', error);
-        }
-    }
-    
-    async openColorCopyModal(productId) {
-        this.currentProductForCopy = productId;
-        const product = this.products.find(p => p.id === productId);
-        
-        if (!product) {
-            this.showNotification('Товар не найден', 'error');
-            return;
-        }
-        
-        // Обновляем информацию
-        document.getElementById('baseProductName').textContent = product.name;
-        document.getElementById('baseProductCode').textContent = product.code || `ID${product.id}`;
-        
-        // Генерируем код копии
-        const baseCode = product.code || `ID${product.id}`;
-        const existingCopies = (product.color_variants || []).filter(v => !v.is_original);
-        const newIndex = existingCopies.length + 1;
-        document.getElementById('copyProductCode').textContent = `${baseCode}/${newIndex}`;
-        
-        // Сброс формы
-        document.getElementById('copyPrice').value = product.price || '';
-        document.getElementById('copyStock').value = 0;
-        document.getElementById('copyImagePreview').innerHTML = '';
-        
-        // Скрываем кнопку если достигнут лимит
-        const createBtn = document.getElementById('createColorCopyBtn');
-        if (existingCopies.length >= 4) {
-            createBtn.disabled = true;
-            createBtn.innerHTML = '<i class="fas fa-ban"></i> Достигнут лимит (макс. 4 копии)';
-        } else {
-            createBtn.disabled = false;
-            createBtn.innerHTML = '<i class="fas fa-copy"></i> Создать цветовую копию';
-        }
-        
-        // Инициализация цветового пикера
-        if (!this.colorPicker) {
-            // Загружаем AdminColorPicker если он существует
-            if (typeof AdminColorPicker !== 'undefined') {
-                this.colorPicker = new AdminColorPicker('adminColorPicker', {
-                    onColorSelect: (color) => {
-                        console.log('Выбран цвет:', color);
-                    }
-                });
-                
-                // Загружаем палитру
-                this.loadColorPalette();
-            } else {
-                console.warn('AdminColorPicker не загружен');
-            }
-        }
-        
-        // Открываем модальное окно
-        document.getElementById('colorCopyModal').classList.add('active');
-    }
-    
-    closeColorModal() {
-        document.getElementById('colorCopyModal').classList.remove('active');
-        this.currentProductForCopy = null;
-    }
-    
-    async handleCopyImageUpload(e) {
-        const files = Array.from(e.target.files);
-        
-        for (const file of files) {
-            if (!file.type.startsWith('image/')) {
-                this.showNotification('Пожалуйста, загружайте только изображения', 'error');
-                continue;
-            }
-            
-            if (file.size > 5 * 1024 * 1024) {
-                this.showNotification(`Файл ${file.name} слишком большой (максимум 5MB)`, 'error');
-                continue;
-            }
-            
-            const result = await this.uploadImage(file);
-            
-            if (result.success) {
-                this.addCopyImagePreview(result);
-            } else {
-                this.showNotification(`Ошибка загрузки: ${result.error}`, 'error');
-            }
-        }
-        
-        // Очищаем input
-        e.target.value = '';
-    }
-    
-    addCopyImagePreview(fileInfo) {
-        const preview = document.getElementById('copyImagePreview');
-        if (!preview) return;
-        
-        const previewItem = document.createElement('div');
-        previewItem.className = 'preview-item';
-        previewItem.innerHTML = `
-            <img src="${fileInfo.url}" alt="${fileInfo.original_name}">
-            <button class="preview-remove" onclick="this.closest('.preview-item').remove();">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-        
-        preview.appendChild(previewItem);
-    }
-    
-    async createColorCopy() {
-        if (!this.currentProductForCopy) return;
-        
-        const product = this.products.find(p => p.id === this.currentProductForCopy);
-        if (!product) return;
-        
-        // Получаем выбранный цвет
-        let selectedColor = null;
-        if (this.colorPicker && typeof this.colorPicker.getSelectedColor === 'function') {
-            selectedColor = this.colorPicker.getSelectedColor();
-        }
-        
-        // Если цвет не выбран через пикер, берем из полей ввода
-        if (!selectedColor || !selectedColor.name || !selectedColor.hex) {
-            const nameInput = document.getElementById('colorNameInput');
-            const hexInput = document.getElementById('colorHexInput');
-            
-            if (nameInput && hexInput && nameInput.value && hexInput.value) {
-                selectedColor = {
-                    name: nameInput.value,
-                    hex: hexInput.value
-                };
-            } else {
-                this.showNotification('Выберите цвет для копии', 'error');
-                return;
-            }
-        }
-        
-        // Собираем данные
-        const priceInput = document.getElementById('copyPrice');
-        const stockInput = document.getElementById('copyStock');
-        
-        const colorData = {
-            color_name: selectedColor.name,
-            color_hex: selectedColor.hex,
-            price: priceInput.value ? parseInt(priceInput.value) : product.price,
-            stock: parseInt(stockInput.value) || 0,
-            images: this.getCopyImages()
-        };
-        
-        // Кнопка загрузки
-        const createBtn = document.getElementById('createColorCopyBtn');
-        const originalText = createBtn.innerHTML;
-        createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание...';
-        createBtn.disabled = true;
-        
-        try {
-            const response = await fetch(
-                `${this.API_BASE}/api/admin/products/${this.currentProductForCopy}/color-variant`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${this.authToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(colorData)
-                }
-            );
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.showNotification(`Цветовая копия создана: ${data.variant.variant_id}`, 'success');
-                this.closeColorModal();
-                
-                // Обновляем список товаров
-                await this.loadProducts();
-                
-                // Подсвечиваем созданную копию
-                this.highlightCreatedCopy(data.variant.variant_id);
-            } else {
-                throw new Error(data.error);
-            }
-            
-        } catch (error) {
-            console.error('Ошибка создания копии:', error);
-            this.showNotification(`Ошибка: ${error.message}`, 'error');
-        } finally {
-            createBtn.innerHTML = originalText;
-            createBtn.disabled = false;
-        }
-    }
-    
-    getCopyImages() {
-        const preview = document.getElementById('copyImagePreview');
-        if (!preview) return [];
-        
-        const images = [];
-        const imgElements = preview.querySelectorAll('img');
-        
-        imgElements.forEach(img => {
-            images.push(img.src);
-        });
-        
-        return images;
-    }
-    
-    highlightCreatedCopy(variantId) {
-        console.log(`Создана цветовая копия: ${variantId}`);
-        // Можно добавить анимацию или подсветку строки в таблице
-    }
-    
-    // ========== СУЩЕСТВУЮЩИЕ МЕТОДЫ ==========
     
     openProductModal(productId = null) {
         const modal = document.getElementById('productModal');
@@ -853,6 +593,7 @@ class AdminProductsManager {
         if (modal) modal.classList.remove('active');
     }
     
+    // Методы для кнопок действий
     viewProduct(productId) {
         window.open(`/piece?id=${productId}`, '_blank');
     }
