@@ -9,7 +9,12 @@ from flask_cors import CORS
 import hashlib
 import uuid
 from werkzeug.utils import secure_filename
+from order_manager import order_manager
+import os
 
+# Добавить в переменные окружения
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 # ========== НАСТРОЙКА ПУТЕЙ ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -213,6 +218,40 @@ def index():
     except Exception as e:
         logger.error(f"Ошибка загрузки index.html: {e}")
         return f'Error: {str(e)}', 500
+
+@app.route('/api/orders', methods=['POST'])
+def create_order():
+    """Создание нового заказа"""
+    try:
+        # Проверка токена Telegram
+        if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+            return jsonify({
+                'success': False, 
+                'error': 'Telegram бот не настроен. Обратитесь к администратору.'
+            }), 500
+        
+        data = request.get_json()
+        
+        # Базовая валидация
+        required_fields = ['customer_name', 'customer_phone', 'items']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
+        
+        if not isinstance(data['items'], list) or len(data['items']) == 0:
+            return jsonify({'success': False, 'error': 'Корзина пуста'}), 400
+        
+        # Обработка заказа
+        result = order_manager.process_order(data)
+        
+        if result['success']:
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 500
+            
+    except Exception as e:
+        logger.error(f"Ошибка создания заказа: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/shop')
 def shop():

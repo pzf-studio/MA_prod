@@ -93,13 +93,27 @@ class DataManager {
         try {
             const response = await fetch(`${this.API_BASE}/api/orders`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify(orderData)
             });
-            return await response.json();
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || `HTTP error: ${response.status}`);
+            }
+            
+            return data;
+            
         } catch (error) {
             console.error('Ошибка отправки заказа:', error);
-            return { success: false, error: 'Ошибка сети' };
+            return { 
+                success: false, 
+                error: error.message || 'Ошибка сети. Попробуйте позже.' 
+            };
         }
     }
 
