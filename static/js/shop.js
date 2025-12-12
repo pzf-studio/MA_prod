@@ -793,6 +793,34 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
+async function loadShopBackground() {
+    try {
+        const response = await fetch(`${window.location.origin}/api/media/background`);
+        const data = await response.json();
+        
+        if (data.success && data.background && data.background.image_url && data.background.active) {
+            const heroBackground = document.getElementById('shopHeroBackground');
+            if (heroBackground) {
+                const img = new Image();
+                img.src = data.background.image_url;
+                img.onload = function() {
+                    heroBackground.style.backgroundImage = `url('${data.background.image_url}')`;
+                    heroBackground.style.backgroundSize = 'cover';
+                    heroBackground.style.backgroundPosition = 'center';
+                    heroBackground.style.backgroundRepeat = 'no-repeat';
+                };
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки фона для shop:', error);
+    }
+}
+
+// Вызывать при загрузке страницы shop
+if (window.location.pathname.includes('shop.html')) {
+    loadShopBackground();
+}
+
 // Глобальные экспорты
 window.cartSystem = cartSystem;
 window.showNotification = showNotification;

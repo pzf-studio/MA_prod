@@ -183,27 +183,43 @@ async function loadBackgroundImage() {
         const data = await response.json();
         
         if (data.success && data.background && data.background.image_url && data.background.active) {
-            const heroBackground = document.getElementById('heroBackground');
-            if (heroBackground) {
-                // Создаем фоновое изображение
-                const img = new Image();
-                img.src = data.background.image_url;
-                img.onload = function() {
-                    heroBackground.style.backgroundImage = `url('${data.background.image_url}')`;
-                    heroBackground.style.backgroundSize = 'cover';
-                    heroBackground.style.backgroundPosition = 'center';
-                    heroBackground.style.backgroundRepeat = 'no-repeat';
-                };
-                img.onerror = function() {
-                    // Если изображение не загружается, используем дефолтный фон
-                    console.warn('Не удалось загрузить фоновое изображение');
-                };
+            // Для главной страницы
+            if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+                const heroBackground = document.getElementById('heroBackground');
+                if (heroBackground) {
+                    const img = new Image();
+                    img.src = data.background.image_url;
+                    img.onload = function() {
+                        heroBackground.style.backgroundImage = `url('${data.background.image_url}')`;
+                        heroBackground.style.backgroundSize = 'cover';
+                        heroBackground.style.backgroundPosition = 'center';
+                        heroBackground.style.backgroundRepeat = 'no-repeat';
+                    };
+                }
+            }
+            
+            // Для страницы shop
+            if (window.location.pathname.includes('shop.html')) {
+                const shopHeroBackground = document.getElementById('shopHeroBackground');
+                if (shopHeroBackground) {
+                    const img = new Image();
+                    img.src = data.background.image_url;
+                    img.onload = function() {
+                        shopHeroBackground.style.backgroundImage = `url('${data.background.image_url}')`;
+                        shopHeroBackground.style.backgroundSize = 'cover';
+                        shopHeroBackground.style.backgroundPosition = 'center';
+                        shopHeroBackground.style.backgroundRepeat = 'no-repeat';
+                    };
+                }
             }
         }
     } catch (error) {
         console.error('Ошибка загрузки фона:', error);
     }
 }
+
+// Вызываем функцию загрузки фона для всех страниц
+loadBackgroundImage();
 
 // Вызываем функцию загрузки фона
 if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
