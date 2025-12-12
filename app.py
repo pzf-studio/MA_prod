@@ -264,6 +264,188 @@ def admin_dashboard():
         logger.error(f"Dashboard error: {e}")
         return str(e), 500
 
+# ========== API ДЛЯ УПРАВЛЕНИЯ КАТЕГОРИЯМИ (РАЗДЕЛАМИ) ==========
+@app.route('/api/admin/sections', methods=['GET'])
+def admin_get_sections():
+    """Получение всех разделов для админки"""
+    try:
+        sections = load_sections()
+        return jsonify({'success': True, 'sections': sections})
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения разделов: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/sections', methods=['POST'])
+def admin_create_section():
+    """Создание нового раздела"""
+    try:
+        data = request.get_json()
+        
+        # Валидация обязательных полей
+        required_fields = ['name', 'code']
+        for field in required_fields:
+            if field not in data or not str(data[field]).strip():
+                return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
+        
+        sections = load_sections()
+        
+        # Проверяем уникальность ID и кода
+        new_id = max([s.get('id', 0) for s in sections], default=0) + 1
+        if any(s.get('code') == data['code'] for s in sections):
+            return jsonify({'success': False, 'error': 'Раздел с таким кодом уже существует'}), 400
+        
+        # Создаем новый раздел
+        new_section = {
+            'id': new_id,
+            'name': data['name'].strip(),
+            'code': data['code'].strip().lower(),
+            'active': data.get('active', True),
+            'display_order': data.get('display_order', len(sections) + 1)
+        }
+        
+        sections.append(new_section)
+        save_sections(sections)
+        
+        return jsonify({
+            'success': True,
+            'section': new_section,
+            'message': 'Раздел успешно создан'
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка создания раздела: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/sections/<int:section_id>', methods=['PUT'])
+def admin_update_section(section_id):
+    """Обновление раздела"""
+    try:
+        data = request.get_json()
+        sections = load_sections()
+        
+        # Находим раздел
+        section_index = None
+        for i, section in enumerate(sections):
+            if section.get('id') == section_id:
+                section_index = i
+                break
+        
+        if section_index is None:
+            return jsonify({'success': False, 'error': 'Раздел не найден'}), 404
+        
+        # Обновляем поля
+        if 'name' in data:
+            sections[section_index]['name'] = data['name'].strip()
+        
+        if 'code' in data:
+            new_code = data['code'].strip().lower()
+            # Проверяем уникальность кода (кроме текущего раздела)
+            if any(s.get('code') == new_code and s.get('id') != section_id for s in sections):
+                return jsonify({'success': False, 'error': 'Раздел с таким кодом уже существует'}), 400
+            sections[section_index]['code'] = new_code
+        
+        if 'active' in data:
+            sections[section_index]['active'] = bool(data['active'])
+        
+        if 'display_order' in data:
+            sections[section_index]['display_order'] = int(data['display_order'])
+        
+        save_sections(sections)
+        
+        return jsonify({
+            'success': True,
+            'section': sections[section_index],
+            'message': 'Раздел успешно обновлен'
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка обновления раздела: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/sections/<int:section_id>', methods=['DELETE'])
+def admin_delete_section(section_id):
+    """Удаление раздела"""
+    try:
+        sections = load_sections()
+        
+        # Находим раздел
+        section_index = None
+        section_to_delete = None
+        for i, section in enumerate(sections):
+            if section.get('id') == section_id:
+                section_index = i
+                section_to_delete = section
+                break
+        
+        if section_index is None:
+            return jsonify({'success': False, 'error': 'Раздел не найден'}), 404
+        
+        # Проверяем, используется ли раздел в товарах
+        products = get_all_products()
+        products_in_section = [p for p in products if p.get('section') == section_to_delete.get('code')]
+        
+        if products_in_section:
+            return jsonify({
+                'success': False, 
+                'error': f'Нельзя удалить раздел, так как в нем есть товары ({len(products_in_section)} шт.)'
+            }), 400
+        
+        # Удаляем раздел
+        sections.pop(section_index)
+        save_sections(sections)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Раздел успешно удален'
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка удаления раздела: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/sections/reorder', methods=['POST'])
+def admin_reorder_sections():
+    """Изменение порядка разделов"""
+    try:
+        data = request.get_json()
+        new_order = data.get('order', [])
+        
+        if not new_order:
+            return jsonify({'success': False, 'error': 'Не указан новый порядок'}), 400
+        
+        sections = load_sections()
+        
+        # Обновляем порядок
+        for section in sections:
+            if str(section.get('id')) in new_order:
+                section['display_order'] = new_order.index(str(section.get('id'))) + 1
+        
+        save_sections(sections)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Порядок разделов обновлен'
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка изменения порядка разделов: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ========== РОУТ ДЛЯ СТРАНИЦЫ УПРАВЛЕНИЯ КАТЕГОРИЯМИ ==========
+@app.route('/admin/categories')
+@app.route('/admin/categories/')
+def admin_categories():
+    """Страница управления категориями"""
+    try:
+        categories_path = os.path.join(STATIC_DIR, 'admin/categories-management.html')
+        if os.path.exists(categories_path):
+            return send_file(categories_path)
+        return "Categories management page not found", 404
+    except Exception as e:
+        logger.error(f"Categories page error: {e}")
+        return str(e), 500
+
 # ========== API ДЛЯ МАГАЗИНА ==========
 @app.route('/api/health')
 def health_check():
