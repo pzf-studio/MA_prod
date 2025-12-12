@@ -1532,3 +1532,207 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
 .hero-background:not([style*="background-image"]) {
     background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
 }
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: row !important; /* Главное меню в ряд, а не колонку */
+        justify-content: space-between !important;
+        padding: 0.5rem 0 !important;
+    }
+    
+    .logo-container {
+        order: 1;
+    }
+    
+    .menu-toggle {
+        order: 2;
+        display: flex !important; /* Убедитесь, что бургер виден */
+        margin-left: auto;
+    }
+    
+    .header-actions .btn-telegram {
+        display: none; /* Скрыть Telegram кнопку на мобильном в шапке */
+    }
+    
+    /* Мобильное меню - полноэкранное */
+    .main-nav.active {
+        display: block;
+        position: fixed;
+        top: 70px; /* Высота шапки */
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--white);
+        z-index: 999;
+        padding: 2rem;
+        overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .main-nav.active ul {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+    
+    .main-nav.active a {
+        font-size: 1.2rem;
+        padding: 0.8rem 0;
+        display: block;
+        width: 100%;
+    }
+    
+    /* Анимация бургер-кнопки */
+    .menu-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(6px, 6px);
+    }
+    
+    .menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .menu-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-text {
+        font-size: 1.2rem !important;
+    }
+    
+    .logo-image {
+        width: 30px !important;
+        height: 30px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        height: 70vh !important;
+        min-height: 500px !important;
+        margin-top: 60px !important;
+    }
+    
+    .hero-content {
+        padding: 20px 15px !important;
+        margin: 0 10px !important;
+        backdrop-filter: blur(5px) !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+    }
+    
+    .hero-title .brand-name {
+        font-size: 2.2rem !important;
+        line-height: 1.2 !important;
+    }
+    
+    .hero-title .brand-subtitle {
+        font-size: 1.1rem !important;
+        line-height: 1.4 !important;
+        margin-top: 0.5rem !important;
+        padding-top: 0.5rem !important;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .hero-buttons {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+    
+    .hero-buttons .btn {
+        width: 100% !important;
+        margin-bottom: 10px !important;
+        justify-content: center !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        height: 60vh !important;
+        min-height: 400px !important;
+    }
+    
+    .hero-title .brand-name {
+        font-size: 1.8rem !important;
+    }
+    
+    .hero-title .brand-subtitle {
+        font-size: 1rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .shop-grid, 
+    .random-products-grid,
+    .recommended-products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+        gap: 1.5rem !important;
+    }
+    
+    .about-features {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+    }
+    
+    .feature-item {
+        min-height: auto !important;
+        padding: 1.5rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .shop-grid,
+    .random-products-grid,
+    .recommended-products-grid,
+    .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .shop-card, 
+    .random-product-card,
+    .product-card {
+        margin-bottom: 1rem;
+    }
+    
+    .shop-card-image,
+    .random-product-image,
+    .product-image {
+        height: 180px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-footer {
+        padding: 40px 0 20px !important;
+        margin-top: 40px !important;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+        text-align: center;
+    }
+    
+    .footer-section {
+        text-align: center;
+    }
+    
+    .footer-section ul li {
+        justify-content: center;
+    }
+    
+    .social-links {
+        justify-content: center;
+    }
+    
+    .footer-section h3, 
+    .footer-section h4,
+    .footer-section p {
+        text-align: center !important;
+    }
+}
