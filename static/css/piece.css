@@ -2877,3 +2877,340 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
         width: 100%;
     }
 }
+
+#productBadge {
+    display: none; /* Скрыт по умолчанию, показывается через JS */
+    position: relative;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    color: white;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.2),
+        0 1px 0 rgba(255, 255, 255, 0.2) inset,
+        0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 2px solid transparent;
+    overflow: hidden;
+    z-index: 5;
+    max-width: 200px;
+    cursor: default;
+    user-select: none;
+}
+
+/* Эффект при наведении */
+#productBadge:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* Эффект свечения */
+#productBadge::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: inherit;
+    border-radius: 29px;
+    z-index: -1;
+    opacity: 0.3;
+    filter: blur(12px);
+    transition: opacity 0.3s ease;
+}
+
+#productBadge:hover::before {
+    opacity: 0.5;
+}
+
+/* Градиентный бордюр для всех бейджей */
+#productBadge {
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+/* === ХИТ ПРОДАЖ === */
+#productBadge.hit {
+    background: linear-gradient(135deg, #FF4757 0%, #FF6B6B 50%, #FF4757 100%);
+    border: 2px solid rgba(255, 71, 87, 0.4);
+    animation: badgePulse 2s infinite;
+}
+
+/* Пульсация для хита продаж */
+@keyframes badgePulse {
+    0%, 100% {
+        box-shadow: 
+            0 4px 15px rgba(255, 71, 87, 0.3),
+            0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    }
+    50% {
+        box-shadow: 
+            0 4px 25px rgba(255, 71, 87, 0.5),
+            0 1px 0 rgba(255, 255, 255, 0.3) inset;
+    }
+}
+
+/* Искры для хита продаж */
+#productBadge.hit::after {
+    content: '🔥';
+    position: absolute;
+    top: -12px;
+    right: 15px;
+    font-size: 0.8rem;
+    animation: fireEffect 1.5s infinite alternate;
+}
+
+@keyframes fireEffect {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* === НОВИНКА === */
+#productBadge.new {
+    background: linear-gradient(135deg, #2ECC71 0%, #27AE60 50%, #2ECC71 100%);
+    border: 2px solid rgba(46, 204, 113, 0.4);
+    animation: badgeBreathe 3s infinite ease-in-out;
+}
+
+/* Эффект дыхания для новинки */
+@keyframes badgeBreathe {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Свечение для новинки */
+#productBadge.new::after {
+    content: '✨';
+    position: absolute;
+    top: -8px;
+    right: 15px;
+    font-size: 0.7rem;
+    animation: sparkleTwinkle 2s infinite;
+}
+
+@keyframes sparkleTwinkle {
+    0%, 100% {
+        opacity: 0;
+        transform: rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: rotate(15deg);
+    }
+}
+
+/* === АКЦИЯ === */
+#productBadge.sale {
+    background: linear-gradient(135deg, #FF9F43 0%, #F79F1F 50%, #FF9F43 100%);
+    border: 2px solid rgba(255, 159, 67, 0.4);
+    position: relative;
+}
+
+/* Вращающийся значок скидки */
+#productBadge.sale::before {
+    content: '🏷️';
+    position: absolute;
+    top: -10px;
+    left: 15px;
+    font-size: 0.8rem;
+    animation: tagRotate 4s infinite linear;
+}
+
+@keyframes tagRotate {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.2);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+/* === ЭКСКЛЮЗИВ === */
+#productBadge.exclusive {
+    background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 50%, #9B59B6 100%);
+    border: 2px solid transparent;
+    background-image: 
+        linear-gradient(white, white),
+        linear-gradient(135deg, #9B59B6, #8E44AD, #3498DB, #9B59B6);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    animation: exclusiveGlow 4s infinite linear;
+}
+
+/* Эффект переливающегося градиента */
+@keyframes exclusiveGlow {
+    0% {
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #9B59B6, #8E44AD, #3498DB);
+    }
+    33% {
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #3498DB, #9B59B6, #8E44AD);
+    }
+    66% {
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #8E44AD, #3498DB, #9B59B6);
+    }
+    100% {
+        background-image: 
+            linear-gradient(white, white),
+            linear-gradient(135deg, #9B59B6, #8E44AD, #3498DB);
+    }
+}
+
+/* === ПРЕМИУМ === */
+#productBadge.premium {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 50%, #D4AF37 100%);
+    border: 2px solid rgba(212, 175, 55, 0.6);
+    position: relative;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Эффект золотого свечения */
+#productBadge.premium {
+    box-shadow: 
+        0 4px 20px rgba(212, 175, 55, 0.4),
+        0 2px 0 rgba(255, 215, 0, 0.3) inset,
+        0 -2px 0 rgba(184, 134, 11, 0.3) inset;
+}
+
+/* Блестки для премиум бейджа */
+#productBadge.premium::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.3) 1px, transparent 2px),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.3) 1px, transparent 2px),
+        radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.3) 1px, transparent 2px);
+    background-size: 50px 50px;
+    border-radius: 25px;
+    animation: sparkleMove 20s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes sparkleMove {
+    0% {
+        background-position: 0 0, 30px 30px, 60px 60px;
+    }
+    100% {
+        background-position: 50px 50px, 80px 80px, 110px 110px;
+    }
+}
+
+/* === ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ === */
+
+/* Эффект поднятия при загрузке */
+#productBadge[style*="display: block"] {
+    animation: badgeAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badgeAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Эффект тряски при наведении на хит */
+#productBadge.hit:hover {
+    animation: hitShake 0.5s ease;
+}
+
+@keyframes hitShake {
+    0%, 100% { transform: translateX(0) translateY(-3px); }
+    25% { transform: translateX(-2px) translateY(-3px); }
+    75% { transform: translateX(2px) translateY(-3px); }
+}
+
+/* === АДАПТИВНОСТЬ === */
+@media (max-width: 768px) {
+    #productBadge {
+        padding: 6px 16px;
+        font-size: 0.8rem;
+        margin-bottom: 15px;
+        max-width: 180px;
+    }
+    
+    /* Уменьшаем анимации на мобильных */
+    #productBadge.hit {
+        animation: badgePulse 3s infinite;
+    }
+    
+    #productBadge.new {
+        animation: badgeBreathe 4s infinite ease-in-out;
+    }
+}
+
+@media (max-width: 480px) {
+    #productBadge {
+        padding: 5px 14px;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        max-width: 160px;
+    }
+    
+    /* Отключаем сложные анимации на очень маленьких экранах */
+    #productBadge.premium::after,
+    #productBadge.exclusive,
+    #productBadge.sale::before {
+        animation: none;
+    }
+}
+
+/* === УТИЛИТНЫЕ КЛАССЫ ДЛЯ JS === */
+/* Для временного отключения анимаций */
+#productBadge.no-animation {
+    animation: none !important;
+}
+
+#productBadge.no-animation::before,
+#productBadge.no-animation::after {
+    animation: none !important;
+    display: none;
+}
+
+/* Для статичного отображения (если нужен) */
+#productBadge.static {
+    animation: none !important;
+    transform: none !important;
+}
+
+#productBadge.static:hover {
+    transform: none !important;
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.2),
+        0 1px 0 rgba(255, 255, 255, 0.2) inset,
+        0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+}
