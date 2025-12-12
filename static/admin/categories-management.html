@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MA Furniture - Управление категориями</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/admin-styles.css">
+    <link rel="icon" type="image/x-icon" href="/static/images/logo2.png">
+    <style>
+        .categories-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .categories-table th,
+        .categories-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .categories-table th {
+            font-weight: 600;
+            background: var(--light-color);
+            color: #6c757d;
+        }
+        
+        .categories-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .category-code {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .order-input {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .status-toggle {
+            width: 40px;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .status-toggle.active {
+            background: var(--success-color);
+        }
+        
+        .status-toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: var(--transition);
+        }
+        
+        .status-toggle.active::after {
+            left: 22px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn:hover {
+            background: var(--light-color);
+        }
+        
+        .action-btn.edit { color: var(--secondary-color); }
+        .action-btn.delete { color: var(--danger-color); }
+        
+        /* Модальное окно */
+        .modal-lg {
+            max-width: 500px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .code-hint {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        /* Сортировка */
+        .sortable-handle {
+            cursor: move;
+            color: #adb5bd;
+            padding: 0 10px;
+        }
+        
+        .sortable-handle:hover {
+            color: var(--secondary-color);
+        }
+        
+        .sortable-ghost {
+            background: #f8f9fa;
+            opacity: 0.5;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .categories-table {
+                font-size: 0.9rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 25px;
+                height: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковая панель -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="/static/images/logo2.png" alt="MA Furniture">
+                <div class="logo-text">
+                    <h2>MA Furniture</h2>
+                    <small>Админ панель</small>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="user-details">
+                    <h4 id="adminName">Администратор</h4>
+                    <small id="adminRole">Владелец</small>
+                </div>
+            </div>
+            
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a href="/admin/dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Дашборд</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/products-management.html">
+                        <i class="fas fa-box"></i>
+                        <span>Товары</span>
+                        <span class="badge" id="productsBadge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="/admin/categories-management.html">
+                        <i class="fas fa-tags"></i>
+                        <span>Категории</span>
+                        <span class="badge" id="categoriesBadge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Заказы</span>
+                        <span class="badge" id="ordersBadge">0</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <!-- Верхняя панель -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Управление категориями</h1>
+                <nav class="breadcrumb">
+                    <a href="/admin/dashboard">Главная</a>
+                    <span>/</span>
+                    <span class="current">Категории</span>
+                </nav>
+            </div>
+            
+            <div class="topbar-right">
+                <button class="btn btn-primary" id="addCategoryBtn">
+                    <i class="fas fa-plus"></i>
+                    Добавить категорию
+                </button>
+            </div>
+        </header>
+
+        <!-- Основное содержимое -->
+        <section class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="categories-table" id="categoriesTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Порядок</th>
+                                <th style="width: 80px;">ID</th>
+                                <th>Название</th>
+                                <th style="width: 150px;">Код</th>
+                                <th style="width: 100px;">Статус</th>
+                                <th style="width: 150px;">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesTableBody">
+                            <!-- Категории загружаются динамически -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="empty-state" id="emptyState" style="display: none; text-align: center; padding: 40px;">
+                    <i class="fas fa-tags" style="font-size: 3rem; color: #ddd; margin-bottom: 15px;"></i>
+                    <h3>Нет категорий</h3>
+                    <p>Добавьте первую категорию для вашего магазина</p>
+                    <button class="btn btn-primary" id="addFirstCategoryBtn" style="margin-top: 15px;">
+                        <i class="fas fa-plus"></i>
+                        Добавить категорию
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Футер -->
+        <footer class="main-footer">
+            <p>&copy; 2024 MA Furniture Admin Panel. Все права защищены.</p>
+        </footer>
+    </main>
+
+    <!-- Модальное окно добавления/редактирования категории -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="modalTitle">Добавить категорию</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <form id="categoryForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="categoryName">Название категории *</label>
+                        <input type="text" 
+                               id="categoryName" 
+                               name="categoryName" 
+                               class="form-control" 
+                               required 
+                               placeholder="Например: Пантографы">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="categoryCode">Код категории *</label>
+                            <input type="text" 
+                                   id="categoryCode" 
+                                   name="categoryCode" 
+                                   class="form-control" 
+                                   required 
+                                   placeholder="Например: pantographs">
+                            <div class="code-hint">
+                                Используется в URL, только латинские буквы и дефисы
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="categoryOrder">Порядок отображения *</label>
+                            <input type="number" 
+                                   id="categoryOrder" 
+                                   name="categoryOrder" 
+                                   class="form-control" 
+                                   required 
+                                   min="1" 
+                                   value="1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="categoryStatus">Статус</label>
+                        <select id="categoryStatus" name="categoryStatus" class="form-control">
+                            <option value="true">Активна</option>
+                            <option value="false">Неактивна</option>
+                        </select>
+                    </div>
+                    
+                    <input type="hidden" id="categoryId" name="categoryId">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="modalCancel">
+                        Отмена
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="modalSubmit">
+                        <i class="fas fa-save"></i>
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Подтверждение удаления</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">Вы уверены, что хотите удалить эту категорию?</p>
+                <p class="text-muted" id="deleteWarning" style="display: none; color: var(--danger-color);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    В этой категории есть товары. Удаление может повлиять на их отображение.
+                </p>
+                <input type="hidden" id="deleteCategoryId">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="deleteCancel">
+                    Отмена
+                </button>
+                <button type="button" class="btn btn-danger" id="deleteConfirm">
+                    <i class="fas fa-trash"></i>
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="/admin/js/admin-auth.js"></script>
+    <script src="/admin/js/admin-categories.js"></script>
+</body>
+</html>
