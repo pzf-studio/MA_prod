@@ -6,25 +6,48 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializeMainPage() {
     console.log('Главная страница инициализируется...');
     
-    initializeMobileMenu();
-    initializeCart();
-    loadFeaturedProducts();
-    setupAnimations();
+    try {
+        initializeMobileMenu();
+        initializeCart();
+        await loadFeaturedProducts(); // Добавлен await для гарантии загрузки
+        setupAnimations();
+        
+        // FAQ аккордеон - ПЕРЕМЕЩЕНО ВНУТРЬ ФУНКЦИИ
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', function() {
+                const answer = this.nextElementSibling;
+                const icon = this.querySelector('i');
+                
+                answer.classList.toggle('active');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+            });
+        });
+    } catch (error) {
+        console.error('Ошибка инициализации главной страницы:', error);
+    }
 }
 
 function initializeCart() {
-    if (!window.cartSystem && window.CartSystem) {
-        window.cartSystem = new CartSystem();
-    }
+    // Временно закомментировано, так как CartSystem не предоставлен
+    // if (!window.cartSystem && window.CartSystem) {
+    //     window.cartSystem = new CartSystem();
+    // }
+    console.log('Корзина инициализирована (режим отладки)');
 }
 
 async function loadFeaturedProducts() {
     try {
+        console.log('Загрузка популярных товаров...');
         const products = await dataManager.getActiveProducts();
+        console.log(`Получено товаров: ${products.length}`);
+        
+        // Фильтруем популярные товары
         const featuredProducts = products
             .filter(p => p.recommended || p.badge === 'Хит продаж' || p.badge === 'Новинка')
             .slice(0, 6);
         
+        console.log(`Найдено популярных товаров: ${featuredProducts.length}`);
         renderFeaturedProducts(featuredProducts);
     } catch (error) {
         console.error('Ошибка загрузки рекомендуемых товаров:', error);
@@ -32,8 +55,25 @@ async function loadFeaturedProducts() {
 }
 
 function renderFeaturedProducts(products) {
-    const container = document.getElementById('featuredProducts');
-    if (!container || products.length === 0) return;
+    // Пробуем оба возможных ID контейнера
+    const container = document.getElementById('featuredProducts') || document.getElementById('randomProductsGrid');
+    
+    console.log('Контейнер для товаров:', container ? 'найден' : 'не найден');
+    
+    if (!container) {
+        console.error('Контейнер для товаров не найден! Проверьте HTML');
+        return;
+    }
+    
+    if (products.length === 0) {
+        container.innerHTML = `
+            <div class="empty-products">
+                <i class="fas fa-box-open"></i>
+                <p>Популярные товары скоро появятся</p>
+            </div>
+        `;
+        return;
+    }
     
     let html = '';
     
@@ -75,6 +115,9 @@ function renderFeaturedProducts(products) {
             
             if (product && window.cartSystem) {
                 window.cartSystem.addToCart(product);
+                showNotification('Товар добавлен в корзину', 'success');
+            } else {
+                showNotification('Система корзины недоступна', 'error');
             }
         });
     });
@@ -100,6 +143,8 @@ function initializeMobileMenu() {
 }
 
 function setupAnimations() {
+    console.log('Настройка анимаций...');
+    
     // Анимация появления элементов при скролле
     const observerOptions = {
         threshold: 0.1,
@@ -118,19 +163,12 @@ function setupAnimations() {
     document.querySelectorAll('section').forEach(section => {
         observer.observe(section);
     });
-}
-
-// FAQ аккордеон
-document.querySelectorAll('.faq-question').forEach(question => {
-    question.addEventListener('click', function() {
-        const answer = this.nextElementSibling;
-        const icon = this.querySelector('i');
-        
-        answer.classList.toggle('active');
-        icon.classList.toggle('fa-chevron-down');
-        icon.classList.toggle('fa-chevron-up');
+    
+    // Добавляем классы для анимации
+    document.querySelectorAll('.featured-product-card, .shop-card, .feature-item').forEach(el => {
+        el.classList.add('fade-in');
     });
-});
+}
 
 // Плавная прокрутка для якорных ссылок
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -163,19 +201,26 @@ function showNotification(message, type = 'success') {
         color: white;
         border-radius: 8px;
         z-index: 1000;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
     `;
     
     document.body.appendChild(notification);
     
+    // Анимация появления
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // Автоматическое скрытие
     setTimeout(() => {
         notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.3s';
+        notification.style.transform = 'translateY(-20px)';
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
-
-// Экспорты
-window.showNotification = showNotification;
 
 async function loadBackgroundImage() {
     try {
@@ -218,10 +263,10 @@ async function loadBackgroundImage() {
     }
 }
 
-// Вызываем функцию загрузки фона для всех страниц
-loadBackgroundImage();
-
 // Вызываем функцию загрузки фона
 if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
     loadBackgroundImage();
 }
+
+// Экспорты
+window.showNotification = showNotification;

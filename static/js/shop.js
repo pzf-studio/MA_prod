@@ -1,12 +1,17 @@
+// static/js/shop.js
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('MA Furniture Shop инициализируется...');
     initializeApp();
 });
 
 async function initializeApp() {
-    console.log('MA Furniture Shop инициализируется...');
+    console.log('Инициализация приложения...');
+    
+    // Инициализация корзины для shop.html
+    window.cartSystem = new CartSystem();
+    console.log('Корзина инициализирована для shop.html');
     
     await initializeProducts();
-    initializeCart();
     initializeMobileMenu();
     
     // Событие обновления данных
@@ -14,422 +19,6 @@ async function initializeApp() {
         console.log('Shop: Данные обновлены');
         await initializeProducts();
     });
-}
-
-class CartSystem {
-    constructor() {
-        this.cart = dataManager.getCart();
-        this.init();
-    }
-    
-    init() {
-        this.bindEvents();
-        this.updateCartUI();
-    }
-    
-    bindEvents() {
-        const cartIcon = document.getElementById('cartIcon');
-        const cartClose = document.getElementById('cartClose');
-        const continueShoppingBtn = document.getElementById('continueShoppingBtn');
-        const checkoutBtn = document.getElementById('checkoutBtn');
-        const cartOverlay = document.getElementById('cartOverlay');
-        
-        if (cartIcon) cartIcon.addEventListener('click', () => this.openCart());
-        if (cartClose) cartClose.addEventListener('click', () => this.closeCart());
-        if (continueShoppingBtn) continueShoppingBtn.addEventListener('click', () => this.closeCart());
-        if (checkoutBtn) checkoutBtn.addEventListener('click', () => this.checkout());
-        if (cartOverlay) {
-            cartOverlay.addEventListener('click', (e) => {
-                if (e.target === e.currentTarget) this.closeCart();
-            });
-        }
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('cartOverlay')?.classList.contains('active')) {
-                this.closeCart();
-            }
-        });
-    }
-    
-    openCart() {
-        const overlay = document.getElementById('cartOverlay');
-        if (overlay) {
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            this.renderCart();
-        }
-    }
-    
-    closeCart() {
-        const overlay = document.getElementById('cartOverlay');
-        if (overlay) {
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    }
-    
-    addToCart(product) {
-        const existingItem = this.cart.find(item => item.id === product.id);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            this.cart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.images?.[0] || '',
-                quantity: 1
-            });
-        }
-        
-        dataManager.saveCart(this.cart);
-        this.updateCartUI();
-        this.showAddToCartAnimation();
-        showNotification(`"${product.name}" добавлен в корзину`, 'success');
-    }
-    
-    removeFromCart(productId) {
-        this.cart = this.cart.filter(item => item.id !== productId);
-        dataManager.saveCart(this.cart);
-        this.updateCartUI();
-        this.renderCart();
-        showNotification('Товар удален из корзины', 'success');
-    }
-    
-    updateQuantity(productId, change) {
-        const item = this.cart.find(item => item.id === productId);
-        if (!item) return;
-        
-        item.quantity += change;
-        
-        if (item.quantity < 1) {
-            this.removeFromCart(productId);
-            return;
-        }
-        
-        if (item.quantity > 99) {
-            item.quantity = 99;
-            showNotification('Максимум 99 шт.', 'error');
-        }
-        
-        dataManager.saveCart(this.cart);
-        this.updateCartUI();
-        this.renderCart();
-    }
-    
-    updateCartUI() {
-        const cartCount = document.getElementById('cartCount');
-        const cartIcon = document.getElementById('cartIcon');
-        
-        if (cartCount) {
-            const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCount.textContent = totalItems;
-            
-            if (totalItems > 0) {
-                cartCount.classList.add('show');
-                cartCount.style.animation = 'none';
-                setTimeout(() => {
-                    cartCount.style.animation = 'cartBounce 0.5s ease';
-                }, 10);
-            } else {
-                cartCount.classList.remove('show');
-            }
-        }
-        
-        if (document.getElementById('cartOverlay')?.classList.contains('active')) {
-            this.renderCart();
-        }
-    }
-    
-    renderCart() {
-        const cartItems = document.getElementById('cartItems');
-        const cartEmpty = document.getElementById('cartEmpty');
-        const cartFooter = document.getElementById('cartFooter');
-        const cartTotalAmount = document.getElementById('cartTotalAmount');
-        
-        if (!cartItems || !cartEmpty || !cartFooter) return;
-        
-        if (this.cart.length === 0) {
-            cartItems.style.display = 'none';
-            cartEmpty.style.display = 'block';
-            cartFooter.style.display = 'none';
-            return;
-        }
-        
-        cartEmpty.style.display = 'none';
-        cartItems.style.display = 'block';
-        cartFooter.style.display = 'block';
-        
-        let total = 0;
-        let itemsHTML = '';
-        
-        this.cart.forEach(item => {
-            const itemTotal = item.price * item.quantity;
-            total += itemTotal;
-            
-            const imageHTML = item.image ? 
-                `<img src="${item.image}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
-                '';
-            
-            itemsHTML += `
-                <div class="cart-item" data-id="${item.id}">
-                    <div class="cart-item-image">
-                        ${imageHTML}
-                        <div class="image-placeholder" style="${item.image ? 'display: none;' : ''}">
-                            <i class="fas fa-couch"></i>
-                        </div>
-                    </div>
-                    <div class="cart-item-details">
-                        <h4 class="cart-item-name">${item.name}</h4>
-                        <div class="cart-item-price">${dataManager.formatPrice(item.price)}</div>
-                        <div class="cart-item-actions">
-                            <div class="quantity-controls">
-                                <button class="quantity-btn decrease-btn" onclick="cartSystem.updateQuantity(${item.id}, -1)">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="99" 
-                                       onchange="cartSystem.updateQuantity(${item.id}, parseInt(this.value) - ${item.quantity})">
-                                <button class="quantity-btn increase-btn" onclick="cartSystem.updateQuantity(${item.id}, 1)">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                            <button class="remove-item" onclick="cartSystem.removeFromCart(${item.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        cartItems.innerHTML = itemsHTML;
-        
-        if (cartTotalAmount) {
-            cartTotalAmount.textContent = dataManager.formatPrice(total);
-        }
-        
-        const checkoutBtn = document.getElementById('checkoutBtn');
-        if (checkoutBtn) {
-            checkoutBtn.disabled = this.cart.length === 0;
-        }
-    }
-    
-    async checkout() {
-        if (this.cart.length === 0) {
-            showNotification('Корзина пуста', 'error');
-            return;
-        }
-        
-        this.openCheckoutModal();
-    }
-    
-    openCheckoutModal() {
-        this.createCheckoutModal();
-        this.renderCheckoutOrderSummary();
-        
-        const modal = document.getElementById('checkoutModal');
-        if (modal) {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            
-            setTimeout(() => {
-                const nameInput = document.getElementById('customerName');
-                if (nameInput) nameInput.focus();
-            }, 300);
-        }
-    }
-    
-    createCheckoutModal() {
-        if (document.getElementById('checkoutModal')) return;
-        
-        const modal = document.createElement('div');
-        modal.id = 'checkoutModal';
-        modal.className = 'checkout-modal';
-        modal.innerHTML = `
-            <div class="checkout-modal-content">
-                <div class="checkout-modal-header">
-                    <h3>Оформление заказа</h3>
-                    <button class="checkout-modal-close" id="checkoutModalClose">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="checkout-modal-body">
-                    <form id="checkoutForm">
-                        <div class="form-group">
-                            <label for="customerName">ФИО *</label>
-                            <input type="text" id="customerName" name="customerName" required 
-                                   placeholder="Иванов Иван Иванович">
-                        </div>
-                        <div class="form-group">
-                            <label for="customerPhone">Телефон *</label>
-                            <input type="tel" id="customerPhone" name="customerPhone" required 
-                                   placeholder="+7 (900) 123-45-67">
-                        </div>
-                        <div class="form-group">
-                            <label for="customerEmail">Email</label>
-                            <input type="email" id="customerEmail" name="customerEmail" 
-                                   placeholder="ivanov@example.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="customerAddress">Адрес доставки</label>
-                            <textarea id="customerAddress" name="customerAddress" 
-                                      placeholder="Город, улица, дом, квартира" rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="customerComment">Комментарий к заказу</label>
-                            <textarea id="customerComment" name="customerComment" 
-                                      placeholder="Дополнительные пожелания" rows="3"></textarea>
-                        </div>
-                        
-                        <div class="order-summary">
-                            <h4>Состав заказа:</h4>
-                            <div id="checkoutOrderItems"></div>
-                            <div class="order-total">
-                                <strong>Итого: <span id="checkoutTotalAmount">0 ₽</span></strong>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="checkout-modal-footer">
-                    <button type="button" class="btn btn-outline" id="checkoutModalCancel">
-                        Отмена
-                    </button>
-                    <button type="submit" form="checkoutForm" class="btn btn-primary" id="checkoutSubmitBtn">
-                        <i class="fas fa-paper-plane"></i>
-                        Отправить заказ
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Обработчики событий
-        const closeBtn = document.getElementById('checkoutModalClose');
-        const cancelBtn = document.getElementById('checkoutModalCancel');
-        const form = document.getElementById('checkoutForm');
-        
-        if (closeBtn) closeBtn.addEventListener('click', () => this.closeCheckoutModal());
-        if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeCheckoutModal());
-        if (form) form.addEventListener('submit', (e) => this.handleCheckoutSubmit(e));
-        
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) this.closeCheckoutModal();
-        });
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.classList.contains('active')) {
-                this.closeCheckoutModal();
-            }
-        });
-    }
-    
-    closeCheckoutModal() {
-        const modal = document.getElementById('checkoutModal');
-        if (modal) {
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    }
-    
-    renderCheckoutOrderSummary() {
-        const itemsContainer = document.getElementById('checkoutOrderItems');
-        const totalAmount = document.getElementById('checkoutTotalAmount');
-        
-        if (!itemsContainer || !totalAmount) return;
-        
-        let itemsHTML = '';
-        let total = 0;
-        
-        this.cart.forEach(item => {
-            const itemTotal = item.price * item.quantity;
-            total += itemTotal;
-            
-            itemsHTML += `
-                <div class="checkout-order-item">
-                    <span class="item-name">${item.name}</span>
-                    <span class="item-quantity">${item.quantity} шт.</span>
-                    <span class="item-price">${dataManager.formatPrice(itemTotal)}</span>
-                </div>
-            `;
-        });
-        
-        itemsContainer.innerHTML = itemsHTML;
-        totalAmount.textContent = dataManager.formatPrice(total);
-    }
-    
-    async handleCheckoutSubmit(e) {
-        e.preventDefault();
-        
-        const form = e.target;
-        const formData = new FormData(form);
-        
-        const orderData = {
-            customer_name: formData.get('customerName'),
-            customer_phone: formData.get('customerPhone'),
-            customer_email: formData.get('customerEmail') || '',
-            customer_address: formData.get('customerAddress') || '',
-            customer_comment: formData.get('customerComment') || '',
-            items: this.cart,
-            total: this.getCartTotal()
-        };
-        
-        // Валидация
-        if (!orderData.customer_name || !orderData.customer_phone) {
-            showNotification('Пожалуйста, заполните обязательные поля (ФИО и телефон)', 'error');
-            return;
-        }
-        
-        const submitBtn = document.getElementById('checkoutSubmitBtn');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
-        submitBtn.disabled = true;
-        
-        try {
-            const result = await dataManager.submitOrder(orderData);
-            
-            if (result.success) {
-                showNotification('Заказ успешно отправлен! Мы свяжемся с вами.', 'success');
-                this.closeCheckoutModal();
-                this.clearCart();
-            } else {
-                showNotification(`Ошибка: ${result.error}`, 'error');
-            }
-        } catch (error) {
-            console.error('Ошибка оформления заказа:', error);
-            showNotification('Произошла ошибка при отправке заказа', 'error');
-        } finally {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    }
-    
-    clearCart() {
-        this.cart = [];
-        dataManager.saveCart(this.cart);
-        this.updateCartUI();
-        this.renderCart();
-    }
-    
-    getCartTotal() {
-        return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-    }
-    
-    showAddToCartAnimation() {
-        const cartIcon = document.getElementById('cartIcon');
-        if (cartIcon) {
-            cartIcon.classList.add('animate');
-            setTimeout(() => cartIcon.classList.remove('animate'), 500);
-        }
-    }
-}
-
-let cartSystem;
-
-function initializeCart() {
-    cartSystem = new CartSystem();
-    console.log('Корзина инициализирована');
 }
 
 // ========== ГЛАВНАЯ ФУНКЦИЯ ДЛЯ ТОВАРОВ ==========
@@ -632,9 +221,17 @@ async function initializeProducts() {
                 e.preventDefault();
                 e.stopPropagation();
                 const productId = parseInt(e.target.closest('.add-to-cart-btn').dataset.productId);
-                const product = await dataManager.getProductById(productId);
-                if (product && cartSystem) {
-                    cartSystem.addToCart(product);
+                console.log('Добавление товара в корзину:', productId);
+                
+                try {
+                    const product = await dataManager.getProductById(productId);
+                    if (product && window.cartSystem) {
+                        window.cartSystem.addToCart(product);
+                    } else {
+                        console.error('Товар или система корзины не найдены');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при добавлении товара в корзину:', error);
                 }
             });
         });
@@ -792,7 +389,8 @@ function initializeMobileMenu() {
     }
 }
 
-function showNotification(message, type = 'success') {
+// Глобальные функции для уведомлений
+window.showNotification = function(message, type = 'success') {
     // Удаляем существующие уведомления
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(notification => notification.remove());
@@ -814,7 +412,7 @@ function showNotification(message, type = 'success') {
         notification.classList.remove('show');
         setTimeout(() => notification.remove(), 300);
     }, 3000);
-}
+};
 
 async function loadShopBackground() {
     try {
@@ -843,8 +441,3 @@ async function loadShopBackground() {
 if (window.location.pathname.includes('shop.html')) {
     loadShopBackground();
 }
-
-// Глобальные экспорты
-window.cartSystem = cartSystem;
-window.showNotification = showNotification;
-window.dataManager = dataManager;
