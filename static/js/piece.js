@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', async function() {
+    // Инициализируем корзину ПЕРВЫМ делом
+    if (!window.cartSystem) {
+        window.cartSystem = new CartSystem();
+        console.log('Корзина инициализирована в piece');
+    }
+    
+    await initializeProductPage();
+});
+
+document.addEventListener('DOMContentLoaded', async function() {
     // Инициализируем корзину
     if (!window.cartSystem && window.CartSystem) {
         window.cartSystem = new CartSystem();
