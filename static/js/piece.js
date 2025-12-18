@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', async function() {
+    // Инициализируем корзину
+    if (!window.cartSystem && window.CartSystem) {
+        window.cartSystem = new CartSystem();
+        console.log('Корзина инициализирована в piece');
+    }
+    
     await initializeProductPage();
-    initializeCart();
 });
 
 async function initializeProductPage() {
@@ -20,6 +25,9 @@ async function initializeProductPage() {
             return;
         }
         
+        // Сохраняем текущий товар глобально для использования в корзине
+        window.currentProduct = product;
+        
         renderProduct(product);
         
     } catch (error) {
@@ -38,6 +46,8 @@ function renderProduct(product) {
         if (product.images && product.images.length > 0) {
             mainImage.src = product.images[0];
             mainImage.alt = product.name;
+            mainImage.style.display = 'block';
+            mainImage.nextElementSibling.style.display = 'none';
         } else {
             mainImage.style.display = 'none';
             mainImage.nextElementSibling.style.display = 'flex';
@@ -55,7 +65,11 @@ function renderProduct(product) {
             thumb.addEventListener('click', () => {
                 document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
                 thumb.classList.add('active');
-                if (mainImage) mainImage.src = image;
+                if (mainImage) {
+                    mainImage.src = image;
+                    mainImage.style.display = 'block';
+                    mainImage.nextElementSibling.style.display = 'none';
+                }
             });
             thumbnails.appendChild(thumb);
         });
@@ -67,11 +81,12 @@ function renderProduct(product) {
     
     const priceElement = document.getElementById('productPrice');
     if (priceElement) {
+        const oldPriceHtml = product.old_price ? 
+            `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : '';
+        
         priceElement.innerHTML = `
             <span class="current-price">${dataManager.formatPrice(product.price)}</span>
-            ${product.old_price ? 
-                `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : ''
-            }
+            ${oldPriceHtml}
         `;
     }
     
@@ -321,6 +336,8 @@ function updateProductImages(images) {
                 document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
                 thumb.classList.add('active');
                 mainImage.src = image;
+                mainImage.style.display = 'block';
+                mainImage.nextElementSibling.style.display = 'none';
             });
             thumbnails.appendChild(thumb);
         });
@@ -333,10 +350,6 @@ function updateProductImages(images) {
 function updateAddToCartButton(variant) {
     const addToCartBtn = document.getElementById('addToCartBtn');
     if (!addToCartBtn) return;
-    
-    // Сохраняем текущий вариант в data-атрибуте кнопки
-    addToCartBtn.dataset.variantId = variant.variant_id;
-    addToCartBtn.dataset.variantData = JSON.stringify(variant);
     
     // Если нет товара в наличии, блокируем кнопку
     if (variant.stock <= 0) {
@@ -368,21 +381,6 @@ function updateAddToCartButton(variant) {
             showNotification('Корзина недоступна', 'error');
         }
     };
-}
-
-// Кнопка добавления в корзину изначально (до загрузки цветов)
-const addToCartBtn = document.getElementById('addToCartBtn');
-if (addToCartBtn) {
-    addToCartBtn.addEventListener('click', () => {
-        const product = window.currentProduct;
-        if (!product) return;
-        
-        if (window.cartSystem) {
-            window.cartSystem.addToCart(product);
-        } else {
-            showNotification('Корзина недоступна', 'error');
-        }
-    });
 }
 
 function getBadgeClass(badge) {
@@ -421,18 +419,14 @@ function showError(message) {
     `;
 }
 
-function initializeCart() {
-    if (!window.cartSystem && window.CartSystem) {
-        window.cartSystem = new CartSystem();
-    }
-}
-
 function showNotification(message, type = 'success') {
-    if (window.showNotification) {
-        window.showNotification(message, type);
+    // Пробуем использовать cartSystem для уведомлений если доступен
+    if (window.cartSystem && window.cartSystem.showNotification) {
+        window.cartSystem.showNotification(message, type);
         return;
     }
     
+    // Fallback уведомление
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;

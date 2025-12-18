@@ -1,9 +1,11 @@
-📁 app/
+📁 MA_prod/
 ├── 📁 data
+│   ├── 📁 orders
 │   ├── 📁 products
 │   │   ├── 📄 1.json
 │   │   ├── 📄 2.json
 │   │   └── 📄 3.json
+│   ├── 📄 background.json
 │   ├── 📄 ma_furniture.db
 │   └── 📄 sections.json
 ├── 📁 static
@@ -13,11 +15,16 @@
 │   │   │   └── 📄 admin-styles.css
 │   │   ├── 📁 js
 │   │   │   ├── 📄 admin-auth.js
+│   │   │   ├── 📄 admin-categories.js
+│   │   │   ├── 📄 admin-dashboard.js
+│   │   │   ├── 📄 admin-media.js
 │   │   │   ├── 📄 admin-products.js
 │   │   │   └── 📄 admin-upload.js
 │   │   ├── 📄 admin-dashboard.html
 │   │   ├── 📄 admin-login.html
+│   │   ├── 📄 categories-management.html
 │   │   ├── 📄 cleanup-uploads.php
+│   │   ├── 📄 media-management.html
 │   │   ├── 📄 products-management.html
 │   │   └── 📄 upload-handler.php
 │   ├── 📁 css
@@ -34,6 +41,8 @@
 │   │   ├── 📄 logo.png
 │   │   └── 📄 logo2.png
 │   ├── 📁 js
+│   │   ├── 📄 cart.js
+│   │   ├── 📄 color-picker.js
 │   │   ├── 📄 data-manager.js
 │   │   ├── 📄 index.js
 │   │   ├── 📄 piece.js
@@ -51,6 +60,7 @@
 ├── 📄 arch.py
 ├── 📄 create_test_data.py
 ├── 📄 LICENSE
+├── 📄 order_manager.py
 ├── 📄 photo_2025-11-30_03-24-55.jpg
 ├── 📄 requirements.txt
 ├── 📄 structure.txt
