@@ -8,16 +8,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     await initializeProductPage();
 });
 
-document.addEventListener('DOMContentLoaded', async function() {
-    // Инициализируем корзину
-    if (!window.cartSystem && window.CartSystem) {
-        window.cartSystem = new CartSystem();
-        console.log('Корзина инициализирована в piece');
-    }
-    
-    await initializeProductPage();
-});
-
 async function initializeProductPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
