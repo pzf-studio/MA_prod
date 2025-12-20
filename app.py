@@ -880,8 +880,8 @@ def admin_login():
             return jsonify({'success': False, 'error': 'Заполните все поля'}), 400
         
         # Чтение логина и пароля из секретов Amvera
-        expected_username = os.environ.get("stad")
-        expected_password = os.environ.get("sutt")
+        expected_username = os.environ.get("STAD")
+        expected_password = os.environ.get("SUTT")
         
         # Если секреты не установлены, использовать значения по умолчанию для разработки
         if not expected_username or not expected_password:
