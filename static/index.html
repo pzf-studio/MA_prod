@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -7,8 +6,8 @@
     <title>ma.furniture - Роскошная мебель на заказ</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/index.css">
-    <script src="./js/index.js" defer></script>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <script src="/static/js/index.js" defer></script>
 </head>
 <body>
     <header class="header">
@@ -17,7 +16,7 @@
                 <div class="logo">
                     <a href="./index.html">
                         <div class="logo-container">
-                            <img src="./images/logo2.png" alt="MA Furniture" class="logo-image">
+                            <img src="/static/images/logo2.png" alt="MA Furniture" class="logo-image">
                             <div class="logo-text-container">
                                 <span class="logo-text">MA FURNITURE</span>
                             </div>
@@ -73,6 +72,7 @@
             <div class="scroll-arrow"></div>
         </div>
     </section>
+    
     <section class="shop-mini-preview" id="shop-mini-preview">
         <div class="container">
             <h2 class="section-title">ПОПУЛЯРНЫЕ ТОВАРЫ</h2>
@@ -80,6 +80,10 @@
             
             <div class="random-products-grid" id="featuredProducts">
                 <!-- Случайные товары будут загружены через JavaScript -->
+                <div class="loading-products" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2.5rem; margin-bottom: 20px; color: #8B7355;"></i>
+                    <p style="font-size: 1.1rem;">Загрузка популярных товаров...</p>
+                </div>
             </div>
             
             <div class="mini-preview-actions">
@@ -102,7 +106,7 @@
             <div class="shop-grid">
                 <div class="shop-card">
                     <div class="shop-card-image">
-                        <img src="./images/1.png" alt="Электрические пантографы">
+                        <img src="/static/images/1.png" alt="Электрические пантографы">
                     </div>
                     <div class="shop-card-content">
                         <h3>Электрические пантографы</h3>
@@ -116,7 +120,7 @@
                 
                 <div class="shop-card">
                     <div class="shop-card-image">
-                        <img src="./images/2.jpeg" alt="Системы хранения">
+                        <img src="/static/images/2.jpeg" alt="Системы хранения">
                     </div>
                     <div class="shop-card-content">
                         <h3>Системы хранения</h3>
@@ -130,7 +134,7 @@
                 
                 <div class="shop-card">
                     <div class="shop-card-image">
-                        <img src="./images/3.jpg" alt="Обувницы">
+                        <img src="/static/images/3.jpg" alt="Обувницы">
                     </div>
                     <div class="shop-card-content">
                         <h3>Обувницы</h3>
@@ -202,9 +206,6 @@
         </section>
         
         <div class="divider"></div>
-
-        <!-- Обновленная секция - Мини-превью магазина -->
-        
 
         <div class="divider"></div>
 
@@ -346,6 +347,37 @@
         </div>
     </footer>
 
-    <script src="./js/data-manager.js"></script>
+    <!-- Подключаем data-manager.js -->
+    <script src="/static/js/data-manager.js"></script>
+    
+    <!-- Отладочный скрипт для проверки загрузки -->
+    <script>
+        // Проверяем загрузку основных скриптов
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== ПРОВЕРКА СКРИПТОВ ===');
+            console.log('data-manager.js загружен?', typeof window.dataManager !== 'undefined');
+            console.log('index.js функции доступны?', typeof initializeMainPage !== 'undefined');
+            console.log('=== ПРОВЕРКА ЗАВЕРШЕНА ===');
+        });
+        
+        // Фолбэк если data-manager не загрузился
+        setTimeout(function() {
+            if (typeof window.dataManager === 'undefined') {
+                console.error('data-manager.js не загрузился!');
+                const container = document.getElementById('featuredProducts');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: #ffebee; border-radius: 10px;">
+                            <h3 style="color: #c62828;">Ошибка загрузки системы данных</h3>
+                            <p>Пожалуйста, обновите страницу</p>
+                            <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">
+                                <i class="fas fa-redo"></i> Обновить
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }, 3000);
+    </script>
 </body>
 </html>

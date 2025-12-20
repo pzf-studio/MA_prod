@@ -734,6 +734,8 @@ def admin_dashboard_popular_products():
         logger.error(f"Ошибка получения популярных товаров: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
+
 # ========== РОУТ ДЛЯ СТРАНИЦЫ УПРАВЛЕНИЯ МЕДИА ==========
 @app.route('/admin/media')
 @app.route('/admin/media/')
