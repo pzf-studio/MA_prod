@@ -1856,3 +1856,252 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
 .loading-products p {
     font-size: 1.1rem;
 }
+
+.page-fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.page-slide-up {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.page-fade-in.visible,
+.page-slide-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Анимация для кнопок */
+.btn-float-in {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-float-in.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Анимация при нажатии кнопок */
+.btn-click-animation {
+    animation: btnClick 0.3s ease;
+}
+
+@keyframes btnClick {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+/* Анимация логотипа */
+.logo-pulse {
+    animation: logoPulse 2s ease infinite;
+}
+
+@keyframes logoPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.logo-hover {
+    transform: scale(1.05) rotate(-2deg);
+    transition: transform 0.3s ease;
+}
+
+/* Анимация индикатора прокрутки */
+.bounce-in {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: bounceIn 1s ease forwards;
+    animation-delay: 1s;
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-10px);
+    }
+    80% {
+        transform: translateY(5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Анимации при прокрутке */
+.scroll-animate {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.scroll-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Анимация карточек товаров */
+.product-animate-in {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    animation: productSlideIn 0.6s ease forwards;
+}
+
+@keyframes productSlideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.card-pop {
+    animation: cardPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes cardPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Анимация заголовков */
+.title-underline {
+    position: relative;
+}
+
+.title-underline::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    animation: titleUnderline 0.8s ease forwards;
+    animation-delay: 0.3s;
+}
+
+@keyframes titleUnderline {
+    to {
+        width: 100px;
+    }
+}
+
+/* Анимация мобильного меню */
+.menu-slide-in {
+    animation: menuSlideIn 0.3s ease;
+}
+
+.menu-slide-out {
+    animation: menuSlideOut 0.3s ease;
+}
+
+@keyframes menuSlideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes menuSlideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Анимация фона */
+.bg-fade-in {
+    animation: bgFadeIn 1.5s ease;
+}
+
+@keyframes bgFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Анимация ссылок при клике */
+.link-click-animation {
+    animation: linkClick 0.3s ease;
+}
+
+@keyframes linkClick {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+/* Анимация FAQ */
+.faq-expand {
+    animation: faqExpand 0.3s ease;
+}
+
+@keyframes faqExpand {
+    from {
+        max-height: 0;
+        opacity: 0;
+    }
+    to {
+        max-height: 500px;
+        opacity: 1;
+    }
+}
+
+/* Плавное появление всего сайта */
+body {
+    animation: siteFadeIn 0.8s ease;
+}
+
+@keyframes siteFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Медиа-запросы для анимаций */
+@media (prefers-reduced-motion: reduce) {
+    .page-fade-in,
+    .page-slide-up,
+    .btn-float-in,
+    .scroll-animate,
+    .product-animate-in,
+    .card-pop,
+    .title-underline::after,
+    .menu-slide-in,
+    .menu-slide-out,
+    .bg-fade-in,
+    .link-click-animation,
+    .faq-expand,
+    body,
+    .btn-click-animation,
+    .logo-pulse,
+    .bounce-in {
+        animation: none !important;
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
