@@ -879,11 +879,21 @@ def admin_login():
         if not username or not password:
             return jsonify({'success': False, 'error': 'Заполните все поля'}), 400
         
-        # Простая проверка (для теста)
-        if username == 'admin' and password == 'admin123':
+        # Чтение логина и пароля из секретов Amvera
+        expected_username = os.environ.get("stad")
+        expected_password = os.environ.get("sutt")
+        
+        # Если секреты не установлены, использовать значения по умолчанию для разработки
+        if not expected_username or not expected_password:
+            expected_username = "obratites"
+            expected_password = "koperatoru"
+            logger.warning("Используются учетные данные по умолчанию (секреты не настроены)")
+        
+        # Проверка учетных данных
+        if username == expected_username and password == expected_password:
             return jsonify({
                 'success': True,
-                'admin': {'username': 'admin', 'role': 'admin'},
+                'admin': {'username': username, 'role': 'admin'},
                 'session_token': str(uuid.uuid4()),
                 'message': 'Авторизация успешна'
             })
