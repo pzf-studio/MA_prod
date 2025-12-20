@@ -6,8 +6,120 @@
     <title>ma.furniture - Роскошная мебель на заказ</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/index.css">
-    <script src="/static/js/index.js" defer></script>
+    <link rel="stylesheet" href="./css/index.css">
+    <script src="./js/index.js" defer></script>
+    <style>
+        /* Временные стили для отладки */
+        .featured-product-card {
+            background: white !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+            transition: transform 0.3s ease !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            border: 2px solid red !important; /* Для видимости при отладке */
+        }
+        
+        .featured-product-card .product-image {
+            position: relative !important;
+            height: 200px !important;
+            overflow: hidden !important;
+            background: #f5f5f5 !important;
+        }
+        
+        .featured-product-card .product-image img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            display: block !important;
+        }
+        
+        .featured-product-card .product-info {
+            padding: 1.5rem !important;
+            display: flex !important;
+            flex-direction: column !important;
+            flex-grow: 1 !important;
+        }
+        
+        .featured-product-card .product-info h3 {
+            font-size: 1.1rem !important;
+            margin-bottom: 0.8rem !important;
+            color: #333 !important;
+            line-height: 1.4 !important;
+        }
+        
+        .featured-product-card .product-description {
+            font-size: 0.9rem !important;
+            color: #666 !important;
+            line-height: 1.5 !important;
+            margin-bottom: 1rem !important;
+            flex-grow: 1 !important;
+        }
+        
+        .featured-product-card .product-price {
+            font-size: 1.2rem !important;
+            font-weight: bold !important;
+            color: #8B7355 !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        .featured-product-card .product-actions {
+            display: flex !important;
+            gap: 10px !important;
+            align-items: center !important;
+        }
+        
+        .featured-product-card .btn-outline {
+            flex-grow: 1 !important;
+            text-align: center !important;
+            padding: 10px !important;
+            border: 2px solid #e0e0e0 !important;
+            background: transparent !important;
+            color: #333 !important;
+            text-decoration: none !important;
+            border-radius: 5px !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .featured-product-card .btn-primary {
+            padding: 10px !important;
+            background: #8B7355 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 5px !important;
+            cursor: pointer !important;
+            transition: background 0.3s ease !important;
+        }
+        
+        .random-products-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+            gap: 2rem !important;
+            margin-bottom: 3rem !important;
+        }
+        
+        /* Стили для загрузки */
+        .loading-products {
+            grid-column: 1 / -1 !important;
+            text-align: center !important;
+            padding: 60px 20px !important;
+            color: #666 !important;
+        }
+        
+        .loading-products i {
+            font-size: 2.5rem !important;
+            margin-bottom: 20px !important;
+            color: #8B7355 !important;
+        }
+        
+        .loading-products p {
+            font-size: 1.1rem !important;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
