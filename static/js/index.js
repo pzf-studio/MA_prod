@@ -144,7 +144,7 @@ async function initializeMainPage() {
         // Проверка API
         const apiCheck = await checkAPIHealth();
         
-        initializeMobileMenu();
+        // initializeMobileMenu(); // Удален вызов мобильного меню
         initializeCart();
         await loadFeaturedProducts();
         setupAnimations();
@@ -362,42 +362,7 @@ function renderFeaturedProducts(products) {
     console.log('✅ Товары успешно отображены');
 }
 
-function initializeMobileMenu() {
-    const menuToggle = document.getElementById('menuToggle');
-    const mainNav = document.querySelector('.main-nav');
-    
-    if (menuToggle && mainNav) {
-        menuToggle.addEventListener('click', () => {
-            mainNav.classList.toggle('active');
-            menuToggle.classList.toggle('active');
-            
-            // Анимация для мобильного меню
-            if (mainNav.classList.contains('active')) {
-                mainNav.classList.add('menu-slide-in');
-            } else {
-                mainNav.classList.add('menu-slide-out');
-                setTimeout(() => {
-                    mainNav.classList.remove('menu-slide-out');
-                }, 300);
-            }
-            console.log('Мобильное меню переключено');
-        });
-    }
-    
-    // Закрытие меню при клике на ссылку
-    document.querySelectorAll('.main-nav a').forEach(link => {
-        link.addEventListener('click', () => {
-            if (mainNav) {
-                mainNav.classList.remove('active');
-                mainNav.classList.add('menu-slide-out');
-                setTimeout(() => {
-                    mainNav.classList.remove('menu-slide-out');
-                }, 300);
-            }
-            if (menuToggle) menuToggle.classList.remove('active');
-        });
-    });
-}
+// Функция initializeMobileMenu полностью удалена
 
 function setupAnimations() {
     console.log('Настройка анимаций...');
