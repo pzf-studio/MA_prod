@@ -868,6 +868,31 @@ def get_sections():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== API ДЛЯ АДМИНКИ ==========
+@app.route('/api/admin/colors/palette', methods=['GET'])
+def get_color_palette():
+    """Получение палитры цветов для админки"""
+    try:
+        # Предопределенная палитра
+        palette = [
+            {"name": "Черный матовый", "hex": "#2C2C2C"},
+            {"name": "Белый глянцевый", "hex": "#FFFFFF"},
+            {"name": "Серый металлик", "hex": "#7D7D7D"},
+            {"name": "Коричневый", "hex": "#8B4513"},
+            {"name": "Бежевый", "hex": "#F5DEB3"},
+            {"name": "Серый бетон", "hex": "#9E9E9E"},
+            {"name": "Черный глянец", "hex": "#1A1A1A"},
+            {"name": "Белый матовый", "hex": "#F8F8F8"}
+        ]
+        
+        return jsonify({
+            'success': True,
+            'palette': palette
+        })
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения палитры: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
     """Авторизация администратора"""

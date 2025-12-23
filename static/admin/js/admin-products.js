@@ -1,4 +1,4 @@
-// Админ-панель: управление товарами
+// Админ-панель: управление товарами (ВЕРСИЯ С ЦВЕТОВЫМИ КОПИЯМИ)
 class AdminProductsManager {
     constructor() {
         this.API_BASE = window.location.origin;
@@ -11,6 +11,7 @@ class AdminProductsManager {
         // Для управления цветовыми копиями
         this.currentProductForCopy = null;
         this.colorPicker = null;
+        this.copyImages = []; // Массив для хранения изображений цветовой копии
         
         this.init();
     }
@@ -150,7 +151,7 @@ class AdminProductsManager {
             const colorVariants = product.color_variants || [];
             const copyCount = colorVariants.filter(v => !v.is_original).length;
             const colorCountHTML = copyCount > 0 ? 
-                `<span class="color-count" title="${copyCount} цветовых копий">+${copyCount}</span>` : '';
+                `<span class="color-count" title="${copyCount} цветовых копий" style="background: #3498db; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8em;">+${copyCount}</span>` : '';
             
             row.innerHTML = `
                 <td>${product.id}</td>
@@ -405,8 +406,107 @@ class AdminProductsManager {
             copyImageUpload.addEventListener('change', (e) => this.handleCopyImageUpload(e));
         }
         
-        // Загрузка палитры цветов
-        this.loadColorPalette();
+        // Инициализация цветового пикера (через setTimeout для гарантии загрузки DOM)
+        setTimeout(() => {
+            this.initializeColorPicker();
+        }, 100);
+    }
+    
+    initializeColorPicker() {
+        const colorPickerContainer = document.getElementById('adminColorPicker');
+        if (!colorPickerContainer) return;
+        
+        // Проверяем, загружен ли AdminColorPicker
+        if (typeof AdminColorPicker === 'undefined') {
+            console.warn('AdminColorPicker не загружен, создаем fallback');
+            this.createFallbackColorPicker();
+            return;
+        }
+        
+        try {
+            this.colorPicker = new AdminColorPicker('adminColorPicker', {
+                onColorSelect: (color) => {
+                    console.log('Выбран цвет:', color);
+                    // Автоматически обновляем название цвета в поле
+                    const colorNameInput = document.getElementById('colorNameInput');
+                    if (colorNameInput && !colorNameInput.value) {
+                        colorNameInput.value = color.name;
+                    }
+                }
+            });
+            
+            // Загружаем палитру цветов с сервера
+            this.loadColorPalette();
+        } catch (error) {
+            console.error('Ошибка инициализации цветового пикера:', error);
+            this.createFallbackColorPicker();
+        }
+    }
+    
+    createFallbackColorPicker() {
+        const container = document.getElementById('adminColorPicker');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="color-picker-section" style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h4 style="margin-bottom: 15px;">Выберите цвет для копии</h4>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Название цвета *</label>
+                    <input type="text" id="colorNameInput" placeholder="Например: Черный матовый" 
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Цвет (HEX) *</label>
+                    <input type="color" id="colorHexInput" value="#2C2C2C" 
+                           style="width: 60px; height: 40px; vertical-align: middle;">
+                    <input type="text" id="colorHexText" value="#2C2C2C" 
+                           style="margin-left: 10px; padding: 8px; width: 100px; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Быстрый выбор:</label>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div class="quick-color" style="width: 40px; height: 40px; background: #2C2C2C; border-radius: 50%; cursor: pointer; border: 3px solid transparent;" 
+                             title="Черный матовый" onclick="document.getElementById('colorHexInput').value='#2C2C2C'; document.getElementById('colorHexText').value='#2C2C2C'; document.getElementById('colorNameInput').value='Черный матовый'; this.parentNode.querySelectorAll('.quick-color').forEach(el => el.style.border='3px solid transparent'); this.style.border='3px solid #333';"></div>
+                        <div class="quick-color" style="width: 40px; height: 40px; background: #FFFFFF; border-radius: 50%; cursor: pointer; border: 3px solid transparent; border: 1px solid #ddd;" 
+                             title="Белый глянцевый" onclick="document.getElementById('colorHexInput').value='#FFFFFF'; document.getElementById('colorHexText').value='#FFFFFF'; document.getElementById('colorNameInput').value='Белый глянцевый'; this.parentNode.querySelectorAll('.quick-color').forEach(el => el.style.border='3px solid transparent'); this.style.border='3px solid #333';"></div>
+                        <div class="quick-color" style="width: 40px; height: 40px; background: #7D7D7D; border-radius: 50%; cursor: pointer; border: 3px solid transparent;" 
+                             title="Серый металлик" onclick="document.getElementById('colorHexInput').value='#7D7D7D'; document.getElementById('colorHexText').value='#7D7D7D'; document.getElementById('colorNameInput').value='Серый металлик'; this.parentNode.querySelectorAll('.quick-color').forEach(el => el.style.border='3px solid transparent'); this.style.border='3px solid #333';"></div>
+                        <div class="quick-color" style="width: 40px; height: 40px; background: #8B4513; border-radius: 50%; cursor: pointer; border: 3px solid transparent;" 
+                             title="Коричневый" onclick="document.getElementById('colorHexInput').value='#8B4513'; document.getElementById('colorHexText').value='#8B4513'; document.getElementById('colorNameInput').value='Коричневый'; this.parentNode.querySelectorAll('.quick-color').forEach(el => el.style.border='3px solid transparent'); this.style.border='3px solid #333';"></div>
+                        <div class="quick-color" style="width: 40px; height: 40px; background: #F5DEB3; border-radius: 50%; cursor: pointer; border: 3px solid transparent;" 
+                             title="Бежевый" onclick="document.getElementById('colorHexInput').value='#F5DEB3'; document.getElementById('colorHexText').value='#F5DEB3'; document.getElementById('colorNameInput').value='Бежевый'; this.parentNode.querySelectorAll('.quick-color').forEach(el => el.style.border='3px solid transparent'); this.style.border='3px solid #333';"></div>
+                    </div>
+                </div>
+                
+                <small style="color: #666;">* - обязательные поля</small>
+            </div>
+        `;
+        
+        // Добавляем обработчики событий для fallback пикера
+        const colorHexInput = document.getElementById('colorHexInput');
+        const colorHexText = document.getElementById('colorHexText');
+        
+        if (colorHexInput && colorHexText) {
+            colorHexInput.addEventListener('input', (e) => {
+                colorHexText.value = e.target.value;
+            });
+            
+            colorHexText.addEventListener('input', (e) => {
+                // Проверяем HEX формат
+                if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+                    colorHexInput.value = e.target.value;
+                }
+            });
+        }
+        
+        // Выбираем первый цвет по умолчанию
+        const firstColor = container.querySelector('.quick-color');
+        if (firstColor) {
+            firstColor.click();
+        }
     }
     
     async loadColorPalette() {
@@ -414,14 +514,25 @@ class AdminProductsManager {
             const response = await fetch(`${this.API_BASE}/api/admin/colors/palette`);
             const data = await response.json();
             
-            if (data.success) {
-                // Если цветовой пикер уже инициализирован, обновляем палитру
-                if (this.colorPicker && data.palette) {
-                    this.colorPicker.setPalette(data.palette);
-                }
+            if (data.success && this.colorPicker && data.palette) {
+                this.colorPicker.setPalette(data.palette);
             }
         } catch (error) {
             console.error('Ошибка загрузки палитры:', error);
+            // Если нет API, используем встроенную палитру
+            if (this.colorPicker && this.colorPicker.setPalette) {
+                const defaultPalette = [
+                    { name: 'Черный матовый', hex: '#2C2C2C' },
+                    { name: 'Белый глянцевый', hex: '#FFFFFF' },
+                    { name: 'Серый металлик', hex: '#7D7D7D' },
+                    { name: 'Коричневый', hex: '#8B4513' },
+                    { name: 'Бежевый', hex: '#F5DEB3' },
+                    { name: 'Серый бетон', hex: '#9E9E9E' },
+                    { name: 'Черный глянец', hex: '#1A1A1A' },
+                    { name: 'Белый матовый', hex: '#F8F8F8' }
+                ];
+                this.colorPicker.setPalette(defaultPalette);
+            }
         }
     }
     
@@ -434,7 +545,7 @@ class AdminProductsManager {
             return;
         }
         
-        // Обновляем информацию
+        // Обновляем информацию в модальном окне
         document.getElementById('baseProductName').textContent = product.name;
         document.getElementById('baseProductCode').textContent = product.code || `ID${product.id}`;
         
@@ -444,36 +555,21 @@ class AdminProductsManager {
         const newIndex = existingCopies.length + 1;
         document.getElementById('copyProductCode').textContent = `${baseCode}/${newIndex}`;
         
-        // Сброс формы
+        // Сбрасываем форму
         document.getElementById('copyPrice').value = product.price || '';
         document.getElementById('copyStock').value = 0;
         document.getElementById('copyImagePreview').innerHTML = '';
+        this.copyImages = []; // Очищаем массив изображений
         
-        // Скрываем кнопку если достигнут лимит
+        // Проверяем лимит копий
         const createBtn = document.getElementById('createColorCopyBtn');
         if (existingCopies.length >= 4) {
             createBtn.disabled = true;
             createBtn.innerHTML = '<i class="fas fa-ban"></i> Достигнут лимит (макс. 4 копии)';
+            this.showNotification('Для этого товара уже создано максимальное количество цветовых копий (4)', 'warning');
         } else {
             createBtn.disabled = false;
             createBtn.innerHTML = '<i class="fas fa-copy"></i> Создать цветовую копию';
-        }
-        
-        // Инициализация цветового пикера
-        if (!this.colorPicker) {
-            // Загружаем AdminColorPicker если он существует
-            if (typeof AdminColorPicker !== 'undefined') {
-                this.colorPicker = new AdminColorPicker('adminColorPicker', {
-                    onColorSelect: (color) => {
-                        console.log('Выбран цвет:', color);
-                    }
-                });
-                
-                // Загружаем палитру
-                this.loadColorPalette();
-            } else {
-                console.warn('AdminColorPicker не загружен');
-            }
         }
         
         // Открываем модальное окно
@@ -483,6 +579,7 @@ class AdminProductsManager {
     closeColorModal() {
         document.getElementById('colorCopyModal').classList.remove('active');
         this.currentProductForCopy = null;
+        this.copyImages = [];
     }
     
     async handleCopyImageUpload(e) {
@@ -499,10 +596,25 @@ class AdminProductsManager {
                 continue;
             }
             
+            // Показываем индикатор загрузки
+            const preview = document.getElementById('copyImagePreview');
+            const loader = document.createElement('div');
+            loader.className = 'preview-item';
+            loader.innerHTML = `
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+            `;
+            preview.appendChild(loader);
+            
             const result = await this.uploadImage(file);
+            
+            // Удаляем индикатор
+            loader.remove();
             
             if (result.success) {
                 this.addCopyImagePreview(result);
+                this.copyImages.push(result.url); // Сохраняем URL изображения
             } else {
                 this.showNotification(`Ошибка загрузки: ${result.error}`, 'error');
             }
@@ -519,8 +631,8 @@ class AdminProductsManager {
         const previewItem = document.createElement('div');
         previewItem.className = 'preview-item';
         previewItem.innerHTML = `
-            <img src="${fileInfo.url}" alt="${fileInfo.original_name}">
-            <button class="preview-remove" onclick="this.closest('.preview-item').remove();">
+            <img src="${fileInfo.url}" alt="${fileInfo.original_name}" style="width: 100%; height: 100%; object-fit: cover;">
+            <button class="preview-remove" onclick="this.closest('.preview-item').remove(); window.adminProducts.removeCopyImage('${fileInfo.url}')">
                 <i class="fas fa-times"></i>
             </button>
         `;
@@ -528,47 +640,71 @@ class AdminProductsManager {
         preview.appendChild(previewItem);
     }
     
+    removeCopyImage(imageUrl) {
+        this.copyImages = this.copyImages.filter(url => url !== imageUrl);
+    }
+    
     async createColorCopy() {
-        if (!this.currentProductForCopy) return;
+        if (!this.currentProductForCopy) {
+            this.showNotification('Ошибка: товар не выбран', 'error');
+            return;
+        }
         
         const product = this.products.find(p => p.id === this.currentProductForCopy);
-        if (!product) return;
-        
-        // Получаем выбранный цвет
-        let selectedColor = null;
-        if (this.colorPicker && typeof this.colorPicker.getSelectedColor === 'function') {
-            selectedColor = this.colorPicker.getSelectedColor();
+        if (!product) {
+            this.showNotification('Товар не найден', 'error');
+            return;
         }
         
-        // Если цвет не выбран через пикер, берем из полей ввода
-        if (!selectedColor || !selectedColor.name || !selectedColor.hex) {
-            const nameInput = document.getElementById('colorNameInput');
-            const hexInput = document.getElementById('colorHexInput');
+        // Получаем данные о цвете
+        let colorData = {};
+        
+        if (this.colorPicker && typeof this.colorPicker.getSelectedColor === 'function') {
+            colorData = this.colorPicker.getSelectedColor();
+        } else {
+            // Используем fallback поля
+            const colorNameInput = document.getElementById('colorNameInput');
+            const colorHexInput = document.getElementById('colorHexInput');
+            const colorHexText = document.getElementById('colorHexText');
             
-            if (nameInput && hexInput && nameInput.value && hexInput.value) {
-                selectedColor = {
-                    name: nameInput.value,
-                    hex: hexInput.value
-                };
-            } else {
-                this.showNotification('Выберите цвет для копии', 'error');
+            if (!colorNameInput || !colorNameInput.value.trim()) {
+                this.showNotification('Введите название цвета', 'error');
                 return;
             }
+            
+            const hexValue = colorHexText ? colorHexText.value : (colorHexInput ? colorHexInput.value : '#2C2C2C');
+            
+            colorData = {
+                name: colorNameInput.value.trim(),
+                hex: hexValue
+            };
         }
         
-        // Собираем данные
+        // Проверяем обязательные поля
+        if (!colorData.name || !colorData.hex) {
+            this.showNotification('Заполните информацию о цвете', 'error');
+            return;
+        }
+        
+        // Собираем остальные данные
         const priceInput = document.getElementById('copyPrice');
         const stockInput = document.getElementById('copyStock');
         
-        const colorData = {
-            color_name: selectedColor.name,
-            color_hex: selectedColor.hex,
+        const variantData = {
+            color_name: colorData.name,
+            color_hex: colorData.hex,
             price: priceInput.value ? parseInt(priceInput.value) : product.price,
             stock: parseInt(stockInput.value) || 0,
-            images: this.getCopyImages()
+            images: this.copyImages.length > 0 ? this.copyImages : (product.images || [])
         };
         
-        // Кнопка загрузки
+        // Валидация цены
+        if (isNaN(variantData.price) || variantData.price < 0) {
+            this.showNotification('Введите корректную цену', 'error');
+            return;
+        }
+        
+        // Показываем индикатор загрузки
         const createBtn = document.getElementById('createColorCopyBtn');
         const originalText = createBtn.innerHTML;
         createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание...';
@@ -583,7 +719,7 @@ class AdminProductsManager {
                         'Authorization': `Bearer ${this.authToken}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(colorData)
+                    body: JSON.stringify(variantData)
                 }
             );
             
@@ -596,41 +732,29 @@ class AdminProductsManager {
                 // Обновляем список товаров
                 await this.loadProducts();
                 
-                // Подсвечиваем созданную копию
+                // Подсвечиваем созданную копию (опционально)
                 this.highlightCreatedCopy(data.variant.variant_id);
             } else {
-                throw new Error(data.error);
+                throw new Error(data.error || 'Неизвестная ошибка сервера');
             }
             
         } catch (error) {
             console.error('Ошибка создания копии:', error);
             this.showNotification(`Ошибка: ${error.message}`, 'error');
         } finally {
+            // Восстанавливаем кнопку
             createBtn.innerHTML = originalText;
             createBtn.disabled = false;
         }
     }
     
-    getCopyImages() {
-        const preview = document.getElementById('copyImagePreview');
-        if (!preview) return [];
-        
-        const images = [];
-        const imgElements = preview.querySelectorAll('img');
-        
-        imgElements.forEach(img => {
-            images.push(img.src);
-        });
-        
-        return images;
-    }
-    
     highlightCreatedCopy(variantId) {
         console.log(`Создана цветовая копия: ${variantId}`);
-        // Можно добавить анимацию или подсветку строки в таблице
+        // Можно добавить визуальное выделение в таблице
+        this.showNotification(`Копия ${variantId} успешно создана`, 'success');
     }
     
-    // ========== СУЩЕСТВУЮЩИЕ МЕТОДЫ ==========
+    // ========== ОСНОВНЫЕ МЕТОДЫ УПРАВЛЕНИЯ ТОВАРАМИ ==========
     
     openProductModal(productId = null) {
         const modal = document.getElementById('productModal');
@@ -900,11 +1024,11 @@ class AdminProductsManager {
     
     showNotification(message, type = 'success') {
         // Удаляем старые уведомления
-        const existingNotifications = document.querySelectorAll('.notification');
+        const existingNotifications = document.querySelectorAll('.admin-notification');
         existingNotifications.forEach(notification => notification.remove());
         
         const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
+        notification.className = `admin-notification ${type}`;
         
         let icon = 'info-circle';
         if (type === 'success') icon = 'check-circle';
