@@ -1,4 +1,3 @@
-// cart.js - отдельный файл корзины
 class CartSystem {
     constructor() {
         this.cart = dataManager.getCart();
@@ -52,20 +51,22 @@ class CartSystem {
     }
     
     addToCart(product) {
-        // Проверяем, есть ли такой товар уже в корзине
-        const existingItem = this.cart.find(item => item.id == product.id);
+        // ВАЖНО: используем строгое сравнение строк для variant_id
+        const productId = String(product.id);
+        const existingItem = this.cart.find(item => String(item.id) === productId);
         
         if (existingItem) {
             existingItem.quantity += 1;
         } else {
             this.cart.push({
-                id: product.id,
+                id: productId,
                 name: product.name,
                 price: product.price,
                 image: product.images?.[0] || product.image || '',
                 quantity: 1,
                 original_product_id: product.original_product_id || product.id,
-                color_name: product.color_name || ''
+                color_name: product.color_name || '',
+                variant_id: product.variant_id || productId
             });
         }
         
@@ -76,7 +77,8 @@ class CartSystem {
     }
     
     removeFromCart(productId) {
-        this.cart = this.cart.filter(item => item.id != productId);
+        const id = String(productId);
+        this.cart = this.cart.filter(item => String(item.id) !== id);
         dataManager.saveCart(this.cart);
         this.updateCartUI();
         this.renderCart();
@@ -84,7 +86,8 @@ class CartSystem {
     }
     
     updateQuantity(productId, change) {
-        const item = this.cart.find(item => item.id == productId);
+        const id = String(productId);
+        const item = this.cart.find(item => String(item.id) === id);
         if (!item) return;
         
         item.quantity += change;
@@ -158,30 +161,33 @@ class CartSystem {
                 `<img src="${item.image}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
                 '';
             
-            // Используем строковые ID для обработчиков onclick
+            // Безопасное экранирование ID для data-атрибутов
+            const safeId = String(item.id).replace(/"/g, '&quot;').replace(/'/g, "&#39;");
+            
             itemsHTML += `
-                <div class="cart-item" data-id="${item.id}">
+                <div class="cart-item" data-id="${safeId}">
                     <div class="cart-item-image">
                         ${imageHTML}
-                        <div class="image-placeholder" style="${item.image ? 'display: none;' : ''}">
+                        <div class="image-placeholder" style="${item.image ? 'display: none;' : 'display: flex;'}">
                             <i class="fas fa-couch"></i>
                         </div>
                     </div>
                     <div class="cart-item-details">
                         <h4 class="cart-item-name">${item.name}</h4>
+                        ${item.color_name ? `<div class="cart-item-color">Цвет: ${item.color_name}</div>` : ''}
                         <div class="cart-item-price">${dataManager.formatPrice(item.price)}</div>
                         <div class="cart-item-actions">
                             <div class="quantity-controls">
-                                <button class="quantity-btn decrease-btn" onclick="window.cartSystem.updateQuantity('${item.id}', -1)">
+                                <button class="quantity-btn decrease-btn" data-action="decrease" data-id="${safeId}">
                                     <i class="fas fa-minus"></i>
                                 </button>
                                 <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="99" 
-                                       onchange="window.cartSystem.updateQuantity('${item.id}', parseInt(this.value) - ${item.quantity})">
-                                <button class="quantity-btn increase-btn" onclick="window.cartSystem.updateQuantity('${item.id}', 1)">
+                                       data-id="${safeId}">
+                                <button class="quantity-btn increase-btn" data-action="increase" data-id="${safeId}">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
-                            <button class="remove-item" onclick="window.cartSystem.removeFromCart('${item.id}')">
+                            <button class="remove-item" data-id="${safeId}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -192,6 +198,9 @@ class CartSystem {
         
         cartItems.innerHTML = itemsHTML;
         
+        // Привязываем события через делегирование
+        this.bindCartItemEvents();
+        
         if (cartTotalAmount) {
             cartTotalAmount.textContent = dataManager.formatPrice(total);
         }
@@ -200,6 +209,42 @@ class CartSystem {
         if (checkoutBtn) {
             checkoutBtn.disabled = this.cart.length === 0;
         }
+    }
+    
+    bindCartItemEvents() {
+        // Делегирование событий для кнопок в корзине
+        const cartItems = document.getElementById('cartItems');
+        if (!cartItems) return;
+        
+        cartItems.addEventListener('click', (e) => {
+            const target = e.target;
+            const button = target.closest('.quantity-btn, .remove-item');
+            
+            if (!button) return;
+            
+            const id = button.dataset.id;
+            
+            if (button.classList.contains('remove-item')) {
+                this.removeFromCart(id);
+            } else if (button.dataset.action === 'increase') {
+                this.updateQuantity(id, 1);
+            } else if (button.dataset.action === 'decrease') {
+                this.updateQuantity(id, -1);
+            }
+        });
+        
+        // Обработка изменения в поле ввода количества
+        cartItems.addEventListener('change', (e) => {
+            if (e.target.classList.contains('quantity-input')) {
+                const id = e.target.dataset.id;
+                const newQuantity = parseInt(e.target.value) || 1;
+                const item = this.cart.find(item => String(item.id) === id);
+                
+                if (item && newQuantity !== item.quantity) {
+                    this.updateQuantity(id, newQuantity - item.quantity);
+                }
+            }
+        });
     }
     
     async checkout() {
@@ -352,6 +397,7 @@ class CartSystem {
         const form = e.target;
         const formData = new FormData(form);
         
+        // ВАЖНО: включаем variant_id в данные заказа
         const orderData = {
             customer_name: formData.get('customerName'),
             customer_phone: formData.get('customerPhone'),
@@ -360,9 +406,11 @@ class CartSystem {
             customer_comment: formData.get('customerComment') || '',
             items: this.cart.map(item => ({
                 id: item.id,
+                variant_id: item.variant_id || item.id,
                 name: item.name,
                 price: item.price,
-                quantity: item.quantity
+                quantity: item.quantity,
+                color_name: item.color_name || ''
             })),
             total: this.getCartTotal()
         };
@@ -417,79 +465,52 @@ class CartSystem {
     }
     
     showNotification(message, type = 'success') {
-        // Удаляем существующие уведомления
-        const existingNotifications = document.querySelectorAll('.cart-notification');
-        existingNotifications.forEach(notification => notification.remove());
-        
         const notification = document.createElement('div');
         notification.className = `cart-notification ${type}`;
+        
+        let icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        if (type === 'warning') icon = 'exclamation-triangle';
+        
         notification.innerHTML = `
             <div class="cart-notification-content">
-                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+                <i class="fas fa-${icon}"></i>
                 ${message}
             </div>
         `;
         
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: ${type === 'success' ? '#27ae60' : 
+                        type === 'error' ? '#e74c3c' : '#f39c12'};
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 9999;
+            max-width: 400px;
+        `;
+        
         document.body.appendChild(notification);
         
-        setTimeout(() => notification.classList.add('show'), 100);
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
         
         setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
+            notification.style.transform = 'translateX(120%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
         }, 3000);
     }
 }
-
-// Стили для уведомлений корзины
-const cartNotificationStyles = document.createElement('style');
-cartNotificationStyles.textContent = `
-    .cart-notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        transform: translateX(120%);
-        transition: transform 0.3s ease;
-        z-index: 9999;
-        max-width: 400px;
-    }
-    
-    .cart-notification.show {
-        transform: translateX(0);
-    }
-    
-    .cart-notification.success {
-        background: #27ae60;
-        color: white;
-        border-left: 4px solid #219653;
-    }
-    
-    .cart-notification.error {
-        background: #e74c3c;
-        color: white;
-        border-left: 4px solid #c0392b;
-    }
-    
-    .cart-notification.warning {
-        background: #f39c12;
-        color: white;
-        border-left: 4px solid #d35400;
-    }
-    
-    .cart-notification-content {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .cart-notification-content i {
-        font-size: 1.2rem;
-    }
-`;
-document.head.appendChild(cartNotificationStyles);
 
 // Экспортируем глобально
 window.CartSystem = CartSystem;

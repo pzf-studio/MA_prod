@@ -16,6 +16,7 @@
 │   │   ├── 📁 js
 │   │   │   ├── 📄 admin-auth.js
 │   │   │   ├── 📄 admin-categories.js
+│   │   │   ├── 📄 admin-color-picker.js
 │   │   │   ├── 📄 admin-dashboard.js
 │   │   │   ├── 📄 admin-media.js
 │   │   │   ├── 📄 admin-products.js

@@ -155,12 +155,38 @@ async function loadProductColors(productId) {
             return;
         }
         
-        renderColorOptions(data.variants);
+        // ИСПРАВЛЕНО: Используем круговой пикер вместо старого рендера
+        initCircularColorPicker(data.variants, data.base_name);
         
     } catch (error) {
         console.error('Ошибка загрузки цветов:', error);
         const colorSection = document.querySelector('.product-colors-section');
         if (colorSection) colorSection.style.display = 'none';
+    }
+}
+
+/**
+ * Инициализация кругового цветового пикера
+ */
+function initCircularColorPicker(variants, baseProductName) {
+    const container = document.getElementById('colorPickerContainer');
+    if (!container) return;
+    
+    // Создаем круговой пикер
+    const colorPicker = new ColorPicker('colorPickerContainer', {
+        baseProductName: baseProductName,
+        onColorChange: function(variant) {
+            // Обновляем информацию при выборе цвета
+            selectColorVariant(variant);
+        }
+    });
+    
+    // Устанавливаем варианты
+    colorPicker.setVariants(variants);
+    
+    // Выбираем первый вариант
+    if (variants.length > 0) {
+        colorPicker.selectVariant(variants[0].variant_id);
     }
 }
 
@@ -365,14 +391,16 @@ function updateAddToCartButton(variant) {
         const product = window.currentProduct;
         if (!product) return;
         
+        // ВАЖНО: используем variant_id вместо product.id для цветовых копий
         const cartProduct = {
-            id: variant.variant_id,
+            id: variant.variant_id, // Ключевое изменение!
             name: variant.is_original ? product.name : `${product.name}${variant.suffix || ''}`,
             price: variant.price || product.price,
             image: variant.images?.[0] || product.images?.[0] || '',
             quantity: 1,
             original_product_id: product.id,
-            color_name: variant.color_name
+            color_name: variant.color_name,
+            variant_id: variant.variant_id // Сохраняем для идентификации
         };
         
         if (window.cartSystem) {
