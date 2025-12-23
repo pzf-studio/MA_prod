@@ -1618,7 +1618,7 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
         padding: 20px 15px !important;
         margin: 0 10px !important;
         backdrop-filter: blur(5px) !important;
-        background: rgba(255, 255, 255, 0.92) !important;
+        background: rgba(255, 255, 255, 0.85) !important;
     }
     
     .hero-title .brand-name {
