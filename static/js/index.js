@@ -150,25 +150,6 @@ async function initializeMainPage() {
         setupAnimations();
         
         // FAQ аккордеон
-        document.querySelectorAll('.faq-question').forEach(question => {
-            question.addEventListener('click', function() {
-                const answer = this.nextElementSibling;
-                const icon = this.querySelector('i');
-                
-                // Анимация открытия FAQ
-                answer.classList.toggle('active');
-                icon.classList.toggle('fa-chevron-down');
-                icon.classList.toggle('fa-chevron-up');
-                
-                // Добавляем класс для анимации
-                if (answer.classList.contains('active')) {
-                    answer.classList.add('faq-expand');
-                    setTimeout(() => {
-                        answer.classList.remove('faq-expand');
-                    }, 300);
-                }
-            });
-        });
         
         console.log('Инициализация завершена успешно');
     } catch (error) {
