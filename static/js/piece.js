@@ -573,3 +573,269 @@ colorStyles.textContent = `
     }
 `;
 document.head.appendChild(colorStyles);
+
+class FullscreenViewer {
+    constructor() {
+        this.viewer = document.getElementById('fullscreenViewer');
+        this.fullscreenImage = document.getElementById('fullscreenImage');
+        this.closeBtn = document.getElementById('fullscreenClose');
+        this.prevBtn = document.getElementById('fullscreenPrev');
+        this.nextBtn = document.getElementById('fullscreenNext');
+        this.counter = document.getElementById('fullscreenCounter');
+        
+        this.currentImages = [];
+        this.currentIndex = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        // Обработчики событий
+        this.closeBtn.addEventListener('click', () => this.close());
+        this.prevBtn.addEventListener('click', () => this.prev());
+        this.nextBtn.addEventListener('click', () => this.next());
+        
+        // Закрытие по клику на фон
+        this.viewer.addEventListener('click', (e) => {
+            if (e.target === this.viewer) {
+                this.close();
+            }
+        });
+        
+        // Навигация с клавиатуры
+        document.addEventListener('keydown', (e) => {
+            if (!this.viewer.classList.contains('active')) return;
+            
+            switch(e.key) {
+                case 'Escape':
+                    this.close();
+                    break;
+                case 'ArrowLeft':
+                    this.prev();
+                    break;
+                case 'ArrowRight':
+                    this.next();
+                    break;
+            }
+        });
+        
+        // Предотвращаем закрытие при клике на изображение
+        this.fullscreenImage.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+    
+    /**
+     * Открыть изображение в полноэкранном режиме
+     */
+    open(images, startIndex = 0) {
+        if (!images || images.length === 0) return;
+        
+        this.currentImages = images;
+        this.currentIndex = startIndex;
+        
+        this.updateImage();
+        this.viewer.classList.add('active');
+        
+        // Блокируем скролл body
+        document.body.style.overflow = 'hidden';
+    }
+    
+    /**
+     * Закрыть полноэкранный режим
+     */
+    close() {
+        this.viewer.classList.remove('active');
+        this.currentImages = [];
+        this.currentIndex = 0;
+        
+        // Восстанавливаем скролл
+        document.body.style.overflow = '';
+    }
+    
+    /**
+     * Предыдущее изображение
+     */
+    prev() {
+        if (this.currentImages.length <= 1) return;
+        
+        this.currentIndex--;
+        if (this.currentIndex < 0) {
+            this.currentIndex = this.currentImages.length - 1;
+        }
+        
+        this.updateImage();
+    }
+    
+    /**
+     * Следующее изображение
+     */
+    next() {
+        if (this.currentImages.length <= 1) return;
+        
+        this.currentIndex++;
+        if (this.currentIndex >= this.currentImages.length) {
+            this.currentIndex = 0;
+        }
+        
+        this.updateImage();
+    }
+    
+    /**
+     * Обновить отображаемое изображение
+     */
+    updateImage() {
+        const image = this.currentImages[this.currentIndex];
+        this.fullscreenImage.src = image;
+        this.fullscreenImage.alt = `Изображение ${this.currentIndex + 1}`;
+        
+        // Обновляем счетчик
+        this.counter.textContent = `${this.currentIndex + 1} / ${this.currentImages.length}`;
+        
+        // Показываем/скрываем кнопки навигации
+        this.prevBtn.style.display = this.currentImages.length > 1 ? 'flex' : 'none';
+        this.nextBtn.style.display = this.currentImages.length > 1 ? 'flex' : 'none';
+        this.counter.style.display = this.currentImages.length > 1 ? 'block' : 'none';
+    }
+}
+
+/**
+ * Инициализация полноэкранного просмотра
+ */
+function initFullscreenViewer() {
+    window.fullscreenViewer = new FullscreenViewer();
+    
+    // Добавляем кнопку открытия на главное изображение
+    addFullscreenToggle();
+}
+
+/**
+ * Добавить кнопку открытия в полноэкранный режим
+ */
+function addFullscreenToggle() {
+    const mainImageContainer = document.querySelector('.main-image-container');
+    if (!mainImageContainer) return;
+    
+    // Создаем кнопку
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'fullscreen-toggle';
+    toggleBtn.innerHTML = '<i class="fas fa-expand"></i>';
+    toggleBtn.title = 'Открыть в полноэкранном режиме';
+    
+    // Добавляем кнопку в контейнер
+    mainImageContainer.appendChild(toggleBtn);
+    
+    // Обработчик клика
+    toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openMainImageFullscreen();
+    });
+    
+    // Также открываем по клику на само изображение
+    const mainImage = document.getElementById('productMainImage');
+    if (mainImage) {
+        mainImage.style.cursor = 'zoom-in';
+        mainImage.addEventListener('click', () => {
+            openMainImageFullscreen();
+        });
+    }
+    
+    // Добавляем обработчики для миниатюр
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.thumbnail img')) {
+            const thumbnail = e.target.closest('.thumbnail');
+            if (thumbnail) {
+                const index = Array.from(thumbnail.parentElement.children).indexOf(thumbnail);
+                openProductImagesFullscreen(index);
+            }
+        }
+    });
+}
+
+/**
+ * Открыть главное изображение в полноэкранном режиме
+ */
+function openMainImageFullscreen() {
+    const product = window.currentProduct;
+    if (!product || !product.images || product.images.length === 0) return;
+    
+    // Получаем текущее изображение (учитывая цветовые варианты)
+    const mainImage = document.getElementById('productMainImage');
+    const currentImage = mainImage.src;
+    
+    // Находим индекс текущего изображения
+    const images = getCurrentProductImages();
+    const startIndex = images.indexOf(currentImage);
+    
+    window.fullscreenViewer.open(images, startIndex >= 0 ? startIndex : 0);
+}
+
+/**
+ * Открыть все изображения товара в полноэкранном режиме
+ */
+function openProductImagesFullscreen(startIndex = 0) {
+    const images = getCurrentProductImages();
+    if (images.length === 0) return;
+    
+    window.fullscreenViewer.open(images, startIndex);
+}
+
+/**
+ * Получить текущие изображения товара
+ */
+function getCurrentProductImages() {
+    const product = window.currentProduct;
+    if (!product) return [];
+    
+    // Проверяем, есть ли цветовые варианты
+    const colorOption = document.querySelector('.color-option.selected');
+    if (colorOption && window.currentColorVariants) {
+        const variantId = colorOption.dataset.variantId;
+        const variant = window.currentColorVariants.find(v => v.variant_id === variantId);
+        if (variant && variant.images && variant.images.length > 0) {
+            return variant.images;
+        }
+    }
+    
+    // Возвращаем обычные изображения товара
+    return product.images || [];
+}
+
+/**
+ * Обновить полноэкранный просмотр при смене цветового варианта
+ */
+function updateFullscreenViewer(variant) {
+    // Сохраняем текущие варианты в глобальной переменной
+    window.currentColorVariants = window.currentColorVariants || [];
+    
+    // Если передан вариант, обновляем изображения
+    if (variant && variant.images) {
+        // Находим индекс текущего варианта в массиве
+        const variantIndex = window.currentColorVariants.findIndex(v => v.variant_id === variant.variant_id);
+        if (variantIndex >= 0) {
+            window.currentColorVariants[variantIndex] = variant;
+        }
+    }
+}
+
+// Инициализируем после загрузки страницы
+document.addEventListener('DOMContentLoaded', () => {
+    // Небольшая задержка, чтобы все элементы успели загрузиться
+    setTimeout(() => {
+        initFullscreenViewer();
+    }, 500);
+});
+
+// Обновляем функцию selectColorVariant для поддержки полноэкранного просмотра
+const originalSelectColorVariant = selectColorVariant;
+selectColorVariant = function(variant) {
+    originalSelectColorVariant(variant);
+    updateFullscreenViewer(variant);
+};
+
+// Обновляем функцию updateAddToCartButton для поддержки полноэкранного просмотра
+const originalUpdateAddToCartButton = updateAddToCartButton;
+updateAddToCartButton = function(variant) {
+    originalUpdateAddToCartButton(variant);
+    updateFullscreenViewer(variant);
+};
