@@ -1898,11 +1898,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     100% { transform: scale(1); }
 }
 
-/* Анимация логотипа */
-.logo-pulse {
-    animation: logoPulse 2s ease infinite;
-}
-
 @keyframes logoPulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
@@ -2097,7 +2092,6 @@ body {
     .faq-expand,
     body,
     .btn-click-animation,
-    .logo-pulse,
     .bounce-in {
         animation: none !important;
         transition: none !important;
