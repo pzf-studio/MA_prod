@@ -1378,27 +1378,6 @@ section {
     }
 }
 
-@media (max-width: 768px) {
-    .menu-toggle {
-        display: flex;
-    }
-    
-    .main-nav {
-        display: none;
-    }
-    
-    .main-nav.active {
-        display: block;
-        width: 100%;
-    }
-    
-    .main-nav.active ul {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-}
-
 h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     line-height: 1.4;
 }
@@ -2164,5 +2143,131 @@ body {
     .faq-question {
         font-size: 16px;
         padding: 15px 0;
+    }
+}
+
+/* НОВЫЕ СТИЛИ ДЛЯ МОБИЛЬНОГО МЕНЮ (Добавлены в конец) */
+
+@media (max-width: 768px) {
+    /* Скрыть бургер-кнопку */
+    .menu-toggle {
+        display: none !important;
+    }
+    
+    /* Показать навигацию всегда */
+    .main-nav {
+        display: block !important;
+        width: 100%;
+        order: 3; /* Поместить меню под логотипом и кнопками */
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .main-nav ul {
+        display: flex !important;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        overflow-x: auto; /* Горизонтальная прокрутка если не помещается */
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 5px;
+    }
+    
+    .main-nav li {
+        flex-shrink: 0; /* Не сжимать элементы */
+    }
+    
+    .main-nav a {
+        padding: 8px 12px;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+    
+    /* Адаптация шапки для мобильного меню */
+    .header-content {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.8rem 0;
+    }
+    
+    .logo-container {
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    
+    .header-actions {
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    
+    .header-actions .btn-telegram {
+        display: inline-flex !important; /* Показать кнопку Telegram в мобильном меню */
+    }
+    
+    /* Улучшения для мобильного меню */
+    /* Убедиться, что меню всегда видно и прокручивается горизонтально */
+    .main-nav::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .main-nav::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 2px;
+    }
+    
+    .main-nav::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 2px;
+    }
+    
+    /* Подсветка активной ссылки */
+    .main-nav a.active {
+        background: var(--primary-color);
+        color: white !important;
+        border-radius: 5px;
+    }
+    
+    .main-nav a.active::after {
+        display: none; /* Скрыть подчеркивание для активной ссылки */
+    }
+}
+
+@media (max-width: 480px) {
+    .main-nav ul {
+        gap: 10px;
+        justify-content: space-around;
+    }
+    
+    .main-nav a {
+        font-size: 13px;
+        padding: 6px 8px;
+    }
+    
+    /* Уменьшение отступов для очень маленьких экранов */
+    .main-nav {
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+}
+
+/* Для очень маленьких экранов - уменьшить шапку */
+@media (max-width: 360px) {
+    .main-nav a {
+        font-size: 12px;
+        padding: 5px 6px;
+    }
+    
+    .header-actions .btn-telegram {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .logo-text {
+        font-size: 1.2rem !important;
     }
 }
