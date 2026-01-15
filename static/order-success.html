@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказ успешно оформлен | MA Furniture</title>
+    <link rel="icon" href="/static/images/logo2.png" type="image/png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Playfair Display', serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .success-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 50px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            border: 2px solid #d4af37;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: #d4af37;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: bounce 1s ease-in-out;
+        }
+
+        .success-icon i {
+            font-size: 50px;
+            color: white;
+        }
+
+        h1 {
+            color: #2c2c2c;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+
+        .success-message {
+            color: #666;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .order-details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: left;
+            border-left: 4px solid #d4af37;
+        }
+
+        .order-details h3 {
+            color: #2c2c2c;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #2c2c2c;
+            font-weight: 600;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 200px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #d4af37;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #b8941f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-outline {
+            background: white;
+            color: #d4af37;
+            border: 2px solid #d4af37;
+        }
+
+        .btn-outline:hover {
+            background: #f8f8f8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .telegram-notification {
+            background: #0088cc;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        
+        <h1>Заказ успешно оформлен!</h1>
+        
+        <div class="telegram-notification">
+            <i class="fab fa-telegram-plane" style="font-size: 1.5rem;"></i>
+            <span>Уведомление отправлено в Telegram. Мы свяжемся с вами в ближайшее время!</span>
+        </div>
+        
+        <div class="success-message">
+            Спасибо за ваш заказ! Наш менеджер уже получил уведомление в Telegram 
+            и свяжется с вами для подтверждения деталей в течение 15 минут.
+        </div>
+        
+        <div class="order-details" id="orderDetails">
+            <h3><i class="fas fa-receipt"></i> Информация о заказе</h3>
+            <div class="detail-item">
+                <span class="detail-label">Номер заказа:</span>
+                <span class="detail-value" id="orderId">Загружается...</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Дата оформления:</span>
+                <span class="detail-value" id="orderDate">Загружается...</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Статус:</span>
+                <span class="detail-value" style="color: #d4af37; font-weight: bold;">Ожидает обработки</span>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <a href="/shop" class="btn btn-primary">
+                <i class="fas fa-shopping-bag"></i>
+                Вернуться в магазин
+            </a>
+            <a href="/" class="btn btn-outline">
+                <i class="fas fa-home"></i>
+                На главную
+            </a>
+        </div>
+        
+        <div style="margin-top: 30px; color: #999; font-size: 0.9rem;">
+            <p><i class="fas fa-info-circle"></i> Если у вас есть вопросы, звоните: +7 (910) 005-34-24</p>
+        </div>
+    </div>
+
+    <script>
+        // Получаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id');
+        const orderDate = urlParams.get('date');
+        const customerName = urlParams.get('name');
+        const totalAmount = urlParams.get('total');
+        
+        // Обновляем информацию о заказе
+        document.getElementById('orderId').textContent = orderId || 'Не указан';
+        
+        if (orderDate) {
+            document.getElementById('orderDate').textContent = new Date(orderDate).toLocaleString('ru-RU');
+        } else {
+            document.getElementById('orderDate').textContent = new Date().toLocaleString('ru-RU');
+        }
+        
+        // Если есть дополнительные данные, показываем их
+        if (customerName) {
+            const detailsDiv = document.getElementById('orderDetails');
+            detailsDiv.innerHTML += `
+                <div class="detail-item">
+                    <span class="detail-label">Имя клиента:</span>
+                    <span class="detail-value">${decodeURIComponent(customerName)}</span>
+                </div>
+            `;
+        }
+        
+        if (totalAmount) {
+            const detailsDiv = document.getElementById('orderDetails');
+            detailsDiv.innerHTML += `
+                <div class="detail-item">
+                    <span class="detail-label">Сумма заказа:</span>
+                    <span class="detail-value">${new Intl.NumberFormat('ru-RU').format(totalAmount)} ₽</span>
+                </div>
+            `;
+        }
+        
+        // Очищаем корзину при загрузке страницы успеха
+        localStorage.removeItem('ma_furniture_cart');
+    </script>
+</body>
+</html>

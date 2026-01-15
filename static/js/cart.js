@@ -430,16 +430,26 @@ class CartSystem {
             const result = await dataManager.submitOrder(orderData);
             
             if (result.success) {
-                this.showNotification('Заказ успешно отправлен! Мы свяжемся с вами.', 'success');
-                this.closeCheckoutModal();
-                this.clearCart();
+                // Перенаправляем на страницу успеха с параметрами заказа
+                const orderId = result.order_id || 'ORDER-' + Date.now();
+                const queryParams = new URLSearchParams({
+                    order_id: orderId,
+                    date: new Date().toISOString(),
+                    name: encodeURIComponent(orderData.customer_name),
+                    total: this.getCartTotal()
+                }).toString();
+                
+                window.location.href = `/order-success?${queryParams}`;
+                
+                // Корзина очистится на странице успеха
             } else {
                 this.showNotification(`Ошибка: ${result.error}`, 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         } catch (error) {
             console.error('Ошибка оформления заказа:', error);
             this.showNotification('Произошла ошибка при отправке заказа', 'error');
-        } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
         }
