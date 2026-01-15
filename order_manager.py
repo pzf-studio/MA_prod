@@ -91,22 +91,41 @@ class OrderManager:
             return False
     
     def process_order(self, order_data):
-        """Обработка заказа: сохранение + отправка"""
-        # 1. Сохраняем заказ в файл
-        order_id = self.save_order(order_data)
-        
-        if not order_id:
-            return {"success": False, "error": "Ошибка сохранения заказа"}
-        
-        # 2. Отправляем в Telegram
-        telegram_sent = self.send_to_telegram(order_data)
-        
-        return {
-            "success": True,
-            "order_id": order_id,
-            "telegram_sent": telegram_sent,
-            "message": "Заказ успешно оформлен" + (" и отправлен в Telegram" if telegram_sent else " (Telegram не отправлен)")
-        }
+        """Обработка нового заказа (интеграция с app.py)"""
+        try:
+            # Сохраняем заказ
+            order_id = self.save_order(order_data)
+            
+            if not order_id:
+                return {
+                    'success': False,
+                    'error': 'Ошибка сохранения заказа'
+                }
+            
+            # Отправляем в Telegram
+            telegram_sent = self.send_to_telegram(order_data)
+            
+            if telegram_sent:
+                return {
+                    'success': True,
+                    'order_id': order_id,
+                    'message': 'Заказ успешно оформлен и отправлен в Telegram'
+                }
+            else:
+                # Заказ сохранен, но Telegram не отправлен
+                return {
+                    'success': True,
+                    'order_id': order_id,
+                    'message': 'Заказ сохранен, но не удалось отправить в Telegram',
+                    'telegram_error': True
+                }
+            
+        except Exception as e:
+            print(f"Ошибка обработки заказа: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
 
 # Глобальный инстанс
 order_manager = OrderManager()

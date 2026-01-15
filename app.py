@@ -45,6 +45,7 @@ print(f"STATIC_DIR: {STATIC_DIR}")
 os.makedirs(PRODUCTS_DIR, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TEMP_FOLDER, exist_ok=True)
+os.makedirs(os.path.join(DATA_DIR, 'orders'), exist_ok=True)
 
 print(f"PRODUCTS_DIR exists: {os.path.exists(PRODUCTS_DIR)}")
 print(f"Folders created/verified")
@@ -219,6 +220,28 @@ def index():
         logger.error(f"Ошибка загрузки index.html: {e}")
         return f'Error: {str(e)}', 500
 
+@app.route('/order-success')
+def order_success():
+    """Страница подтверждения заказа"""
+    try:
+        success_path = os.path.join(STATIC_DIR, 'order-success.html')
+        if os.path.exists(success_path):
+            return send_file(success_path)
+        return '''
+        <!DOCTYPE html>
+        <html>
+        <head><title>Заказ успешно оформлен</title></head>
+        <body>
+            <h1>Заказ успешно оформлен!</h1>
+            <p>Спасибо за ваш заказ! Мы свяжемся с вами в ближайшее время.</p>
+            <a href="/shop">Вернуться в магазин</a>
+        </body>
+        </html>
+        ''', 200
+    except Exception as e:
+        logger.error(f"Ошибка загрузки страницы подтверждения заказа: {e}")
+        return str(e), 500
+
 @app.route('/api/orders', methods=['POST'])
 def create_order():
     """Создание нового заказа"""
@@ -241,7 +264,7 @@ def create_order():
         if not isinstance(data['items'], list) or len(data['items']) == 0:
             return jsonify({'success': False, 'error': 'Корзина пуста'}), 400
         
-        # Обработка заказа
+        # Обработка заказа через order_manager
         result = order_manager.process_order(data)
         
         if result['success']:

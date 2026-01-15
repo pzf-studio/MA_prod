@@ -155,3 +155,4 @@ window.formatPrice = function(price) {
         minimumFractionDigits: 0
     }).format(price);
 };
+
