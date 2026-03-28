@@ -1,8 +1,10 @@
-# app.py - ВЕРСИЯ С ФАЙЛОВЫМ ХРАНИЛИЩЕМ
 import os
 import json
 import logging
 import sys
+import zipfile
+import tempfile
+import shutil
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
@@ -10,194 +12,232 @@ import hashlib
 import uuid
 from werkzeug.utils import secure_filename
 from order_manager import order_manager
-import os
+import database as db
 
-# Добавить в переменные окружения
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 # ========== НАСТРОЙКА ПУТЕЙ ==========
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Отладочная информация
 print("=" * 60)
-print("MA FURNITURE - FILE-BASED STORAGE")
+print("MA FURNITURE - SQLITE STORAGE")
 print("=" * 60)
 print(f"Python version: {sys.version}")
 print(f"Current working directory: {os.getcwd()}")
 print(f"BASE_DIR: {BASE_DIR}")
 
-# Пути к данным (в корне проекта)
 DATA_DIR = os.path.join(BASE_DIR, 'data')
-PRODUCTS_DIR = os.path.join(DATA_DIR, 'products')
-SECTIONS_FILE = os.path.join(DATA_DIR, 'sections.json')
-
-# Статика
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 UPLOAD_FOLDER = os.path.join(STATIC_DIR, 'uploads/products')
 TEMP_FOLDER = os.path.join(STATIC_DIR, 'uploads/temp')
+DB_PATH = os.path.join(DATA_DIR, 'ma_furniture.db')
 
-print(f"\nDATA_DIR: {DATA_DIR}")
-print(f"PRODUCTS_DIR: {PRODUCTS_DIR}")
-print(f"SECTIONS_FILE: {SECTIONS_FILE}")
-print(f"STATIC_DIR: {STATIC_DIR}")
-
-# Создаем необходимые папки (только если их нет)
-os.makedirs(PRODUCTS_DIR, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TEMP_FOLDER, exist_ok=True)
-os.makedirs(os.path.join(DATA_DIR, 'orders'), exist_ok=True)
-
-print(f"PRODUCTS_DIR exists: {os.path.exists(PRODUCTS_DIR)}")
-print(f"Folders created/verified")
-print("=" * 60)
 
 # ========== ИНИЦИАЛИЗАЦИЯ APP ==========
 app = Flask(__name__, static_folder='static', static_url_path='')
-CORS(app)  # Разрешаем кросс-доменные запросы
+CORS(app)
 
-# Настройки загрузки файлов
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMP_FOLDER'] = TEMP_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
-# Настройка логирования
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = app.logger
+
+# Инициализация БД и миграция данных
+db.init_db()
+db.migrate_from_json()
 
 # ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def generate_filename(original_name):
-    """Генерация уникального имени файла"""
     timestamp = int(datetime.now().timestamp())
     random_str = hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
     ext = original_name.rsplit('.', 1)[1].lower() if '.' in original_name else 'jpg'
     return f"{timestamp}_{random_str}.{ext}"
 
-# ========== ФУНКЦИИ РАБОТЫ С ФАЙЛАМИ ==========
+# ========== ФУНКЦИИ РАБОТЫ С ДАННЫМИ (БД) ==========
 def get_all_products():
-    """Получить все товары из файлов"""
-    products = []
-    
-    if not os.path.exists(PRODUCTS_DIR):
+    with db.get_db() as conn:
+        rows = conn.execute('SELECT * FROM products ORDER BY created_at DESC').fetchall()
+        products = []
+        for row in rows:
+            prod = dict(row)
+            prod['images'] = json.loads(prod['images']) if prod['images'] else []
+            prod['color_variants'] = json.loads(prod['color_variants']) if prod['color_variants'] else []
+            products.append(prod)
         return products
-    
-    try:
-        for filename in sorted(os.listdir(PRODUCTS_DIR)):
-            if filename.endswith('.json'):
-                try:
-                    filepath = os.path.join(PRODUCTS_DIR, filename)
-                    with open(filepath, 'r', encoding='utf-8') as f:
-                        product = json.load(f)
-                        products.append(product)
-                except Exception as e:
-                    logger.error(f"Ошибка чтения файла {filename}: {e}")
-        
-        # Сортируем по дате создания (новые сначала)
-        products.sort(key=lambda x: x.get('created_at', ''), reverse=True)
-    except Exception as e:
-        logger.error(f"Ошибка получения товаров: {e}")
-    
-    return products
 
 def get_product_by_id(product_id):
-    """Получить товар по ID"""
-    filepath = os.path.join(PRODUCTS_DIR, f"{product_id}.json")
-    
-    if os.path.exists(filepath):
-        try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception as e:
-            logger.error(f"Ошибка чтения товара {product_id}: {e}")
-    
-    return None
-
-def save_product(product_data):
-    """Сохранить товар в файл"""
-    try:
-        # Определяем ID товара
-        if 'id' in product_data and product_data['id']:
-            product_id = product_data['id']
-        else:
-            # Находим максимальный ID
-            max_id = 0
-            if os.path.exists(PRODUCTS_DIR):
-                for filename in os.listdir(PRODUCTS_DIR):
-                    if filename.endswith('.json'):
-                        try:
-                            file_id = int(filename.split('.')[0])
-                            max_id = max(max_id, file_id)
-                        except:
-                            continue
-            product_id = max_id + 1
-            product_data['id'] = product_id
-        
-        # Добавляем временные метки
-        if 'created_at' not in product_data:
-            product_data['created_at'] = datetime.now().isoformat()
-        product_data['updated_at'] = datetime.now().isoformat()
-        
-        # Сохраняем в файл
-        filepath = os.path.join(PRODUCTS_DIR, f"{product_id}.json")
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(product_data, f, ensure_ascii=False, indent=2)
-        
-        logger.info(f"Товар сохранен: {product_id}.json")
-        return product_id
-        
-    except Exception as e:
-        logger.error(f"Ошибка сохранения товара: {e}")
+    with db.get_db() as conn:
+        row = conn.execute('SELECT * FROM products WHERE id = ?', (product_id,)).fetchone()
+        if row:
+            prod = dict(row)
+            prod['images'] = json.loads(prod['images']) if prod['images'] else []
+            prod['color_variants'] = json.loads(prod['color_variants']) if prod['color_variants'] else []
+            return prod
         return None
 
+def save_product(product_data):
+    now = datetime.now().isoformat()
+    if 'id' in product_data and product_data['id']:
+        product_id = product_data['id']
+        with db.get_db() as conn:
+            conn.execute('''
+                UPDATE products
+                SET name=?, code=?, category=?, section=?, price=?, old_price=?, badge=?,
+                    recommended=?, description=?, specifications=?, status=?, stock=?,
+                    images=?, color_variants=?, updated_at=?
+                WHERE id=?
+            ''', (
+                product_data.get('name'),
+                product_data.get('code'),
+                product_data.get('category'),
+                product_data.get('section'),
+                product_data.get('price', 0),
+                product_data.get('old_price'),
+                product_data.get('badge'),
+                1 if product_data.get('recommended') else 0,
+                product_data.get('description'),
+                product_data.get('specifications'),
+                product_data.get('status', 'active'),
+                product_data.get('stock', 0),
+                json.dumps(product_data.get('images', [])),
+                json.dumps(product_data.get('color_variants', [])),
+                now,
+                product_id
+            ))
+        return product_id
+    else:
+        with db.get_db() as conn:
+            cur = conn.execute('SELECT MAX(id) FROM products')
+            max_id = cur.fetchone()[0] or 0
+            new_id = max_id + 1
+            product_data['id'] = new_id
+            product_data['created_at'] = now
+            product_data['updated_at'] = now
+            conn.execute('''
+                INSERT INTO products
+                (id, name, code, category, section, price, old_price, badge,
+                 recommended, description, specifications, status, stock,
+                 images, color_variants, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                new_id,
+                product_data.get('name'),
+                product_data.get('code'),
+                product_data.get('category'),
+                product_data.get('section'),
+                product_data.get('price', 0),
+                product_data.get('old_price'),
+                product_data.get('badge'),
+                1 if product_data.get('recommended') else 0,
+                product_data.get('description'),
+                product_data.get('specifications'),
+                product_data.get('status', 'active'),
+                product_data.get('stock', 0),
+                json.dumps(product_data.get('images', [])),
+                json.dumps(product_data.get('color_variants', [])),
+                now,
+                now
+            ))
+        return new_id
+
 def delete_product(product_id):
-    """Удалить товар"""
-    filepath = os.path.join(PRODUCTS_DIR, f"{product_id}.json")
-    
-    if os.path.exists(filepath):
-        try:
-            os.remove(filepath)
-            logger.info(f"Товар удален: {product_id}.json")
-            return True
-        except Exception as e:
-            logger.error(f"Ошибка удаления товара: {e}")
-    
-    return False
+    with db.get_db() as conn:
+        conn.execute('DELETE FROM products WHERE id = ?', (product_id,))
+        return True
 
 def load_sections():
-    """Загрузить разделы из файла"""
-    if os.path.exists(SECTIONS_FILE):
-        try:
-            with open(SECTIONS_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except:
-            pass
-    
-    # Дефолтные разделы
-    default_sections = [
-        {"id": 1, "code": "pantographs", "name": "Пантографы", "active": True},
-        {"id": 2, "code": "wardrobes", "name": "Гардеробные системы", "active": True},
-        {"id": 3, "code": "shoeracks", "name": "Обувницы", "active": True}
-    ]
-    
-    # Сохраняем дефолтные
-    save_sections(default_sections)
-    return default_sections
+    with db.get_db() as conn:
+        rows = conn.execute('SELECT * FROM sections ORDER BY display_order').fetchall()
+        sections = [dict(row) for row in rows]
+        if not sections:
+            default_sections = [
+                {"id": 1, "code": "pantographs", "name": "Пантографы", "active": True, "display_order": 1},
+                {"id": 2, "code": "wardrobes", "name": "Гардеробные системы", "active": True, "display_order": 2},
+                {"id": 3, "code": "shoeracks", "name": "Обувницы", "active": True, "display_order": 3}
+            ]
+            for s in default_sections:
+                conn.execute('''
+                    INSERT INTO sections (id, code, name, active, display_order)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (s['id'], s['code'], s['name'], 1, s['display_order']))
+            return default_sections
+        return sections
 
 def save_sections(sections):
-    """Сохранить разделы в файл"""
-    try:
-        with open(SECTIONS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(sections, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        logger.error(f"Ошибка сохранения разделов: {e}")
+    with db.get_db() as conn:
+        conn.execute('DELETE FROM sections')
+        for s in sections:
+            conn.execute('''
+                INSERT INTO sections (id, code, name, active, display_order)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (s.get('id'), s.get('code'), s.get('name'), 1 if s.get('active') else 0, s.get('display_order', 0)))
 
-# ========== МАРШРУТЫ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ ==========
+def load_background():
+    with db.get_db() as conn:
+        row = conn.execute('SELECT * FROM backgrounds LIMIT 1').fetchone()
+        return dict(row) if row else None
+
+def save_background(background_data):
+    now = datetime.now().isoformat()
+    with db.get_db() as conn:
+        if 'id' in background_data and background_data['id']:
+            conn.execute('''
+                UPDATE backgrounds
+                SET title=?, description=?, image_url=?, active=?, updated_at=?
+                WHERE id=?
+            ''', (
+                background_data.get('title'),
+                background_data.get('description'),
+                background_data.get('image_url'),
+                1 if background_data.get('active', True) else 0,
+                now,
+                background_data['id']
+            ))
+        else:
+            conn.execute('''
+                INSERT INTO backgrounds (title, description, image_url, active, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                background_data.get('title'),
+                background_data.get('description'),
+                background_data.get('image_url'),
+                1 if background_data.get('active', True) else 0,
+                now,
+                now
+            ))
+
+def get_recent_activity():
+    activity = []
+    products = get_all_products()
+    recent_products = sorted(products, key=lambda x: x.get('created_at', ''), reverse=True)[:3]
+    for product in recent_products:
+        activity.append({
+            'type': 'product',
+            'title': 'Добавлен новый товар',
+            'description': product.get('name', 'Товар'),
+            'time': product.get('created_at', ''),
+            'icon': 'fas fa-box'
+        })
+    background = load_background()
+    if background and background.get('updated_at'):
+        activity.append({
+            'type': 'background',
+            'title': 'Обновлен фон',
+            'description': background.get('title', 'Главный фон'),
+            'time': background.get('updated_at', ''),
+            'icon': 'fas fa-image'
+        })
+    activity.sort(key=lambda x: x.get('time', ''), reverse=True)
+    return activity
+
+# ========== МАРШРУТЫ ==========
 @app.route('/')
 def index():
-    """Главная страница магазина"""
     try:
         index_path = os.path.join(STATIC_DIR, 'index.html')
         if os.path.exists(index_path):
@@ -209,7 +249,7 @@ def index():
             <head><title>MA Furniture</title></head>
             <body>
                 <h1>MA Furniture - Backend работает!</h1>
-                <p>Файловое хранилище активировано.</p>
+                <p>База данных SQLite активирована.</p>
                 <a href="/shop">Магазин</a> | 
                 <a href="/admin">Админка</a> |
                 <a href="/api/products">API товаров</a>
@@ -222,7 +262,6 @@ def index():
 
 @app.route('/order-success')
 def order_success():
-    """Страница подтверждения заказа"""
     try:
         success_path = os.path.join(STATIC_DIR, 'order-success.html')
         if os.path.exists(success_path):
@@ -244,9 +283,9 @@ def order_success():
 
 @app.route('/api/orders', methods=['POST'])
 def create_order():
-    """Создание нового заказа"""
     try:
-        # Проверка токена Telegram
+        TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+        TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
         if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
             return jsonify({
                 'success': False, 
@@ -255,7 +294,6 @@ def create_order():
         
         data = request.get_json()
         
-        # Базовая валидация
         required_fields = ['customer_name', 'customer_phone', 'items']
         for field in required_fields:
             if field not in data or not data[field]:
@@ -264,7 +302,6 @@ def create_order():
         if not isinstance(data['items'], list) or len(data['items']) == 0:
             return jsonify({'success': False, 'error': 'Корзина пуста'}), 400
         
-        # Обработка заказа через order_manager
         result = order_manager.process_order(data)
         
         if result['success']:
@@ -278,7 +315,6 @@ def create_order():
 
 @app.route('/shop')
 def shop():
-    """Страница каталога"""
     try:
         shop_path = os.path.join(STATIC_DIR, 'shop.html')
         if os.path.exists(shop_path):
@@ -290,7 +326,6 @@ def shop():
 
 @app.route('/piece')
 def piece():
-    """Страница товара"""
     try:
         piece_path = os.path.join(STATIC_DIR, 'piece.html')
         if os.path.exists(piece_path):
@@ -303,7 +338,6 @@ def piece():
 @app.route('/admin')
 @app.route('/admin/')
 def admin_root():
-    """Главная страница админки"""
     try:
         login_path = os.path.join(STATIC_DIR, 'admin/admin-login.html')
         if os.path.exists(login_path):
@@ -316,7 +350,6 @@ def admin_root():
 @app.route('/admin/dashboard')
 @app.route('/admin/dashboard/')
 def admin_dashboard():
-    """Дашборд админки"""
     try:
         dashboard_path = os.path.join(STATIC_DIR, 'admin/admin-dashboard.html')
         if os.path.exists(dashboard_path):
@@ -325,6 +358,119 @@ def admin_dashboard():
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
         return str(e), 500
+
+@app.route('/admin/backup')
+def admin_backup():
+    try:
+        backup_path = os.path.join(STATIC_DIR, 'admin/backup-management.html')
+        if os.path.exists(backup_path):
+            return send_file(backup_path)
+        return "Backup page not found", 404
+    except Exception as e:
+        logger.error(f"Backup page error: {e}")
+        return str(e), 500
+
+# ========== API ДЛЯ БЭКАПОВ ==========
+@app.route('/api/admin/backup/download', methods=['GET'])
+def admin_backup_download():
+    """Скачать архив с текущей БД"""
+    try:
+        # Проверяем авторизацию
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+        
+        # Временный файл для архива
+        temp_dir = tempfile.mkdtemp()
+        try:
+            # Копируем БД во временную папку
+            backup_db_path = os.path.join(temp_dir, 'ma_furniture.db')
+            shutil.copy2(DB_PATH, backup_db_path)
+            
+            # Создаём ZIP-архив
+            zip_path = os.path.join(temp_dir, 'ma_furniture_backup.zip')
+            with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+                zf.write(backup_db_path, arcname='ma_furniture.db')
+            
+            # Отправляем файл
+            return send_file(
+                zip_path,
+                as_attachment=True,
+                download_name=f'ma_furniture_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip',
+                mimetype='application/zip'
+            )
+        finally:
+            # Удаляем временную папку после отправки
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            
+    except Exception as e:
+        logger.error(f"Ошибка создания бэкапа: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/backup/upload', methods=['POST'])
+def admin_backup_upload():
+    """Загрузить архив с БД и восстановить"""
+    try:
+        # Проверка авторизации
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+        
+        # Проверка наличия файла
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'Файл не загружен'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'Файл не выбран'}), 400
+        
+        # Проверка расширения
+        if not file.filename.endswith('.zip'):
+            return jsonify({'success': False, 'error': 'Допустим только ZIP-архив'}), 400
+        
+        # Сохраняем загруженный архив во временную папку
+        temp_dir = tempfile.mkdtemp()
+        try:
+            zip_path = os.path.join(temp_dir, 'upload.zip')
+            file.save(zip_path)
+            
+            # Распаковываем
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                # Проверяем, есть ли в архиве файл ma_furniture.db
+                if 'ma_furniture.db' not in zf.namelist():
+                    return jsonify({'success': False, 'error': 'Архив не содержит файл ma_furniture.db'}), 400
+                
+                # Распаковываем во временную папку
+                zf.extractall(temp_dir)
+            
+            # Проверяем, что распакованный файл существует
+            extracted_db = os.path.join(temp_dir, 'ma_furniture.db')
+            if not os.path.exists(extracted_db):
+                return jsonify({'success': False, 'error': 'Не удалось извлечь базу данных'}), 500
+            
+            # Делаем резервную копию текущей БД (на случай ошибки)
+            backup_db_path = DB_PATH + '.backup'
+            if os.path.exists(DB_PATH):
+                shutil.copy2(DB_PATH, backup_db_path)
+            
+            # Заменяем текущую БД
+            shutil.copy2(extracted_db, DB_PATH)
+            
+            # Опционально: переинициализируем соединения? В нашем случае каждое соединение новое, просто замена файла.
+            # После замены файла нужно перезагрузить приложение или хотя бы сбросить пул соединений.
+            # Здесь просто возвращаем успех, а клиент перезагрузит страницу.
+            
+            return jsonify({
+                'success': True,
+                'message': 'База данных успешно восстановлена. Перезагрузите страницу.'
+            })
+            
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            
+    except Exception as e:
+        logger.error(f"Ошибка восстановления из бэкапа: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== API ДЛЯ УПРАВЛЕНИЯ КАТЕГОРИЯМИ (РАЗДЕЛАМИ) ==========
 @app.route('/api/admin/sections', methods=['GET'])
