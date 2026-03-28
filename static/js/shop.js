@@ -92,12 +92,12 @@ async function initializeProducts() {
         }
     }
 
-    // ИЗМЕНЁННАЯ ФУНКЦИЯ createProductCard (добавлены цветовые кружки)
     function createProductCard(product) {
         const card = document.createElement('div');
         card.className = 'product-card';
         card.dataset.section = product.section || 'all';
         
+        // Бейдж
         let badgeClass = '';
         if (product.badge) {
             switch(product.badge.toLowerCase()) {
@@ -129,6 +129,7 @@ async function initializeProducts() {
         const badge = product.badge ? 
             `<div class="product-badge ${badgeClass}">${product.badge}</div>` : '';
         
+        // Изображение
         let imageContent = '';
         if (product.images && product.images.length > 0) {
             imageContent = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
@@ -136,6 +137,7 @@ async function initializeProducts() {
         
         const productUrl = `piece.html?id=${product.id}`;
         
+        // Цена
         let priceHtml = '';
         if (product.is_price_on_request) {
             priceHtml = `<div class="product-price"><span class="price-on-request">Доступен для заказа</span></div>`;
@@ -148,20 +150,7 @@ async function initializeProducts() {
             `;
         }
         
-        // Цветовые варианты (кружки)
-        let colorVariantsHtml = '';
-        const variants = product.color_variants || [];
-        if (variants.length > 1) {
-            colorVariantsHtml = `
-                <div class="product-colors">
-                    ${variants.slice(0, 4).map(v => `
-                        <span class="color-dot" style="background-color: ${v.color_hex};" title="${v.color_name}"></span>
-                    `).join('')}
-                    ${variants.length > 4 ? `<span class="color-more">+${variants.length-4}</span>` : ''}
-                </div>
-            `;
-        }
-        
+        // Кнопка всегда "В корзину"
         const actionButton = `
             <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}">
                 <i class="fas fa-shopping-cart"></i> В корзину
@@ -182,7 +171,6 @@ async function initializeProducts() {
                     ${product.description?.substring(0, 150) || 'Качественный товар от MA Furniture'}...
                 </div>
                 ${priceHtml}
-                ${colorVariantsHtml}
                 <div class="product-actions">
                     ${actionButton}
                 </div>
@@ -236,36 +224,21 @@ async function initializeProducts() {
         }
     }
 
-    // ИЗМЕНЁННАЯ ФУНКЦИЯ attachProductEventListeners (выбор основного цвета при добавлении)
     function attachProductEventListeners() {
-        document.querySelectorAll('.add-to-cart-btn').forEach(async btn => {
+        // Обработчик для кнопки "В корзину"
+        document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 const productId = parseInt(e.target.closest('.add-to-cart-btn').dataset.productId);
                 const product = await dataManager.getProductById(productId);
-                if (!product || !window.cartSystem) return;
-                
-                // Выбираем вариант для добавления (оригинальный, либо первый цвет)
-                let productForCart = product;
-                const variants = product.color_variants || [];
-                if (variants.length > 0) {
-                    const originalVariant = variants.find(v => v.is_original) || variants[0];
-                    productForCart = {
-                        id: originalVariant.variant_id,
-                        name: originalVariant.is_original ? product.name : `${product.name}${originalVariant.suffix || ''}`,
-                        price: originalVariant.price,
-                        image: originalVariant.images?.[0] || product.images?.[0],
-                        original_product_id: product.id,
-                        color_name: originalVariant.color_name,
-                        variant_id: originalVariant.variant_id,
-                        is_price_on_request: product.is_price_on_request
-                    };
+                if (product && window.cartSystem) {
+                    window.cartSystem.addToCart(product);
                 }
-                window.cartSystem.addToCart(productForCart);
             });
         });
         
+        // Обработчик для всей карточки
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.add-to-cart-btn')) {

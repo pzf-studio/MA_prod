@@ -107,6 +107,7 @@ class AdminProductsManager {
         productsToShow.forEach(product => {
             const row = document.createElement('tr');
             
+            // Статус
             const isActive = product.status === 'active';
             const statusToggle = `
                 <div class="status-toggle ${isActive ? 'active' : ''}" 
@@ -114,6 +115,7 @@ class AdminProductsManager {
                 </div>
             `;
             
+            // Изображение
             const imageUrl = product.images?.[0] || '';
             const imageCell = `
                 <td class="product-image-cell">
@@ -124,6 +126,7 @@ class AdminProductsManager {
                 </td>
             `;
             
+            // Бейдж
             let badgeHTML = '';
             if (product.badge) {
                 const badgeClass = product.badge.toLowerCase().includes('новинка') ? 'badge-new' :
@@ -132,9 +135,11 @@ class AdminProductsManager {
                 badgeHTML = `<span class="badge-tag ${badgeClass}">${product.badge}</span>`;
             }
             
+            // Дата
             const date = new Date(product.created_at);
             const formattedDate = date.toLocaleDateString('ru-RU');
             
+            // Цена
             let priceFormatted = '0 ₽';
             if (typeof dataManager !== 'undefined' && dataManager.formatPrice) {
                 priceFormatted = dataManager.formatPrice(product.price);
@@ -142,6 +147,7 @@ class AdminProductsManager {
                 priceFormatted = this.formatPrice(product.price);
             }
             
+            // Количество цветовых вариантов
             const colorVariants = product.color_variants || [];
             const copyCount = colorVariants.filter(v => !v.is_original).length;
             const colorCountHTML = copyCount > 0 ? 
@@ -232,10 +238,12 @@ class AdminProductsManager {
         const sectionSelect = document.getElementById('productSection');
         if (!sectionSelect) return;
         
+        // Очищаем существующие опции (кроме первой)
         while (sectionSelect.options.length > 1) {
             sectionSelect.remove(1);
         }
         
+        // Добавляем активные разделы
         this.sections
             .filter(section => section.active)
             .forEach(section => {
@@ -311,26 +319,31 @@ class AdminProductsManager {
     }
     
     initEventListeners() {
+        // Кнопка добавления товара
         const addBtn = document.getElementById('addProductBtn');
         if (addBtn) {
             addBtn.addEventListener('click', () => this.openProductModal());
         }
         
+        // Форма товара
         const productForm = document.getElementById('productForm');
         if (productForm) {
             productForm.addEventListener('submit', (e) => this.handleProductSubmit(e));
         }
         
+        // Закрытие модального окна товара
         const modalClose = document.getElementById('modalClose');
         const modalCancel = document.getElementById('modalCancel');
         if (modalClose) modalClose.addEventListener('click', () => this.closeModal());
         if (modalCancel) modalCancel.addEventListener('click', () => this.closeModal());
         
+        // Подтверждение удаления
         const deleteCancel = document.getElementById('deleteCancel');
         const deleteConfirm = document.getElementById('deleteConfirm');
         if (deleteCancel) deleteCancel.addEventListener('click', () => this.closeDeleteModal());
         if (deleteConfirm) deleteConfirm.addEventListener('click', () => this.confirmDeleteAction());
         
+        // Загрузка изображений для основного товара
         const imageUploadArea = document.getElementById('imageUploadArea');
         const imageUpload = document.getElementById('imageUpload');
         if (imageUploadArea && imageUpload) {
@@ -338,6 +351,7 @@ class AdminProductsManager {
             imageUpload.addEventListener('change', (e) => this.handleImageUpload(e));
         }
         
+        // Фильтры и поиск
         const filters = ['categoryFilter', 'statusFilter', 'sortBy'];
         filters.forEach(filterId => {
             const element = document.getElementById(filterId);
@@ -349,6 +363,7 @@ class AdminProductsManager {
             }
         });
         
+        // Поиск
         const searchInput = document.getElementById('productSearch');
         if (searchInput) {
             let searchTimeout;
@@ -356,11 +371,13 @@ class AdminProductsManager {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     this.currentPage = 1;
+                    // Здесь можно добавить поиск
                     this.renderProducts();
                 }, 500);
             });
         }
         
+        // Выход
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
@@ -389,6 +406,7 @@ class AdminProductsManager {
             copyImageUpload.addEventListener('change', (e) => this.handleCopyImageUpload(e));
         }
         
+        // Инициализация цветового пикера (через setTimeout для гарантии загрузки DOM)
         setTimeout(() => {
             this.initializeColorPicker();
         }, 100);
@@ -398,6 +416,7 @@ class AdminProductsManager {
         const colorPickerContainer = document.getElementById('adminColorPicker');
         if (!colorPickerContainer) return;
         
+        // Проверяем, загружен ли AdminColorPicker
         if (typeof AdminColorPicker === 'undefined') {
             console.warn('AdminColorPicker не загружен, создаем fallback');
             this.createFallbackColorPicker();
@@ -408,6 +427,7 @@ class AdminProductsManager {
             this.colorPicker = new AdminColorPicker('adminColorPicker', {
                 onColorSelect: (color) => {
                     console.log('Выбран цвет:', color);
+                    // Автоматически обновляем название цвета в поле
                     const colorNameInput = document.getElementById('colorNameInput');
                     if (colorNameInput && !colorNameInput.value) {
                         colorNameInput.value = color.name;
@@ -415,6 +435,7 @@ class AdminProductsManager {
                 }
             });
             
+            // Загружаем палитру цветов с сервера
             this.loadColorPalette();
         } catch (error) {
             console.error('Ошибка инициализации цветового пикера:', error);
@@ -464,6 +485,7 @@ class AdminProductsManager {
             </div>
         `;
         
+        // Добавляем обработчики событий для fallback пикера
         const colorHexInput = document.getElementById('colorHexInput');
         const colorHexText = document.getElementById('colorHexText');
         
@@ -473,12 +495,14 @@ class AdminProductsManager {
             });
             
             colorHexText.addEventListener('input', (e) => {
+                // Проверяем HEX формат
                 if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
                     colorHexInput.value = e.target.value;
                 }
             });
         }
         
+        // Выбираем первый цвет по умолчанию
         const firstColor = container.querySelector('.quick-color');
         if (firstColor) {
             firstColor.click();
@@ -495,6 +519,7 @@ class AdminProductsManager {
             }
         } catch (error) {
             console.error('Ошибка загрузки палитры:', error);
+            // Если нет API, используем встроенную палитру
             if (this.colorPicker && this.colorPicker.setPalette) {
                 const defaultPalette = [
                     { name: 'Черный матовый', hex: '#2C2C2C' },
@@ -511,8 +536,7 @@ class AdminProductsManager {
         }
     }
     
-    // ИЗМЕНЁННЫЙ МЕТОД openColorCopyModal
-    openColorCopyModal(productId) {
+    async openColorCopyModal(productId) {
         this.currentProductForCopy = productId;
         const product = this.products.find(p => p.id === productId);
         
@@ -521,20 +545,23 @@ class AdminProductsManager {
             return;
         }
         
+        // Обновляем информацию в модальном окне
         document.getElementById('baseProductName').textContent = product.name;
         document.getElementById('baseProductCode').textContent = product.code || `ID${product.id}`;
         
+        // Генерируем код копии
         const baseCode = product.code || `ID${product.id}`;
         const existingCopies = (product.color_variants || []).filter(v => !v.is_original);
         const newIndex = existingCopies.length + 1;
-        // Формула (Код оригинала)_COL_N
-        document.getElementById('copyProductCode').textContent = `${baseCode}_COL_${newIndex}`;
+        document.getElementById('copyProductCode').textContent = `${baseCode}/${newIndex}`;
         
+        // Сбрасываем форму
         document.getElementById('copyPrice').value = product.price || '';
         document.getElementById('copyStock').value = 0;
         document.getElementById('copyImagePreview').innerHTML = '';
-        this.copyImages = [];
+        this.copyImages = []; // Очищаем массив изображений
         
+        // Проверяем лимит копий
         const createBtn = document.getElementById('createColorCopyBtn');
         if (existingCopies.length >= 4) {
             createBtn.disabled = true;
@@ -545,6 +572,7 @@ class AdminProductsManager {
             createBtn.innerHTML = '<i class="fas fa-copy"></i> Создать цветовую копию';
         }
         
+        // Открываем модальное окно
         document.getElementById('colorCopyModal').classList.add('active');
     }
     
@@ -568,6 +596,7 @@ class AdminProductsManager {
                 continue;
             }
             
+            // Показываем индикатор загрузки
             const preview = document.getElementById('copyImagePreview');
             const loader = document.createElement('div');
             loader.className = 'preview-item';
@@ -580,16 +609,18 @@ class AdminProductsManager {
             
             const result = await this.uploadImage(file);
             
+            // Удаляем индикатор
             loader.remove();
             
             if (result.success) {
                 this.addCopyImagePreview(result);
-                this.copyImages.push(result.url);
+                this.copyImages.push(result.url); // Сохраняем URL изображения
             } else {
                 this.showNotification(`Ошибка загрузки: ${result.error}`, 'error');
             }
         }
         
+        // Очищаем input
         e.target.value = '';
     }
     
@@ -625,11 +656,13 @@ class AdminProductsManager {
             return;
         }
         
+        // Получаем данные о цвете
         let colorData = {};
         
         if (this.colorPicker && typeof this.colorPicker.getSelectedColor === 'function') {
             colorData = this.colorPicker.getSelectedColor();
         } else {
+            // Используем fallback поля
             const colorNameInput = document.getElementById('colorNameInput');
             const colorHexInput = document.getElementById('colorHexInput');
             const colorHexText = document.getElementById('colorHexText');
@@ -647,11 +680,13 @@ class AdminProductsManager {
             };
         }
         
+        // Проверяем обязательные поля
         if (!colorData.name || !colorData.hex) {
             this.showNotification('Заполните информацию о цвете', 'error');
             return;
         }
         
+        // Собираем остальные данные
         const priceInput = document.getElementById('copyPrice');
         const stockInput = document.getElementById('copyStock');
         
@@ -663,11 +698,13 @@ class AdminProductsManager {
             images: this.copyImages.length > 0 ? this.copyImages : (product.images || [])
         };
         
+        // Валидация цены
         if (isNaN(variantData.price) || variantData.price < 0) {
             this.showNotification('Введите корректную цену', 'error');
             return;
         }
         
+        // Показываем индикатор загрузки
         const createBtn = document.getElementById('createColorCopyBtn');
         const originalText = createBtn.innerHTML;
         createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание...';
@@ -692,8 +729,10 @@ class AdminProductsManager {
                 this.showNotification(`Цветовая копия создана: ${data.variant.variant_id}`, 'success');
                 this.closeColorModal();
                 
+                // Обновляем список товаров
                 await this.loadProducts();
                 
+                // Подсвечиваем созданную копию (опционально)
                 this.highlightCreatedCopy(data.variant.variant_id);
             } else {
                 throw new Error(data.error || 'Неизвестная ошибка сервера');
@@ -703,6 +742,7 @@ class AdminProductsManager {
             console.error('Ошибка создания копии:', error);
             this.showNotification(`Ошибка: ${error.message}`, 'error');
         } finally {
+            // Восстанавливаем кнопку
             createBtn.innerHTML = originalText;
             createBtn.disabled = false;
         }
@@ -710,6 +750,7 @@ class AdminProductsManager {
     
     highlightCreatedCopy(variantId) {
         console.log(`Создана цветовая копия: ${variantId}`);
+        // Можно добавить визуальное выделение в таблице
         this.showNotification(`Копия ${variantId} успешно создана`, 'success');
     }
     
@@ -757,11 +798,13 @@ class AdminProductsManager {
         document.getElementById('productSpecifications').value = product.specifications || '';
         document.getElementById('productStatus').value = product.status || 'active';
         document.getElementById('productStock').value = product.stock || 10;
+        // Устанавливаем чекбокс "Под заказ"
         const priceOnRequestCheckbox = document.getElementById('priceOnRequest');
         if (priceOnRequestCheckbox) {
             priceOnRequestCheckbox.checked = product.is_price_on_request === 1;
         }
         
+        // Загружаем изображения
         const images = product.images || [];
         const imagePreview = document.getElementById('imagePreview');
         
@@ -801,6 +844,7 @@ class AdminProductsManager {
             status: formData.get('productStatus'),
             stock: parseInt(formData.get('productStock')) || 0,
             images: JSON.parse(formData.get('productImages') || '[]'),
+            // Добавляем поле "под заказ"
             is_price_on_request: document.getElementById('priceOnRequest').checked
         };
         
@@ -825,7 +869,7 @@ class AdminProductsManager {
             const data = await response.json();
             
             if (data.success) {
-                await this.loadProducts();
+                await this.loadProducts(); // Перезагружаем список
                 
                 this.closeModal();
                 
@@ -863,6 +907,7 @@ class AdminProductsManager {
             }
         }
         
+        // Очищаем input
         e.target.value = '';
     }
     
@@ -955,6 +1000,7 @@ class AdminProductsManager {
             deleteProductId.value = productId;
             modal.classList.add('active');
         } else {
+            // Fallback
             if (confirm('Вы уверены, что хотите удалить этот товар?')) {
                 this.deleteProduct(productId);
             }
@@ -984,6 +1030,7 @@ class AdminProductsManager {
     }
     
     showNotification(message, type = 'success') {
+        // Удаляем старые уведомления
         const existingNotifications = document.querySelectorAll('.admin-notification');
         existingNotifications.forEach(notification => notification.remove());
         
@@ -1035,6 +1082,7 @@ class AdminProductsManager {
     }
 }
 
+// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     window.adminProducts = new AdminProductsManager();
 });

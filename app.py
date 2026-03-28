@@ -29,10 +29,12 @@ UPLOAD_FOLDER = os.path.join(STATIC_DIR, 'uploads/products')
 TEMP_FOLDER = os.path.join(STATIC_DIR, 'uploads/temp')
 DB_PATH = os.path.join(DATA_DIR, 'ma_furniture.db')
 
+# Пути к JSON-файлам (для миграции)
 PRODUCTS_DIR = os.path.join(DATA_DIR, 'products')
 SECTIONS_FILE = os.path.join(DATA_DIR, 'sections.json')
 BACKGROUND_FILE = os.path.join(DATA_DIR, 'background.json')
 
+# Создаём необходимые папки (data тоже)
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TEMP_FOLDER, exist_ok=True)
@@ -43,12 +45,13 @@ CORS(app)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMP_FOLDER'] = TEMP_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = app.logger
 
+# Инициализация БД и миграция данных
 db.init_db()
 db.migrate_from_json(PRODUCTS_DIR, SECTIONS_FILE, BACKGROUND_FILE, DATA_DIR)
 
@@ -241,26 +244,6 @@ def get_recent_activity():
     activity.sort(key=lambda x: x.get('time', ''), reverse=True)
     return activity
 
-# ========== ФУНКЦИИ ДЛЯ ЦВЕТОВЫХ ВАРИАНТОВ ==========
-def extract_color_number(variant_id, base_code):
-    import re
-    pattern = rf'^{re.escape(base_code)}_COL_(\d+)$'
-    match = re.match(pattern, variant_id)
-    if match:
-        return int(match.group(1))
-    return None
-
-def get_next_color_number(product):
-    base_code = product.get('code', f"ID{product['id']}")
-    variants = product.get('color_variants', [])
-    max_num = 0
-    for v in variants:
-        if v.get('variant_id'):
-            num = extract_color_number(v['variant_id'], base_code)
-            if num and num > max_num:
-                max_num = num
-    return max_num + 1
-
 # ========== МАРШРУТЫ ==========
 @app.route('/')
 def index():
@@ -396,47 +379,29 @@ def admin_backup():
         logger.error(f"Backup page error: {e}")
         return str(e), 500
 
-@app.route('/admin/media')
-@app.route('/admin/media/')
-def admin_media():
-    try:
-        media_path = os.path.join(STATIC_DIR, 'admin/media-management.html')
-        if os.path.exists(media_path):
-            return send_file(media_path)
-        return "Media management page not found", 404
-    except Exception as e:
-        logger.error(f"Media page error: {e}")
-        return str(e), 500
-
-@app.route('/admin/categories')
-@app.route('/admin/categories/')
-def admin_categories():
-    try:
-        categories_path = os.path.join(STATIC_DIR, 'admin/categories-management.html')
-        if os.path.exists(categories_path):
-            return send_file(categories_path)
-        return "Categories management page not found", 404
-    except Exception as e:
-        logger.error(f"Categories page error: {e}")
-        return str(e), 500
-
 # ========== API ДЛЯ БЭКАПОВ ==========
 @app.route('/api/admin/backup/download', methods=['GET'])
 def admin_backup_download():
+    """Скачать архив с текущей БД"""
     try:
+        # Проверяем авторизацию
         token = request.headers.get('Authorization')
         if not token:
             return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
         
+        # Временный файл для архива
         temp_dir = tempfile.mkdtemp()
         try:
+            # Копируем БД во временную папку
             backup_db_path = os.path.join(temp_dir, 'ma_furniture.db')
             shutil.copy2(DB_PATH, backup_db_path)
             
+            # Создаём ZIP-архив
             zip_path = os.path.join(temp_dir, 'ma_furniture_backup.zip')
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
                 zf.write(backup_db_path, arcname='ma_furniture.db')
             
+            # Отправляем файл
             return send_file(
                 zip_path,
                 as_attachment=True,
@@ -444,6 +409,7 @@ def admin_backup_download():
                 mimetype='application/zip'
             )
         finally:
+            # Удаляем временную папку после отправки
             shutil.rmtree(temp_dir, ignore_errors=True)
             
     except Exception as e:
@@ -452,11 +418,14 @@ def admin_backup_download():
 
 @app.route('/api/admin/backup/upload', methods=['POST'])
 def admin_backup_upload():
+    """Загрузить архив с БД и восстановить"""
     try:
+        # Проверка авторизации
         token = request.headers.get('Authorization')
         if not token:
             return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
         
+        # Проверка наличия файла
         if 'file' not in request.files:
             return jsonify({'success': False, 'error': 'Файл не загружен'}), 400
         
@@ -464,28 +433,41 @@ def admin_backup_upload():
         if file.filename == '':
             return jsonify({'success': False, 'error': 'Файл не выбран'}), 400
         
+        # Проверка расширения
         if not file.filename.endswith('.zip'):
             return jsonify({'success': False, 'error': 'Допустим только ZIP-архив'}), 400
         
+        # Сохраняем загруженный архив во временную папку
         temp_dir = tempfile.mkdtemp()
         try:
             zip_path = os.path.join(temp_dir, 'upload.zip')
             file.save(zip_path)
             
+            # Распаковываем
             with zipfile.ZipFile(zip_path, 'r') as zf:
+                # Проверяем, есть ли в архиве файл ma_furniture.db
                 if 'ma_furniture.db' not in zf.namelist():
                     return jsonify({'success': False, 'error': 'Архив не содержит файл ma_furniture.db'}), 400
+                
+                # Распаковываем во временную папку
                 zf.extractall(temp_dir)
             
+            # Проверяем, что распакованный файл существует
             extracted_db = os.path.join(temp_dir, 'ma_furniture.db')
             if not os.path.exists(extracted_db):
                 return jsonify({'success': False, 'error': 'Не удалось извлечь базу данных'}), 500
             
+            # Делаем резервную копию текущей БД (на случай ошибки)
             backup_db_path = DB_PATH + '.backup'
             if os.path.exists(DB_PATH):
                 shutil.copy2(DB_PATH, backup_db_path)
             
+            # Заменяем текущую БД
             shutil.copy2(extracted_db, DB_PATH)
+            
+            # Опционально: переинициализируем соединения? В нашем случае каждое соединение новое, просто замена файла.
+            # После замены файла нужно перезагрузить приложение или хотя бы сбросить пул соединений.
+            # Здесь просто возвращаем успех, а клиент перезагрузит страницу.
             
             return jsonify({
                 'success': True,
@@ -502,6 +484,7 @@ def admin_backup_upload():
 # ========== API ДЛЯ УПРАВЛЕНИЯ КАТЕГОРИЯМИ (РАЗДЕЛАМИ) ==========
 @app.route('/api/admin/sections', methods=['GET'])
 def admin_get_sections():
+    """Получение всех разделов для админки"""
     try:
         sections = load_sections()
         return jsonify({'success': True, 'sections': sections})
@@ -512,9 +495,11 @@ def admin_get_sections():
 
 @app.route('/api/admin/sections', methods=['POST'])
 def admin_create_section():
+    """Создание нового раздела"""
     try:
         data = request.get_json()
         
+        # Валидация обязательных полей
         required_fields = ['name', 'code']
         for field in required_fields:
             if field not in data or not str(data[field]).strip():
@@ -522,10 +507,12 @@ def admin_create_section():
         
         sections = load_sections()
         
+        # Проверяем уникальность ID и кода
         new_id = max([s.get('id', 0) for s in sections], default=0) + 1
         if any(s.get('code') == data['code'] for s in sections):
             return jsonify({'success': False, 'error': 'Раздел с таким кодом уже существует'}), 400
         
+        # Создаем новый раздел
         new_section = {
             'id': new_id,
             'name': data['name'].strip(),
@@ -549,10 +536,12 @@ def admin_create_section():
 
 @app.route('/api/admin/sections/<int:section_id>', methods=['PUT'])
 def admin_update_section(section_id):
+    """Обновление раздела"""
     try:
         data = request.get_json()
         sections = load_sections()
         
+        # Находим раздел
         section_index = None
         for i, section in enumerate(sections):
             if section.get('id') == section_id:
@@ -562,11 +551,13 @@ def admin_update_section(section_id):
         if section_index is None:
             return jsonify({'success': False, 'error': 'Раздел не найден'}), 404
         
+        # Обновляем поля
         if 'name' in data:
             sections[section_index]['name'] = data['name'].strip()
         
         if 'code' in data:
             new_code = data['code'].strip().lower()
+            # Проверяем уникальность кода (кроме текущего раздела)
             if any(s.get('code') == new_code and s.get('id') != section_id for s in sections):
                 return jsonify({'success': False, 'error': 'Раздел с таким кодом уже существует'}), 400
             sections[section_index]['code'] = new_code
@@ -591,9 +582,11 @@ def admin_update_section(section_id):
 
 @app.route('/api/admin/sections/<int:section_id>', methods=['DELETE'])
 def admin_delete_section(section_id):
+    """Удаление раздела"""
     try:
         sections = load_sections()
         
+        # Находим раздел
         section_index = None
         section_to_delete = None
         for i, section in enumerate(sections):
@@ -605,6 +598,7 @@ def admin_delete_section(section_id):
         if section_index is None:
             return jsonify({'success': False, 'error': 'Раздел не найден'}), 404
         
+        # Проверяем, используется ли раздел в товарах
         products = get_all_products()
         products_in_section = [p for p in products if p.get('section') == section_to_delete.get('code')]
         
@@ -614,6 +608,7 @@ def admin_delete_section(section_id):
                 'error': f'Нельзя удалить раздел, так как в нем есть товары ({len(products_in_section)} шт.)'
             }), 400
         
+        # Удаляем раздел
         sections.pop(section_index)
         save_sections(sections)
         
@@ -628,6 +623,7 @@ def admin_delete_section(section_id):
 
 @app.route('/api/admin/sections/reorder', methods=['POST'])
 def admin_reorder_sections():
+    """Изменение порядка разделов"""
     try:
         data = request.get_json()
         new_order = data.get('order', [])
@@ -637,6 +633,7 @@ def admin_reorder_sections():
         
         sections = load_sections()
         
+        # Обновляем порядок
         for section in sections:
             if str(section.get('id')) in new_order:
                 section['display_order'] = new_order.index(str(section.get('id'))) + 1
@@ -652,9 +649,40 @@ def admin_reorder_sections():
         logger.error(f"Ошибка изменения порядка разделов: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ========== КОНСТАНТЫ ДЛЯ МЕДИА ==========
+
+# ========== ФУНКЦИИ РАБОТЫ С МЕДИА ==========
+def load_background():
+    """Загрузить данные о фоне"""
+    if os.path.exists(BACKGROUND_FILE):
+        try:
+            with open(BACKGROUND_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            pass
+    return None
+
+def save_background(background_data):
+    """Сохранить данные о фоне"""
+    try:
+        # Добавляем временные метки
+        if 'id' not in background_data:
+            background_data['id'] = 1
+        if 'created_at' not in background_data:
+            background_data['created_at'] = datetime.now().isoformat()
+        background_data['updated_at'] = datetime.now().isoformat()
+        
+        with open(BACKGROUND_FILE, 'w', encoding='utf-8') as f:
+            json.dump(background_data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        logger.error(f"Ошибка сохранения фона: {e}")
+        return False
+
 # ========== API ДЛЯ МЕДИА (ГЛАВНЫЙ ФОН) ==========
 @app.route('/api/media/background', methods=['GET'])
 def get_background():
+    """Получение данных о главном фоне"""
     try:
         background = load_background()
         
@@ -675,6 +703,7 @@ def get_background():
 
 @app.route('/api/admin/media/background', methods=['GET'])
 def admin_get_background():
+    """Получение данных о фоне для админки"""
     try:
         background = load_background()
         return jsonify({'success': True, 'background': background})
@@ -684,12 +713,15 @@ def admin_get_background():
 
 @app.route('/api/admin/media/background', methods=['POST'])
 def admin_create_background():
+    """Создание нового фона"""
     try:
         data = request.get_json()
         
+        # Валидация
         if not data.get('image_url'):
             return jsonify({'success': False, 'error': 'Изображение обязательно'}), 400
         
+        # Сохраняем фон
         if save_background(data):
             background = load_background()
             return jsonify({
@@ -706,6 +738,7 @@ def admin_create_background():
 
 @app.route('/api/admin/media/background/<int:background_id>', methods=['PUT'])
 def admin_update_background(background_id):
+    """Обновление фона"""
     try:
         data = request.get_json()
         current_background = load_background()
@@ -713,12 +746,15 @@ def admin_update_background(background_id):
         if not current_background or current_background.get('id') != background_id:
             return jsonify({'success': False, 'error': 'Фон не найден'}), 404
         
+        # Обновляем данные
         for key, value in data.items():
             if key in ['title', 'description', 'image_url', 'active']:
                 current_background[key] = value
         
+        # Обновляем временную метку
         current_background['updated_at'] = datetime.now().isoformat()
         
+        # Сохраняем
         if save_background(current_background):
             return jsonify({
                 'success': True,
@@ -734,15 +770,18 @@ def admin_update_background(background_id):
 
 @app.route('/api/admin/media/background/<int:background_id>', methods=['DELETE'])
 def admin_delete_background(background_id):
+    """Удаление фона"""
     try:
         current_background = load_background()
         
         if not current_background or current_background.get('id') != background_id:
             return jsonify({'success': False, 'error': 'Фон не найден'}), 404
         
+        # Удаляем файл
         if os.path.exists(BACKGROUND_FILE):
             os.remove(BACKGROUND_FILE)
             
+            # Удаляем изображение если оно в uploads
             image_url = current_background.get('image_url', '')
             if image_url and '/uploads/' in image_url:
                 try:
@@ -764,16 +803,58 @@ def admin_delete_background(background_id):
         logger.error(f"Ошибка удаления фона: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ========== ФУНКЦИИ ДЛЯ АКТИВНОСТИ ==========
+def get_recent_activity():
+    """Получить последнюю активность"""
+    activity = []
+    
+    try:
+        # Получаем последние товары
+        products = get_all_products()
+        recent_products = sorted(products, key=lambda x: x.get('created_at', ''), reverse=True)[:3]
+        
+        for product in recent_products:
+            activity.append({
+                'type': 'product',
+                'title': 'Добавлен новый товар',
+                'description': product.get('name', 'Товар'),
+                'time': product.get('created_at', ''),
+                'icon': 'fas fa-box'
+            })
+        
+        # Получаем информацию о фоне
+        background = load_background()
+        if background and background.get('updated_at'):
+            activity.append({
+                'type': 'background',
+                'title': 'Обновлен фон',
+                'description': background.get('title', 'Главный фон'),
+                'time': background.get('updated_at', ''),
+                'icon': 'fas fa-image'
+            })
+        
+        # Сортируем по времени (новые сначала)
+        activity.sort(key=lambda x: x.get('time', ''), reverse=True)
+        
+    except Exception as e:
+        logger.error(f"Ошибка получения активности: {e}")
+    
+    return activity
+
 # ========== API ДЛЯ ДАШБОРДА ==========
 @app.route('/api/admin/dashboard/stats', methods=['GET'])
 def admin_dashboard_stats():
+    """Получение статистики для дашборда"""
     try:
+        # Количество товаров
         products = get_all_products()
         active_products = len([p for p in products if p.get('status') == 'active'])
         
+        # Количество категорий
         sections = load_sections()
         active_sections = len([s for s in sections if s.get('active', True)])
         
+        # Информация о фоне
         background = load_background()
         background_exists = bool(background and background.get('image_url'))
         
@@ -794,11 +875,12 @@ def admin_dashboard_stats():
 
 @app.route('/api/admin/dashboard/activity', methods=['GET'])
 def admin_dashboard_activity():
+    """Получение последней активности"""
     try:
         activity = get_recent_activity()
         return jsonify({
             'success': True,
-            'activity': activity[:5]
+            'activity': activity[:5]  # Ограничиваем 5 записями
         })
     except Exception as e:
         logger.error(f"Ошибка получения активности: {e}")
@@ -806,9 +888,11 @@ def admin_dashboard_activity():
 
 @app.route('/api/admin/dashboard/popular-products', methods=['GET'])
 def admin_dashboard_popular_products():
+    """Получение популярных товаров"""
     try:
         products = get_all_products()
         
+        # Фильтруем популярные товары (с бейджами или рекомендуемые)
         popular_products = []
         for product in products:
             if product.get('status') == 'active':
@@ -816,6 +900,7 @@ def admin_dashboard_popular_products():
                 if badge in ['Хит продаж', 'Новинка', 'Акция'] or product.get('recommended'):
                     popular_products.append(product)
         
+        # Берем максимум 3 товара
         popular_products = popular_products[:3]
         
         return jsonify({
@@ -826,9 +911,38 @@ def admin_dashboard_popular_products():
         logger.error(f"Ошибка получения популярных товаров: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ========== РОУТ ДЛЯ СТРАНИЦЫ УПРАВЛЕНИЯ МЕДИА ==========
+@app.route('/admin/media')
+@app.route('/admin/media/')
+def admin_media():
+    """Страница управления медиа"""
+    try:
+        media_path = os.path.join(STATIC_DIR, 'admin/media-management.html')
+        if os.path.exists(media_path):
+            return send_file(media_path)
+        return "Media management page not found", 404
+    except Exception as e:
+        logger.error(f"Media page error: {e}")
+        return str(e), 500
+
+# ========== РОУТ ДЛЯ СТРАНИЦЫ УПРАВЛЕНИЯ КАТЕГОРИЯМИ ==========
+@app.route('/admin/categories')
+@app.route('/admin/categories/')
+def admin_categories():
+    """Страница управления категориями"""
+    try:
+        categories_path = os.path.join(STATIC_DIR, 'admin/categories-management.html')
+        if os.path.exists(categories_path):
+            return send_file(categories_path)
+        return "Categories management page not found", 404
+    except Exception as e:
+        logger.error(f"Categories page error: {e}")
+        return str(e), 500
+
 # ========== API ДЛЯ МАГАЗИНА ==========
 @app.route('/api/health')
 def health_check():
+    """Проверка здоровья API"""
     return jsonify({
         'status': 'ok',
         'service': 'MA Furniture API (File Storage)',
@@ -840,6 +954,7 @@ def health_check():
 
 @app.route('/debug/storage')
 def debug_storage():
+    """Отладка хранилища товаров"""
     try:
         products_count = len(get_all_products())
         sections = load_sections()
@@ -857,6 +972,7 @@ def debug_storage():
 
 @app.route('/api/products', methods=['GET'])
 def get_products():
+    """Получение списка товаров с фильтрацией"""
     try:
         category = request.args.get('category', 'all')
         section = request.args.get('section', '')
@@ -865,17 +981,22 @@ def get_products():
         
         all_products = get_all_products()
         
+        # Фильтрация
         filtered_products = []
         for product in all_products:
+            # Фильтр по статусу
             if status and product.get('status') != status:
                 continue
             
+            # Фильтр по категории
             if category != 'all' and product.get('category') != category:
                 continue
             
+            # Фильтр по разделу
             if section and product.get('section') != section:
                 continue
             
+            # Поиск
             if search:
                 search_lower = search.lower()
                 name = product.get('name', '').lower()
@@ -897,6 +1018,7 @@ def get_products():
 
 @app.route('/api/products/<int:product_id>', methods=['GET'])
 def get_product(product_id):
+    """Получение информации о конкретном товаре"""
     try:
         product = get_product_by_id(product_id)
         
@@ -911,6 +1033,7 @@ def get_product(product_id):
 
 @app.route('/api/sections', methods=['GET'])
 def get_sections():
+    """Получение списка разделов"""
     try:
         sections = load_sections()
         return jsonify({'success': True, 'sections': sections})
@@ -922,7 +1045,9 @@ def get_sections():
 # ========== API ДЛЯ АДМИНКИ ==========
 @app.route('/api/admin/colors/palette', methods=['GET'])
 def get_color_palette():
+    """Получение палитры цветов для админки"""
     try:
+        # Предопределенная палитра
         palette = [
             {"name": "Черный матовый", "hex": "#2C2C2C"},
             {"name": "Белый глянцевый", "hex": "#FFFFFF"},
@@ -945,6 +1070,7 @@ def get_color_palette():
 
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
+    """Авторизация администратора"""
     try:
         data = request.get_json()
         username = data.get('username', '').strip()
@@ -953,14 +1079,17 @@ def admin_login():
         if not username or not password:
             return jsonify({'success': False, 'error': 'Заполните все поля'}), 400
         
+        # Чтение логина и пароля из секретов Amvera
         expected_username = os.environ.get("STAD")
         expected_password = os.environ.get("SUTT")
         
+        # Если секреты не установлены, использовать значения по умолчанию для разработки
         if not expected_username or not expected_password:
             expected_username = "obratites"
             expected_password = "koperatoru"
             logger.warning("Используются учетные данные по умолчанию (секреты не настроены)")
         
+        # Проверка учетных данных
         if username == expected_username and password == expected_password:
             return jsonify({
                 'success': True,
@@ -977,14 +1106,17 @@ def admin_login():
 
 @app.route('/api/admin/verify')
 def verify_admin():
+    """Проверка токена администратора"""
     token = request.headers.get('Authorization')
     if token:
+        # Упрощенная проверка для теста
         return jsonify({'success': True})
     
     return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
 
 @app.route('/api/admin/products', methods=['GET'])
 def admin_get_products():
+    """Получение всех товаров для админки"""
     try:
         products = get_all_products()
         return jsonify({'success': True, 'products': products})
@@ -995,14 +1127,17 @@ def admin_get_products():
 
 @app.route('/api/admin/products', methods=['POST'])
 def admin_create_product():
+    """Создание нового товара"""
     try:
         data = request.get_json()
         
+        # Валидация обязательных полей
         required_fields = ['name', 'price', 'description']
         for field in required_fields:
             if field not in data or not str(data[field]).strip():
                 return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
         
+        # Сохраняем товар
         product_id = save_product(data)
         
         if not product_id:
@@ -1020,18 +1155,23 @@ def admin_create_product():
 
 @app.route('/api/admin/products/<int:product_id>', methods=['PUT'])
 def admin_update_product(product_id):
+    """Обновление товара"""
     try:
         data = request.get_json()
         
+        # Получаем существующий товар
         existing = get_product_by_id(product_id)
         if not existing:
             return jsonify({'success': False, 'error': 'Товар не найден'}), 404
         
+        # Обновляем поля
         for key, value in data.items():
             existing[key] = value
         
+        # Обновляем timestamp
         existing['updated_at'] = datetime.now().isoformat()
         
+        # Сохраняем
         save_product(existing)
         
         return jsonify({
@@ -1045,6 +1185,7 @@ def admin_update_product(product_id):
 
 @app.route('/api/admin/products/<int:product_id>', methods=['DELETE'])
 def admin_delete_product(product_id):
+    """Удаление товара"""
     try:
         if delete_product(product_id):
             return jsonify({
@@ -1060,6 +1201,7 @@ def admin_delete_product(product_id):
 
 @app.route('/api/stats')
 def get_stats():
+    """Получение статистики"""
     try:
         products = get_all_products()
         active_count = len([p for p in products if p.get('status') == 'active'])
@@ -1075,9 +1217,11 @@ def get_stats():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 def get_product_color_variants(product_data):
+    """Получить цветовые варианты из структуры товара"""
     if 'color_variants' in product_data and product_data['color_variants']:
         return product_data['color_variants']
     
+    # Если товар в старом формате, создаем первый вариант
     return [{
         'variant_id': product_data.get('code', f"ID{product_data['id']}"),
         'color_name': product_data.get('color_name', 'Основной'),
@@ -1093,6 +1237,7 @@ def get_product_color_variants(product_data):
 
 @app.route('/api/products/<int:product_id>/colors', methods=['GET'])
 def get_product_colors(product_id):
+    """Получение цветовых вариантов товара"""
     try:
         product = get_product_by_id(product_id)
         if not product:
@@ -1114,27 +1259,30 @@ def get_product_colors(product_id):
 
 @app.route('/api/admin/products/<int:product_id>/color-variant', methods=['POST'])
 def add_color_variant(product_id):
+    """Добавление нового цветового варианта к товару"""
     try:
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-
+        # Проверка авторизации (у вас уже есть)
+        
         product = get_product_by_id(product_id)
         if not product:
             return jsonify({'success': False, 'error': 'Товар не найден'}), 404
-
+        
         data = request.get_json()
-
+        
+        # Получаем текущие варианты
         if 'color_variants' not in product:
             product['color_variants'] = []
-
+        
+        # Максимум 5 вариантов (1 оригинал + 4 копии)
         if len(product['color_variants']) >= 5:
             return jsonify({'success': False, 'error': 'Максимум 5 цветовых вариантов'}), 400
-
+        
+        # Генерация variant_id
         base_code = product.get('code', f"ID{product_id}")
-        next_num = get_next_color_number(product)
-        variant_id = f"{base_code}_COL_{next_num}"
-
+        new_index = len([v for v in product['color_variants'] if not v.get('is_original', False)]) + 1
+        variant_id = f"{base_code}/{new_index}"
+        
+        # Новый вариант
         new_variant = {
             'variant_id': variant_id,
             'color_name': data['color_name'],
@@ -1147,18 +1295,21 @@ def add_color_variant(product_id):
             'is_original': False,
             'order': len(product['color_variants']) + 1
         }
-
+        
         product['color_variants'].append(new_variant)
         product['updated_at'] = datetime.now().isoformat()
-
-        save_product(product)
-
+        
+        # Сохраняем товар
+        filepath = os.path.join(PRODUCTS_DIR, f"{product_id}.json")
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(product, f, ensure_ascii=False, indent=2)
+        
         return jsonify({
             'success': True,
             'variant': new_variant,
             'message': 'Цветовой вариант добавлен'
         })
-
+        
     except Exception as e:
         logger.error(f"Ошибка добавления цвета: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1166,6 +1317,7 @@ def add_color_variant(product_id):
 # ========== ЗАГРУЗКА ФАЙЛОВ ==========
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
+    """Загрузка файла на сервер"""
     try:
         if 'file' not in request.files:
             return jsonify({'success': False, 'error': 'Файл не загружен'}), 400
@@ -1178,12 +1330,15 @@ def upload_file():
         if not allowed_file(file.filename):
             return jsonify({'success': False, 'error': 'Недопустимый формат файла'}), 400
         
+        # Генерируем уникальное имя файла
         original_name = secure_filename(file.filename)
         filename = generate_filename(original_name)
         
+        # Сохраняем файл
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         
+        # URL для доступа к файлу
         file_url = f"/static/uploads/products/{filename}"
         
         logger.info(f"Файл загружен: {filename}")
@@ -1202,6 +1357,7 @@ def upload_file():
 
 @app.route('/api/upload/delete', methods=['POST'])
 def delete_file():
+    """Удаление файла"""
     try:
         data = request.get_json()
         filename = data.get('filename')
@@ -1228,6 +1384,7 @@ def delete_file():
 # ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
 @app.route('/static/<path:filename>')
 def serve_static(filename):
+    """Отдача статических файлов"""
     try:
         return send_from_directory(STATIC_DIR, filename)
     except Exception as e:
@@ -1236,11 +1393,13 @@ def serve_static(filename):
 
 @app.route('/uploads/products/<filename>')
 def serve_uploaded_file(filename):
+    """Отдача загруженных файлов"""
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # ========== ОБРАБОТКА ОШИБОК ==========
 @app.errorhandler(404)
 def not_found_error(error):
+    """Обработка 404 ошибок"""
     logger.warning(f"404 Not Found: {request.path}")
     
     if request.path == '/favicon.ico':
@@ -1262,10 +1421,13 @@ def not_found_error(error):
 MAINTENANCE_FLAG = os.path.join(DATA_DIR, '.maintenance')
 
 def is_maintenance_mode():
+    """Проверяет, включён ли режим обслуживания"""
     return os.path.exists(MAINTENANCE_FLAG)
 
 @app.before_request
 def handle_maintenance():
+    """Перехват запросов при включённом режиме обслуживания"""
+    # Исключаем пути, которые должны быть доступны даже в режиме обслуживания
     exempt_paths = [
         '/static/',
         '/uploads/',
@@ -1276,9 +1438,11 @@ def handle_maintenance():
         '/api/admin/maintenance/status'
     ]
     if is_maintenance_mode():
+        # Проверяем, относится ли запрос к исключённым путям
         for path in exempt_paths:
             if request.path.startswith(path):
                 return None
+        # Иначе отдаём страницу обслуживания
         maintenance_page = os.path.join(STATIC_DIR, 'maintenance.html')
         if os.path.exists(maintenance_page):
             return send_file(maintenance_page), 503
@@ -1287,6 +1451,7 @@ def handle_maintenance():
 
 @app.route('/api/admin/maintenance/status', methods=['GET'])
 def admin_maintenance_status():
+    """Получение текущего статуса режима обслуживания"""
     try:
         enabled = is_maintenance_mode()
         return jsonify({'success': True, 'enabled': enabled})
@@ -1296,11 +1461,14 @@ def admin_maintenance_status():
 
 @app.route('/api/admin/maintenance/enable', methods=['POST'])
 def admin_maintenance_enable():
+    """Включение режима обслуживания"""
     try:
+        # Проверка авторизации
         token = request.headers.get('Authorization')
         if not token:
             return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
         
+        # Создаём файл-флаг
         with open(MAINTENANCE_FLAG, 'w') as f:
             f.write(datetime.now().isoformat())
         
@@ -1312,6 +1480,7 @@ def admin_maintenance_enable():
 
 @app.route('/api/admin/maintenance/disable', methods=['POST'])
 def admin_maintenance_disable():
+    """Выключение режима обслуживания"""
     try:
         token = request.headers.get('Authorization')
         if not token:
