@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Технические работы | MA Furniture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Playfair Display', serif;
+            background: linear-gradient(135deg, #f8f4f0 0%, #e8e0d8 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .maintenance-card {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .maintenance-header {
+            background: #8B7355;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .maintenance-header .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .maintenance-header .logo img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
+        .maintenance-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .maintenance-header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .maintenance-body {
+            padding: 2rem;
+        }
+
+        .game-container {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .game-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .game-title i {
+            color: #8B7355;
+        }
+
+        .game-description {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .guess-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .guess-input input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .guess-input input:focus {
+            outline: none;
+            border-color: #8B7355;
+        }
+
+        .guess-input button {
+            padding: 0.8rem 1.5rem;
+            background: #8B7355;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .guess-input button:hover {
+            background: #6d5c46;
+        }
+
+        .game-feedback {
+            background: #f0f0f0;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            min-height: 80px;
+        }
+
+        .attempts {
+            color: #8B7355;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .reset-game {
+            background: none;
+            border: 2px solid #8B7355;
+            color: #8B7355;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .reset-game:hover {
+            background: #8B7355;
+            color: white;
+        }
+
+        .maintenance-footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: #f8f4f0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .social-links {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            color: #8B7355;
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .social-links a:hover {
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .maintenance-header h1 {
+                font-size: 1.5rem;
+            }
+            .game-title {
+                font-size: 1.2rem;
+            }
+            .guess-input {
+                flex-direction: column;
+            }
+            .guess-input button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-card">
+        <div class="maintenance-header">
+            <div class="logo">
+                <img src="/static/images/logo2.png" alt="MA Furniture">
+            </div>
+            <h1>Технические работы</h1>
+            <p>Сайт временно недоступен. Мы работаем над улучшением сервиса.</p>
+        </div>
+        <div class="maintenance-body">
+            <div class="game-container">
+                <div class="game-title">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Игра: Угадай число</span>
+                </div>
+                <div class="game-description">
+                    Пока мы обновляем сайт, поиграйте в игру. Компьютер загадал число от 1 до 100. Попробуйте угадать его!
+                </div>
+                <div class="guess-input">
+                    <input type="number" id="guessInput" placeholder="Введите число от 1 до 100" min="1" max="100">
+                    <button id="guessBtn">Проверить</button>
+                </div>
+                <div class="game-feedback" id="feedback">
+                    Введите число и нажмите "Проверить".
+                </div>
+                <div class="attempts" id="attempts">Попыток: 0</div>
+                <button class="reset-game" id="resetGame">Новая игра</button>
+            </div>
+        </div>
+        <div class="maintenance-footer">
+            <p>MA Furniture — Комплектация гардеробных премиум класса</p>
+            <div class="social-links">
+                <a href="https://t.me/MAFurniture_ru" target="_blank"><i class="fab fa-telegram-plane"></i></a>
+                <a href="https://www.instagram.com/ma.furniture.ru" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://wa.me/message/XVIWV6WLNDHVC1" target="_blank"><i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let secretNumber = Math.floor(Math.random() * 100) + 1;
+        let attempts = 0;
+
+        const guessInput = document.getElementById('guessInput');
+        const guessBtn = document.getElementById('guessBtn');
+        const feedback = document.getElementById('feedback');
+        const attemptsSpan = document.getElementById('attempts');
+        const resetBtn = document.getElementById('resetGame');
+
+        function updateAttempts() {
+            attemptsSpan.textContent = `Попыток: ${attempts}`;
+        }
+
+        function checkGuess() {
+            let guess = parseInt(guessInput.value);
+            if (isNaN(guess) || guess < 1 || guess > 100) {
+                feedback.innerHTML = '❌ Пожалуйста, введите число от 1 до 100.';
+                return;
+            }
+            attempts++;
+            updateAttempts();
+
+            if (guess === secretNumber) {
+                feedback.innerHTML = `🎉 Поздравляем! Вы угадали число ${secretNumber} за ${attempts} попыток! 🎉`;
+                guessBtn.disabled = true;
+                guessInput.disabled = true;
+            } else if (guess < secretNumber) {
+                feedback.innerHTML = `📈 Загаданное число больше, чем ${guess}. Попробуйте ещё.`;
+            } else {
+                feedback.innerHTML = `📉 Загаданное число меньше, чем ${guess}. Попробуйте ещё.`;
+            }
+            guessInput.value = '';
+            guessInput.focus();
+        }
+
+        function resetGame() {
+            secretNumber = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            updateAttempts();
+            feedback.innerHTML = 'Новая игра! Введите число от 1 до 100.';
+            guessBtn.disabled = false;
+            guessInput.disabled = false;
+            guessInput.value = '';
+            guessInput.focus();
+        }
+
+        guessBtn.addEventListener('click', checkGuess);
+        resetBtn.addEventListener('click', resetGame);
+        guessInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkGuess();
+        });
+    </script>
+</body>
+</html>

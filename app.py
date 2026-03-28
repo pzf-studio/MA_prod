@@ -1417,6 +1417,85 @@ def not_found_error(error):
         logger.error(f"Ошибка в 404 handler: {e}")
         return jsonify({'success': False, 'error': 'Ресурс не найден'}), 404
 
+# ========== РЕЖИМ ТЕХНИЧЕСКОГО ОБСЛУЖИВАНИЯ ==========
+MAINTENANCE_FLAG = os.path.join(DATA_DIR, '.maintenance')
+
+def is_maintenance_mode():
+    """Проверяет, включён ли режим обслуживания"""
+    return os.path.exists(MAINTENANCE_FLAG)
+
+@app.before_request
+def handle_maintenance():
+    """Перехват запросов при включённом режиме обслуживания"""
+    # Исключаем пути, которые должны быть доступны даже в режиме обслуживания
+    exempt_paths = [
+        '/static/',
+        '/uploads/',
+        '/admin/',
+        '/api/admin/',
+        '/api/health',
+        '/favicon.ico',
+        '/api/admin/maintenance/status'
+    ]
+    if is_maintenance_mode():
+        # Проверяем, относится ли запрос к исключённым путям
+        for path in exempt_paths:
+            if request.path.startswith(path):
+                return None
+        # Иначе отдаём страницу обслуживания
+        maintenance_page = os.path.join(STATIC_DIR, 'maintenance.html')
+        if os.path.exists(maintenance_page):
+            return send_file(maintenance_page), 503
+        else:
+            return "<h1>Технические работы</h1><p>Сайт временно недоступен.</p>", 503
+
+@app.route('/api/admin/maintenance/status', methods=['GET'])
+def admin_maintenance_status():
+    """Получение текущего статуса режима обслуживания"""
+    try:
+        enabled = is_maintenance_mode()
+        return jsonify({'success': True, 'enabled': enabled})
+    except Exception as e:
+        logger.error(f"Ошибка получения статуса обслуживания: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/maintenance/enable', methods=['POST'])
+def admin_maintenance_enable():
+    """Включение режима обслуживания"""
+    try:
+        # Проверка авторизации
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+        
+        # Создаём файл-флаг
+        with open(MAINTENANCE_FLAG, 'w') as f:
+            f.write(datetime.now().isoformat())
+        
+        logger.info("Режим технического обслуживания ВКЛЮЧЁН")
+        return jsonify({'success': True, 'message': 'Режим обслуживания включён. Сайт недоступен для посетителей.'})
+    except Exception as e:
+        logger.error(f"Ошибка включения режима обслуживания: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/maintenance/disable', methods=['POST'])
+def admin_maintenance_disable():
+    """Выключение режима обслуживания"""
+    try:
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+        
+        if os.path.exists(MAINTENANCE_FLAG):
+            os.remove(MAINTENANCE_FLAG)
+            logger.info("Режим технического обслуживания ВЫКЛЮЧЁН")
+            return jsonify({'success': True, 'message': 'Режим обслуживания выключен. Сайт снова доступен.'})
+        else:
+            return jsonify({'success': True, 'message': 'Режим обслуживания уже выключен.'})
+    except Exception as e:
+        logger.error(f"Ошибка выключения режима обслуживания: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ========== ЗАПУСК ПРИЛОЖЕНИЯ ==========
 if __name__ == '__main__':
     print("\n" + "=" * 60)
