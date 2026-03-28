@@ -798,6 +798,11 @@ class AdminProductsManager {
         document.getElementById('productSpecifications').value = product.specifications || '';
         document.getElementById('productStatus').value = product.status || 'active';
         document.getElementById('productStock').value = product.stock || 10;
+        // Устанавливаем чекбокс "Под заказ"
+        const priceOnRequestCheckbox = document.getElementById('priceOnRequest');
+        if (priceOnRequestCheckbox) {
+            priceOnRequestCheckbox.checked = product.is_price_on_request === 1;
+        }
         
         // Загружаем изображения
         const images = product.images || [];
@@ -838,7 +843,9 @@ class AdminProductsManager {
             specifications: formData.get('productSpecifications'),
             status: formData.get('productStatus'),
             stock: parseInt(formData.get('productStock')) || 0,
-            images: JSON.parse(formData.get('productImages') || '[]')
+            images: JSON.parse(formData.get('productImages') || '[]'),
+            // Добавляем поле "под заказ"
+            is_price_on_request: document.getElementById('priceOnRequest').checked
         };
         
         const productId = formData.get('productId');

@@ -51,6 +51,12 @@ class CartSystem {
     }
     
     addToCart(product) {
+        // Проверка: если товар под заказ, не добавляем в корзину
+        if (product.is_price_on_request) {
+            this.showNotification('Товар доступен только под заказ. Свяжитесь с нами для уточнения цены.', 'warning');
+            return;
+        }
+        
         // ВАЖНО: используем строгое сравнение строк для variant_id
         const productId = String(product.id);
         const existingItem = this.cart.find(item => String(item.id) === productId);

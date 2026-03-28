@@ -45,6 +45,14 @@ def init_db():
                 updated_at TEXT NOT NULL
             )
         ''')
+        # Добавляем поле is_price_on_request, если его нет
+        try:
+            conn.execute('ALTER TABLE products ADD COLUMN is_price_on_request BOOLEAN DEFAULT 0')
+            logger.info("Добавлено поле is_price_on_request в таблицу products")
+        except sqlite3.OperationalError:
+            # Поле уже существует
+            pass
+
         conn.execute('''
             CREATE TABLE IF NOT EXISTS sections (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -111,8 +119,8 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
                         INSERT OR REPLACE INTO products
                         (id, name, code, category, section, price, old_price, badge,
                          recommended, description, specifications, status, stock,
-                         images, color_variants, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                         images, color_variants, created_at, updated_at, is_price_on_request)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (
                         product.get('id'),
                         product.get('name'),
@@ -130,7 +138,8 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
                         images_json,
                         color_variants_json,
                         product.get('created_at', datetime.now().isoformat()),
-                        product.get('updated_at', datetime.now().isoformat())
+                        product.get('updated_at', datetime.now().isoformat()),
+                        0  # is_price_on_request по умолчанию 0
                     ))
         logger.info("Товары перенесены")
 
