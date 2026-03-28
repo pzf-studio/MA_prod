@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MA Furniture - Управление резервными копиями</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/admin-styles.css">
+    <link rel="stylesheet" href="/admin/css/admin-backup.css">
+    <link rel="icon" type="image/x-icon" href="/static/images/logo2.png">
+</head>
+<body>
+    <!-- Боковая панель -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="/static/images/logo2.png" alt="MA Furniture">
+                <div class="logo-text">
+                    <h2>MA Furniture</h2>
+                    <small>Админ панель</small>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-menu">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="user-details">
+                    <h4 id="adminName">Администратор</h4>
+                    <small id="adminRole">Владелец</small>
+                </div>
+            </div>
+            
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a href="/admin/dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Дашборд</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="products-management.html">
+                        <i class="fas fa-box"></i>
+                        <span>Товары</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Заказы</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/categories">
+                        <i class="fas fa-tags"></i>
+                        <span>Разделы</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/admin/media-management.html">
+                        <i class="fas fa-images"></i>
+                        <span>Медиа</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="backup-management.html">
+                        <i class="fas fa-database"></i>
+                        <span>Резервное копирование</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <a href="#" class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Управление резервными копиями</h1>
+                <nav class="breadcrumb">
+                    <a href="/admin/dashboard">Главная</a>
+                    <span>/</span>
+                    <span class="current">Резервное копирование</span>
+                </nav>
+            </div>
+        </header>
+
+        <div class="backup-container">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-download"></i> Экспорт базы данных</h2>
+                </div>
+                <div class="card-body">
+                    <p>Скачайте архив с текущей базой данных (SQLite). Файл будет содержать все товары, разделы, заказы и настройки.</p>
+                    <button id="downloadBackupBtn" class="btn btn-primary">
+                        <i class="fas fa-database"></i>
+                        Скачать бэкап
+                    </button>
+                    <div id="downloadMessage" class="message"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-upload"></i> Импорт базы данных</h2>
+                </div>
+                <div class="card-body">
+                    <p>Загрузите ранее созданный ZIP-архив с базой данных. <strong>Внимание!</strong> Текущая база данных будет заменена. Рекомендуется предварительно сделать экспорт.</p>
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Перетащите ZIP-архив сюда или кликните для выбора</p>
+                        <input type="file" id="backupFile" accept=".zip" style="display: none;">
+                        <button id="selectFileBtn" class="btn btn-outline">
+                            <i class="fas fa-folder-open"></i>
+                            Выбрать файл
+                        </button>
+                    </div>
+                    <div id="selectedFileInfo" class="file-info" style="display: none;">
+                        <i class="fas fa-file-archive"></i>
+                        <span id="fileName"></span>
+                        <button id="clearFileBtn" class="icon-btn"><i class="fas fa-times"></i></button>
+                    </div>
+                    <button id="uploadBackupBtn" class="btn btn-success" disabled>
+                        <i class="fas fa-upload"></i>
+                        Восстановить из бэкапа
+                    </button>
+                    <div id="uploadMessage" class="message"></div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h3>Информация</h3>
+                </div>
+                <div class="info-body">
+                    <ul>
+                        <li>Экспорт создаёт ZIP-архив с файлом <code>ma_furniture.db</code>.</li>
+                        <li>Импорт принимает только ZIP-архивы, содержащие файл <code>ma_furniture.db</code>.</li>
+                        <li>После импорта базы данных необходимо обновить страницу для применения изменений.</li>
+                        <li>Рекомендуется регулярно создавать резервные копии.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            <p>&copy; 2024 MA Furniture Admin Panel. Все права защищены.</p>
+        </footer>
+    </main>
+
+    <script src="/static/js/data-manager.js"></script>
+    <script src="/admin/js/admin-auth.js"></script>
+    <script src="/admin/js/admin-backup.js"></script>
+</body>
+</html>
