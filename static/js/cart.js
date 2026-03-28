@@ -51,13 +51,6 @@ class CartSystem {
     }
     
     addToCart(product) {
-        // Проверка: если товар под заказ, не добавляем в корзину
-        if (product.is_price_on_request) {
-            this.showNotification('Товар доступен только под заказ. Свяжитесь с нами для уточнения цены.', 'warning');
-            return;
-        }
-        
-        // ВАЖНО: используем строгое сравнение строк для variant_id
         const productId = String(product.id);
         const existingItem = this.cart.find(item => String(item.id) === productId);
         
@@ -72,7 +65,8 @@ class CartSystem {
                 quantity: 1,
                 original_product_id: product.original_product_id || product.id,
                 color_name: product.color_name || '',
-                variant_id: product.variant_id || productId
+                variant_id: product.variant_id || productId,
+                is_price_on_request: product.is_price_on_request || false
             });
         }
         
@@ -167,8 +161,11 @@ class CartSystem {
                 `<img src="${item.image}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
                 '';
             
-            // Безопасное экранирование ID для data-атрибутов
             const safeId = String(item.id).replace(/"/g, '&quot;').replace(/'/g, "&#39;");
+            
+            // Пометка "под заказ"
+            const requestBadge = item.is_price_on_request ? 
+                `<span class="price-on-request-badge" style="display: inline-block; margin-left: 8px; font-size: 0.7rem; background: #fef5e7; color: #d4af37; padding: 2px 6px; border-radius: 12px;">под заказ</span>` : '';
             
             itemsHTML += `
                 <div class="cart-item" data-id="${safeId}">
@@ -179,7 +176,7 @@ class CartSystem {
                         </div>
                     </div>
                     <div class="cart-item-details">
-                        <h4 class="cart-item-name">${item.name}</h4>
+                        <h4 class="cart-item-name">${item.name} ${requestBadge}</h4>
                         ${item.color_name ? `<div class="cart-item-color">Цвет: ${item.color_name}</div>` : ''}
                         <div class="cart-item-price">${dataManager.formatPrice(item.price)}</div>
                         <div class="cart-item-actions">
@@ -203,8 +200,6 @@ class CartSystem {
         });
         
         cartItems.innerHTML = itemsHTML;
-        
-        // Привязываем события через делегирование
         this.bindCartItemEvents();
         
         if (cartTotalAmount) {
@@ -218,7 +213,6 @@ class CartSystem {
     }
     
     bindCartItemEvents() {
-        // Делегирование событий для кнопок в корзине
         const cartItems = document.getElementById('cartItems');
         if (!cartItems) return;
         
@@ -239,7 +233,6 @@ class CartSystem {
             }
         });
         
-        // Обработка изменения в поле ввода количества
         cartItems.addEventListener('change', (e) => {
             if (e.target.classList.contains('quantity-input')) {
                 const id = e.target.dataset.id;
@@ -343,7 +336,6 @@ class CartSystem {
         
         document.body.appendChild(modal);
         
-        // Обработчики событий
         const closeBtn = document.getElementById('checkoutModalClose');
         const cancelBtn = document.getElementById('checkoutModalCancel');
         const form = document.getElementById('checkoutForm');
@@ -384,9 +376,11 @@ class CartSystem {
             const itemTotal = item.price * item.quantity;
             total += itemTotal;
             
+            const requestNote = item.is_price_on_request ? ' <span style="color: #d4af37; font-size: 0.8rem;">(под заказ)</span>' : '';
+            
             itemsHTML += `
                 <div class="checkout-order-item">
-                    <span class="item-name">${item.name}</span>
+                    <span class="item-name">${item.name}${requestNote}</span>
                     <span class="item-quantity">${item.quantity} шт.</span>
                     <span class="item-price">${dataManager.formatPrice(itemTotal)}</span>
                 </div>
@@ -403,7 +397,6 @@ class CartSystem {
         const form = e.target;
         const formData = new FormData(form);
         
-        // ВАЖНО: включаем variant_id в данные заказа
         const orderData = {
             customer_name: formData.get('customerName'),
             customer_phone: formData.get('customerPhone'),
@@ -416,12 +409,12 @@ class CartSystem {
                 name: item.name,
                 price: item.price,
                 quantity: item.quantity,
-                color_name: item.color_name || ''
+                color_name: item.color_name || '',
+                is_price_on_request: item.is_price_on_request || false
             })),
             total: this.getCartTotal()
         };
         
-        // Валидация
         if (!orderData.customer_name || !orderData.customer_phone) {
             this.showNotification('Пожалуйста, заполните обязательные поля (ФИО и телефон)', 'error');
             return;
@@ -436,7 +429,6 @@ class CartSystem {
             const result = await dataManager.submitOrder(orderData);
             
             if (result.success) {
-                // Перенаправляем на страницу успеха с параметрами заказа
                 const orderId = result.order_id || 'ORDER-' + Date.now();
                 const queryParams = new URLSearchParams({
                     order_id: orderId,
@@ -446,8 +438,6 @@ class CartSystem {
                 }).toString();
                 
                 window.location.href = `/order-success?${queryParams}`;
-                
-                // Корзина очистится на странице успеха
             } else {
                 this.showNotification(`Ошибка: ${result.error}`, 'error');
                 submitBtn.innerHTML = originalText;
@@ -528,5 +518,4 @@ class CartSystem {
     }
 }
 
-// Экспортируем глобально
 window.CartSystem = CartSystem;

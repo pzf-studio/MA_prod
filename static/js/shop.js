@@ -137,17 +137,10 @@ async function initializeProducts() {
         
         const productUrl = `piece.html?id=${product.id}`;
         
-        // Цена и кнопка
+        // Цена
         let priceHtml = '';
-        let actionButton = '';
-        
         if (product.is_price_on_request) {
             priceHtml = `<div class="product-price"><span class="price-on-request">Цена под заказ</span></div>`;
-            actionButton = `
-                <button class="btn btn-secondary contact-btn" onclick="showContactMessage()">
-                    <i class="fas fa-phone"></i> Узнать цену
-                </button>
-            `;
         } else {
             priceHtml = `
                 <div class="product-price">
@@ -155,12 +148,14 @@ async function initializeProducts() {
                     ${product.old_price ? `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : ''}
                 </div>
             `;
-            actionButton = `
-                <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}">
-                    <i class="fas fa-shopping-cart"></i> В корзину
-                </button>
-            `;
         }
+        
+        // Кнопка всегда "В корзину"
+        const actionButton = `
+            <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}">
+                <i class="fas fa-shopping-cart"></i> В корзину
+            </button>
+        `;
         
         card.innerHTML = `
             <div class="product-image">
@@ -230,7 +225,7 @@ async function initializeProducts() {
     }
 
     function attachProductEventListeners() {
-        // Обработчик для кнопки "В корзину" (обычные товары)
+        // Обработчик для кнопки "В корзину"
         document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -246,7 +241,7 @@ async function initializeProducts() {
         // Обработчик для всей карточки
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.add-to-cart-btn') || e.target.closest('.contact-btn')) {
+                if (e.target.closest('.add-to-cart-btn')) {
                     return;
                 }
                 
@@ -277,11 +272,9 @@ async function initializeProducts() {
         try {
             const sections = await loadSectionsFromAdmin();
             
-            // Очищаем контейнеры
             catalogFilters.innerHTML = '<button class="filter-btn active" data-filter="all">Все товары</button>';
             footerSections.innerHTML = '';
             
-            // Обработчик для "Все товары"
             const allFilterBtn = catalogFilters.querySelector('[data-filter="all"]');
             allFilterBtn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -292,9 +285,7 @@ async function initializeProducts() {
                 renderProducts();
             });
             
-            // Добавляем фильтры для разделов
             sections.forEach(section => {
-                // Фильтры в каталоге
                 const filterBtn = document.createElement('button');
                 filterBtn.className = 'filter-btn';
                 filterBtn.dataset.filter = section.code;
@@ -309,7 +300,6 @@ async function initializeProducts() {
                 });
                 catalogFilters.appendChild(filterBtn);
                 
-                // Ссылки в футере
                 const footerLink = document.createElement('li');
                 const link = document.createElement('a');
                 link.href = `shop.html?section=${section.code}`;
@@ -444,6 +434,3 @@ if (window.location.pathname.includes('shop.html')) {
 }
 
 window.showNotification = showNotification;
-window.showContactMessage = function() {
-    alert('Для уточнения цены и оформления заказа свяжитесь с нами:\nТелефон: +7 (910) 005-34-24\nTelegram: @MAFurniture_ru');
-};

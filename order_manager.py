@@ -50,10 +50,15 @@ class OrderManager:
             return None
 
     def format_telegram_message(self, order_data):
-        items_text = "\n".join([
-            f"• {item['name']} - {item['quantity']} шт. × {item['price']} ₽"
-            for item in order_data.get('items', [])
-        ])
+        items_text = []
+        for item in order_data.get('items', []):
+            line = f"• {item['name']}"
+            if item.get('is_price_on_request'):
+                line += " (под заказ)"
+            line += f" - {item['quantity']} шт. × {item['price']} ₽"
+            items_text.append(line)
+        
+        items_str = "\n".join(items_text)
         total = sum(item['price'] * item['quantity'] for item in order_data.get('items', []))
         message = f"""
 🛒 *Новый заказ #{order_data['order_id']}*
@@ -64,7 +69,7 @@ class OrderManager:
 📍 *Адрес:* {order_data.get('customer_address', 'Не указано')}
 
 📋 *Состав заказа:*
-{items_text}
+{items_str}
 
 💰 *Итого:* {total:,} ₽
 
