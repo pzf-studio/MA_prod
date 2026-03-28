@@ -140,7 +140,7 @@ async function initializeProducts() {
         // Цена
         let priceHtml = '';
         if (product.is_price_on_request) {
-            priceHtml = `<div class="product-price"><span class="price-on-request">Цена под заказ</span></div>`;
+            priceHtml = `<div class="product-price"><span class="price-on-request">Доступен для заказа</span></div>`;
         } else {
             priceHtml = `
                 <div class="product-price">
