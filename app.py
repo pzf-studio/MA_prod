@@ -46,7 +46,7 @@ logger = app.logger
 
 # Инициализация БД и миграция данных
 db.init_db()
-db.migrate_from_json()
+db.migrate_from_json(PRODUCTS_DIR, SECTIONS_FILE, BACKGROUND_FILE, DATA_DIR)
 
 # ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
 def allowed_file(filename):
