@@ -11,10 +11,12 @@
 ├── 📁 static
 │   ├── 📁 admin
 │   │   ├── 📁 css
+│   │   │   ├── 📄 admin-backup.css
 │   │   │   ├── 📄 admin-login.css
 │   │   │   └── 📄 admin-styles.css
 │   │   ├── 📁 js
 │   │   │   ├── 📄 admin-auth.js
+│   │   │   ├── 📄 admin-backup.js
 │   │   │   ├── 📄 admin-categories.js
 │   │   │   ├── 📄 admin-color-picker.js
 │   │   │   ├── 📄 admin-dashboard.js
@@ -23,6 +25,7 @@
 │   │   │   └── 📄 admin-upload.js
 │   │   ├── 📄 admin-dashboard.html
 │   │   ├── 📄 admin-login.html
+│   │   ├── 📄 backup-management.html
 │   │   ├── 📄 categories-management.html
 │   │   ├── 📄 cleanup-uploads.php
 │   │   ├── 📄 media-management.html
@@ -53,13 +56,16 @@
 │   │   ├── 📁 temp
 │   │   ├── 📄 .gitkeep
 │   │   └── 📄 .htaccess
+│   ├── 📄 favicon.ico
 │   ├── 📄 index.html
+│   ├── 📄 order-success.html
 │   ├── 📄 piece.html
 │   └── 📄 shop.html
 ├── 📄 amvera.yml
 ├── 📄 app.py
 ├── 📄 arch.py
 ├── 📄 create_test_data.py
+├── 📄 database.py
 ├── 📄 LICENSE
 ├── 📄 order_manager.py
 ├── 📄 photo_2025-11-30_03-24-55.jpg

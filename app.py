@@ -29,6 +29,13 @@ UPLOAD_FOLDER = os.path.join(STATIC_DIR, 'uploads/products')
 TEMP_FOLDER = os.path.join(STATIC_DIR, 'uploads/temp')
 DB_PATH = os.path.join(DATA_DIR, 'ma_furniture.db')
 
+# Пути к JSON-файлам (для миграции)
+PRODUCTS_DIR = os.path.join(DATA_DIR, 'products')
+SECTIONS_FILE = os.path.join(DATA_DIR, 'sections.json')
+BACKGROUND_FILE = os.path.join(DATA_DIR, 'background.json')
+
+# Создаём необходимые папки (data тоже)
+os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TEMP_FOLDER, exist_ok=True)
 
@@ -641,7 +648,7 @@ def admin_reorder_sections():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== КОНСТАНТЫ ДЛЯ МЕДИА ==========
-BACKGROUND_FILE = os.path.join(DATA_DIR, 'background.json')
+
 
 # ========== ФУНКЦИИ РАБОТЫ С МЕДИА ==========
 def load_background():
