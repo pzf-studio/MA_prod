@@ -73,18 +73,26 @@ function renderProduct(product) {
     const addToCartBtn = document.getElementById('addToCartBtn');
     
     if (product.is_price_on_request) {
-        // Товар под заказ
+        // Цена под заказ
         if (priceElement) {
             priceElement.innerHTML = `<span class="price-on-request">Цена под заказ</span>`;
         }
+        // Специальное сообщение
         if (stockElement) {
-            stockElement.textContent = 'Товар под заказ';
-            stockElement.className = 'price-on-request';
+            stockElement.textContent = 'Данного товара нет в наличии, но может быть заказан в индивидуальном порядке';
+            stockElement.className = 'price-on-request-note';
         }
+        // Кнопка активна, добавляем в корзину (обычная логика)
         if (addToCartBtn) {
-            addToCartBtn.innerHTML = '<i class="fas fa-phone"></i> Узнать цену';
-            addToCartBtn.onclick = () => showContactMessage();
+            addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
             addToCartBtn.disabled = false;
+            addToCartBtn.onclick = () => {
+                if (window.cartSystem) {
+                    window.cartSystem.addToCart(product);
+                } else {
+                    showNotification('Корзина недоступна', 'error');
+                }
+            };
         }
     } else {
         // Обычный товар
@@ -187,10 +195,9 @@ function selectColorVariant(variant) {
     }
     updateProductImages(variant.images || []);
     
-    // Обновляем цену и статус в зависимости от основного товара
     const product = window.currentProduct;
+    // Если товар под заказ, цена и статус уже установлены, не меняем
     if (product && product.is_price_on_request) {
-        // Если товар под заказ, цена и статус уже установлены, не меняем
         return;
     }
     
@@ -262,11 +269,28 @@ function updateAddToCartButton(variant) {
     const product = window.currentProduct;
     if (!product) return;
     
-    // Если основной товар под заказ
+    // Если товар под заказ, кнопка всегда активна и добавляет в корзину (цена известна)
     if (product.is_price_on_request) {
-        addToCartBtn.innerHTML = '<i class="fas fa-phone"></i> Узнать цену';
-        addToCartBtn.onclick = () => showContactMessage();
         addToCartBtn.disabled = false;
+        addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
+        addToCartBtn.onclick = () => {
+            const cartProduct = {
+                id: variant.variant_id,
+                name: variant.is_original ? product.name : `${product.name}${variant.suffix || ''}`,
+                price: variant.price || product.price,
+                image: variant.images?.[0] || product.images?.[0] || '',
+                quantity: 1,
+                original_product_id: product.id,
+                color_name: variant.color_name,
+                variant_id: variant.variant_id,
+                is_price_on_request: true
+            };
+            if (window.cartSystem) {
+                window.cartSystem.addToCart(cartProduct);
+            } else {
+                showNotification('Корзина недоступна', 'error');
+            }
+        };
         return;
     }
     
@@ -288,7 +312,8 @@ function updateAddToCartButton(variant) {
             quantity: 1,
             original_product_id: product.id,
             color_name: variant.color_name,
-            variant_id: variant.variant_id
+            variant_id: variant.variant_id,
+            is_price_on_request: false
         };
         if (window.cartSystem) {
             window.cartSystem.addToCart(cartProduct);
@@ -359,10 +384,6 @@ function showNotification(message, type = 'success') {
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
-
-window.showContactMessage = function() {
-    alert('Для уточнения цены и оформления заказа свяжитесь с нами:\nТелефон: +7 (910) 005-34-24\nTelegram: @MAFurniture_ru');
-};
 
 const colorStyles = document.createElement('style');
 colorStyles.textContent = `
