@@ -520,3 +520,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 5 * 60 * 1000);
 });
+
+(function() {
+    if (!document.querySelector('script[src="/admin/js/maintenance.js"]')) {
+        const script = document.createElement('script');
+        script.src = '/admin/js/maintenance.js';
+        script.async = true;
+        document.head.appendChild(script);
+    }
+})();
