@@ -22,7 +22,8 @@
 │   │   │   ├── 📄 admin-dashboard.js
 │   │   │   ├── 📄 admin-media.js
 │   │   │   ├── 📄 admin-products.js
-│   │   │   └── 📄 admin-upload.js
+│   │   │   ├── 📄 admin-upload.js
+│   │   │   └── 📄 maintenance.js
 │   │   ├── 📄 admin-dashboard.html
 │   │   ├── 📄 admin-login.html
 │   │   ├── 📄 backup-management.html
@@ -42,6 +43,8 @@
 │   │   ├── 📄 4.jpg
 │   │   ├── 📄 example.png
 │   │   ├── 📄 hero.jpg
+│   │   ├── 📄 IMG_2152.jpeg
+│   │   ├── 📄 IMG_2153.png
 │   │   ├── 📄 logo.png
 │   │   └── 📄 logo2.png
 │   ├── 📁 js
@@ -58,6 +61,7 @@
 │   │   └── 📄 .htaccess
 │   ├── 📄 favicon.ico
 │   ├── 📄 index.html
+│   ├── 📄 maintenance.html
 │   ├── 📄 order-success.html
 │   ├── 📄 piece.html
 │   └── 📄 shop.html

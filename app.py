@@ -45,7 +45,7 @@ CORS(app)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMP_FOLDER'] = TEMP_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB (для бэкапов с фотографиями)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -64,6 +64,10 @@ def generate_filename(original_name):
     random_str = hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
     ext = original_name.rsplit('.', 1)[1].lower() if '.' in original_name else 'jpg'
     return f"{timestamp}_{random_str}.{ext}"
+
+def get_uploads_path():
+    """Возвращает абсолютный путь к папке загруженных изображений."""
+    return os.path.join(STATIC_DIR, 'uploads', 'products')
 
 # ========== ФУНКЦИИ РАБОТЫ С ДАННЫМИ (БД) ==========
 def get_all_products():
@@ -382,26 +386,40 @@ def admin_backup():
 # ========== API ДЛЯ БЭКАПОВ ==========
 @app.route('/api/admin/backup/download', methods=['GET'])
 def admin_backup_download():
-    """Скачать архив с текущей БД"""
+    """Скачать архив с БД и всеми загруженными изображениями"""
     try:
-        # Проверяем авторизацию
         token = request.headers.get('Authorization')
         if not token:
             return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
-        # Временный файл для архива
+
         temp_dir = tempfile.mkdtemp()
         try:
-            # Копируем БД во временную папку
+            # 1. Копируем БД
             backup_db_path = os.path.join(temp_dir, 'ma_furniture.db')
             shutil.copy2(DB_PATH, backup_db_path)
-            
-            # Создаём ZIP-архив
+
+            # 2. Копируем папку с изображениями (структура uploads/products)
+            uploads_src = get_uploads_path()
+            uploads_dst = os.path.join(temp_dir, 'uploads', 'products')
+            if os.path.exists(uploads_src) and os.listdir(uploads_src):
+                shutil.copytree(uploads_src, uploads_dst)
+            else:
+                # Создаём пустую папку, чтобы структура сохранилась
+                os.makedirs(uploads_dst, exist_ok=True)
+
+            # 3. Создаём ZIP-архив
             zip_path = os.path.join(temp_dir, 'ma_furniture_backup.zip')
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
                 zf.write(backup_db_path, arcname='ma_furniture.db')
-            
-            # Отправляем файл
+                # Добавляем всю папку uploads
+                for root, dirs, files in os.walk(uploads_dst):
+                    for file in files:
+                        full_path = os.path.join(root, file)
+                        # arcname = uploads/products/имя_файла
+                        rel_path = os.path.relpath(full_path, temp_dir)
+                        zf.write(full_path, arcname=rel_path)
+
+            # 4. Отправляем файл
             return send_file(
                 zip_path,
                 as_attachment=True,
@@ -409,76 +427,101 @@ def admin_backup_download():
                 mimetype='application/zip'
             )
         finally:
-            # Удаляем временную папку после отправки
             shutil.rmtree(temp_dir, ignore_errors=True)
-            
+
     except Exception as e:
         logger.error(f"Ошибка создания бэкапа: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/admin/backup/upload', methods=['POST'])
 def admin_backup_upload():
-    """Загрузить архив с БД и восстановить"""
+    """Загрузить архив и восстановить БД и изображения"""
     try:
-        # Проверка авторизации
         token = request.headers.get('Authorization')
         if not token:
             return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
-        # Проверка наличия файла
+
         if 'file' not in request.files:
             return jsonify({'success': False, 'error': 'Файл не загружен'}), 400
-        
+
         file = request.files['file']
         if file.filename == '':
             return jsonify({'success': False, 'error': 'Файл не выбран'}), 400
-        
-        # Проверка расширения
+
         if not file.filename.endswith('.zip'):
             return jsonify({'success': False, 'error': 'Допустим только ZIP-архив'}), 400
-        
-        # Сохраняем загруженный архив во временную папку
+
         temp_dir = tempfile.mkdtemp()
         try:
             zip_path = os.path.join(temp_dir, 'upload.zip')
             file.save(zip_path)
-            
-            # Распаковываем
+
+            # Распаковываем архив
             with zipfile.ZipFile(zip_path, 'r') as zf:
-                # Проверяем, есть ли в архиве файл ma_furniture.db
+                # Проверяем наличие базы данных
                 if 'ma_furniture.db' not in zf.namelist():
                     return jsonify({'success': False, 'error': 'Архив не содержит файл ma_furniture.db'}), 400
-                
-                # Распаковываем во временную папку
                 zf.extractall(temp_dir)
-            
-            # Проверяем, что распакованный файл существует
+
+            # Путь к извлечённой БД
             extracted_db = os.path.join(temp_dir, 'ma_furniture.db')
             if not os.path.exists(extracted_db):
                 return jsonify({'success': False, 'error': 'Не удалось извлечь базу данных'}), 500
-            
-            # Делаем резервную копию текущей БД (на случай ошибки)
+
+            # Путь к извлечённым изображениям (если есть)
+            extracted_uploads = os.path.join(temp_dir, 'uploads', 'products')
+            has_uploads = os.path.exists(extracted_uploads) and os.listdir(extracted_uploads)
+
+            # Делаем резервные копии текущих данных
             backup_db_path = DB_PATH + '.backup'
             if os.path.exists(DB_PATH):
                 shutil.copy2(DB_PATH, backup_db_path)
-            
-            # Заменяем текущую БД
+
+            uploads_path = get_uploads_path()
+            backup_uploads_path = uploads_path + '.backup'
+            if os.path.exists(uploads_path):
+                if os.path.exists(backup_uploads_path):
+                    shutil.rmtree(backup_uploads_path)
+                shutil.copytree(uploads_path, backup_uploads_path)
+
+            # Заменяем БД
             shutil.copy2(extracted_db, DB_PATH)
-            
-            # Опционально: переинициализируем соединения? В нашем случае каждое соединение новое, просто замена файла.
-            # После замены файла нужно перезагрузить приложение или хотя бы сбросить пул соединений.
-            # Здесь просто возвращаем успех, а клиент перезагрузит страницу.
-            
+
+            # Заменяем изображения
+            if has_uploads:
+                # Удаляем старые и копируем новые
+                if os.path.exists(uploads_path):
+                    shutil.rmtree(uploads_path)
+                shutil.copytree(extracted_uploads, uploads_path)
+            else:
+                # Если в архиве нет папки uploads, оставляем текущие изображения
+                logger.info("Архив не содержит изображений, папка uploads не изменена")
+
             return jsonify({
                 'success': True,
-                'message': 'База данных успешно восстановлена. Перезагрузите страницу.'
+                'message': 'База данных и изображения успешно восстановлены. Перезагрузите страницу.'
             })
-            
+
+        except Exception as e:
+            logger.error(f"Ошибка восстановления из бэкапа: {e}")
+            # Пытаемся откатить изменения, если что-то пошло не так
+            try:
+                # Восстанавливаем БД
+                if os.path.exists(DB_PATH + '.backup'):
+                    shutil.copy2(DB_PATH + '.backup', DB_PATH)
+                # Восстанавливаем uploads
+                uploads_path = get_uploads_path()
+                if os.path.exists(uploads_path + '.backup'):
+                    if os.path.exists(uploads_path):
+                        shutil.rmtree(uploads_path)
+                    shutil.copytree(uploads_path + '.backup', uploads_path)
+            except:
+                pass
+            return jsonify({'success': False, 'error': str(e)}), 500
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
-            
     except Exception as e:
-        logger.error(f"Ошибка восстановления из бэкапа: {e}")
+        logger.error(f"Ошибка загрузки бэкапа: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== API ДЛЯ УПРАВЛЕНИЯ КАТЕГОРИЯМИ (РАЗДЕЛАМИ) ==========
