@@ -9,7 +9,6 @@ async function initializeApp() {
     initializeCart();
     initializeMobileMenu();
     
-    // Событие обновления данных
     window.addEventListener('productsDataUpdated', async () => {
         console.log('Shop: Данные обновлены');
         await initializeProducts();
@@ -23,7 +22,6 @@ function initializeCart() {
     }
 }
 
-// ========== ГЛАВНАЯ ФУНКЦИЯ ДЛЯ ТОВАРОВ ==========
 async function initializeProducts() {
     console.log('MA Furniture Shop - загрузка товаров с сервера...');
     const productsGrid = document.getElementById('productsGrid');
@@ -139,6 +137,31 @@ async function initializeProducts() {
         
         const productUrl = `piece.html?id=${product.id}`;
         
+        // Цена и кнопка
+        let priceHtml = '';
+        let actionButton = '';
+        
+        if (product.is_price_on_request) {
+            priceHtml = `<div class="product-price"><span class="price-on-request">Цена под заказ</span></div>`;
+            actionButton = `
+                <button class="btn btn-secondary contact-btn" onclick="showContactMessage()">
+                    <i class="fas fa-phone"></i> Узнать цену
+                </button>
+            `;
+        } else {
+            priceHtml = `
+                <div class="product-price">
+                    <span class="current-price">${dataManager.formatPrice(product.price)}</span>
+                    ${product.old_price ? `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : ''}
+                </div>
+            `;
+            actionButton = `
+                <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}">
+                    <i class="fas fa-shopping-cart"></i> В корзину
+                </button>
+            `;
+        }
+        
         card.innerHTML = `
             <div class="product-image">
                 ${imageContent}
@@ -152,19 +175,9 @@ async function initializeProducts() {
                 <div class="product-description">
                     ${product.description?.substring(0, 150) || 'Качественный товар от MA Furniture'}...
                 </div>
-                <div class="product-price">
-                    <span class="current-price">${dataManager.formatPrice(product.price)}</span>
-                    ${product.old_price ? 
-                        `<span class="old-price" style="text-decoration: line-through; color: #999; margin-left: 10px;">
-                            ${dataManager.formatPrice(product.old_price)}
-                        </span>` : ''
-                    }
-                </div>
+                ${priceHtml}
                 <div class="product-actions">
-                    <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}">
-                        <i class="fas fa-shopping-cart"></i>
-                        В корзину
-                    </button>
+                    ${actionButton}
                 </div>
             </div>
             <a href="${productUrl}" class="product-link-overlay"></a>
@@ -217,7 +230,7 @@ async function initializeProducts() {
     }
 
     function attachProductEventListeners() {
-        // Обработчик для кнопки "В корзину"
+        // Обработчик для кнопки "В корзину" (обычные товары)
         document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -233,7 +246,7 @@ async function initializeProducts() {
         // Обработчик для всей карточки
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.add-to-cart-btn')) {
+                if (e.target.closest('.add-to-cart-btn') || e.target.closest('.contact-btn')) {
                     return;
                 }
                 
@@ -351,7 +364,6 @@ function initializeMobileMenu() {
             mainNav.classList.toggle('active');
             menuToggle.classList.toggle('active');
             
-            // Блокируем скролл страницы при открытом меню
             if (mainNav.classList.contains('active')) {
                 document.body.style.overflow = 'hidden';
             } else {
@@ -359,16 +371,14 @@ function initializeMobileMenu() {
             }
         });
         
-        // Закрытие меню при клике на ссылку
         document.querySelectorAll('.main-nav a').forEach(link => {
             link.addEventListener('click', () => {
                 if (mainNav) mainNav.classList.remove('active');
                 if (menuToggle) menuToggle.classList.remove('active');
-                document.body.style.overflow = ''; // Восстанавливаем скролл
+                document.body.style.overflow = '';
             });
         });
         
-        // Закрытие меню при клике вне его области (только на мобильных)
         if (window.innerWidth <= 768) {
             document.addEventListener('click', (e) => {
                 if (mainNav.classList.contains('active') && 
@@ -384,7 +394,6 @@ function initializeMobileMenu() {
 }
 
 function showNotification(message, type = 'success') {
-    // Удаляем существующие уведомления
     const existingNotifications = document.querySelectorAll('.notification');
     existingNotifications.forEach(notification => notification.remove());
     
@@ -430,10 +439,11 @@ async function loadShopBackground() {
     }
 }
 
-// Вызывать при загрузке страницы shop
 if (window.location.pathname.includes('shop.html')) {
     loadShopBackground();
 }
 
-// Глобальные экспорты
 window.showNotification = showNotification;
+window.showContactMessage = function() {
+    alert('Для уточнения цены и оформления заказа свяжитесь с нами:\nТелефон: +7 (910) 005-34-24\nTelegram: @MAFurniture_ru');
+};

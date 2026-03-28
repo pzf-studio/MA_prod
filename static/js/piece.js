@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', async function() {
-    // Инициализируем корзину ПЕРВЫМ делом
     if (!window.cartSystem) {
         window.cartSystem = new CartSystem();
         console.log('Корзина инициализирована в piece');
     }
-    
     await initializeProductPage();
 });
 
@@ -19,17 +17,12 @@ async function initializeProductPage() {
     
     try {
         const product = await dataManager.getProductById(productId);
-        
         if (!product) {
             showError('Товар не найден');
             return;
         }
-        
-        // Сохраняем текущий товар глобально для использования в корзине
         window.currentProduct = product;
-        
         renderProduct(product);
-        
     } catch (error) {
         console.error('Ошибка загрузки товара:', error);
         showError('Не удалось загрузить информацию о товаре');
@@ -37,10 +30,8 @@ async function initializeProductPage() {
 }
 
 function renderProduct(product) {
-    // Заголовок страницы
     document.title = `${product.name} - MA Furniture`;
     
-    // Основное изображение
     const mainImage = document.getElementById('productMainImage');
     if (mainImage) {
         if (product.images && product.images.length > 0) {
@@ -54,7 +45,6 @@ function renderProduct(product) {
         }
     }
     
-    // Миниатюры
     const thumbnails = document.getElementById('productThumbnails');
     if (thumbnails && product.images && product.images.length > 1) {
         thumbnails.innerHTML = '';
@@ -75,19 +65,61 @@ function renderProduct(product) {
         });
     }
     
-    // Информация о товаре
     const nameElement = document.getElementById('productName');
     if (nameElement) nameElement.textContent = product.name;
     
     const priceElement = document.getElementById('productPrice');
-    if (priceElement) {
+    const stockElement = document.getElementById('productStock');
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    
+    if (product.is_price_on_request) {
+        // Товар под заказ
+        if (priceElement) {
+            priceElement.innerHTML = `<span class="price-on-request">Цена под заказ</span>`;
+        }
+        if (stockElement) {
+            stockElement.textContent = 'Товар под заказ';
+            stockElement.className = 'price-on-request';
+        }
+        if (addToCartBtn) {
+            addToCartBtn.innerHTML = '<i class="fas fa-phone"></i> Узнать цену';
+            addToCartBtn.onclick = () => showContactMessage();
+            addToCartBtn.disabled = false;
+        }
+    } else {
+        // Обычный товар
         const oldPriceHtml = product.old_price ? 
             `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : '';
-        
-        priceElement.innerHTML = `
-            <span class="current-price">${dataManager.formatPrice(product.price)}</span>
-            ${oldPriceHtml}
-        `;
+        if (priceElement) {
+            priceElement.innerHTML = `
+                <span class="current-price">${dataManager.formatPrice(product.price)}</span>
+                ${oldPriceHtml}
+            `;
+        }
+        if (stockElement) {
+            if (product.stock > 10) {
+                stockElement.textContent = 'В наличии';
+                stockElement.className = 'in-stock';
+            } else if (product.stock > 0) {
+                stockElement.textContent = `Осталось ${product.stock} шт.`;
+                stockElement.className = 'low-stock';
+            } else {
+                stockElement.textContent = 'Нет в наличии';
+                stockElement.className = 'out-of-stock';
+                if (addToCartBtn) addToCartBtn.disabled = true;
+            }
+        }
+        if (addToCartBtn) {
+            addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
+            addToCartBtn.onclick = () => {
+                if (window.cartSystem) {
+                    window.cartSystem.addToCart(product);
+                } else {
+                    showNotification('Корзина недоступна', 'error');
+                }
+            };
+            addToCartBtn.disabled = (product.stock <= 0);
+        }
     }
     
     const badgeElement = document.getElementById('productBadge');
@@ -108,56 +140,19 @@ function renderProduct(product) {
         specsElement.innerHTML = specs.map(spec => `<li>${spec}</li>`).join('');
     }
     
-    // Кнопка добавления в корзину
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    if (addToCartBtn) {
-        addToCartBtn.addEventListener('click', () => {
-            if (window.cartSystem) {
-                window.cartSystem.addToCart(product);
-            } else {
-                showNotification('Корзина недоступна', 'error');
-            }
-        });
-    }
-    
-    // Статус наличия
-    const stockElement = document.getElementById('productStock');
-    if (stockElement) {
-        if (product.stock > 10) {
-            stockElement.textContent = 'В наличии';
-            stockElement.className = 'in-stock';
-        } else if (product.stock > 0) {
-            stockElement.textContent = `Осталось ${product.stock} шт.`;
-            stockElement.className = 'low-stock';
-        } else {
-            stockElement.textContent = 'Нет в наличии';
-            stockElement.className = 'out-of-stock';
-            if (addToCartBtn) addToCartBtn.disabled = true;
-        }
-    }
-    
-    // Загружаем цветовые варианты
     loadProductColors(product.id);
 }
 
-/**
- * Функция загрузки цветовых вариантов товара
- */
 async function loadProductColors(productId) {
     try {
         const response = await fetch(`${window.location.origin}/api/products/${productId}/colors`);
         const data = await response.json();
-        
         if (!data.success || !data.variants || data.variants.length <= 1) {
-            // Скрываем секцию выбора цвета если вариантов нет или только один
             const colorSection = document.querySelector('.product-colors-section');
             if (colorSection) colorSection.style.display = 'none';
             return;
         }
-        
-        // ИСПРАВЛЕНО: Используем круговой пикер вместо старого рендера
         initCircularColorPicker(data.variants, data.base_name);
-        
     } catch (error) {
         console.error('Ошибка загрузки цветов:', error);
         const colorSection = document.querySelector('.product-colors-section');
@@ -165,127 +160,22 @@ async function loadProductColors(productId) {
     }
 }
 
-/**
- * Инициализация кругового цветового пикера
- */
 function initCircularColorPicker(variants, baseProductName) {
     const container = document.getElementById('colorPickerContainer');
     if (!container) return;
-    
-    // Создаем круговой пикер
     const colorPicker = new ColorPicker('colorPickerContainer', {
         baseProductName: baseProductName,
         onColorChange: function(variant) {
-            // Обновляем информацию при выборе цвета
             selectColorVariant(variant);
         }
     });
-    
-    // Устанавливаем варианты
     colorPicker.setVariants(variants);
-    
-    // Выбираем первый вариант
     if (variants.length > 0) {
         colorPicker.selectVariant(variants[0].variant_id);
     }
 }
 
-/**
- * Рендер цветовых опций на странице товара
- */
-function renderColorOptions(variants) {
-    const container = document.getElementById('colorPickerContainer');
-    if (!container) return;
-    
-    // Если вариантов меньше 2, скрываем секцию
-    if (variants.length <= 1) {
-        container.style.display = 'none';
-        return;
-    }
-    
-    // Сортируем варианты: оригинал первый, затем по order
-    const sortedVariants = [...variants].sort((a, b) => {
-        if (a.is_original) return -1;
-        if (b.is_original) return 1;
-        return (a.order || 0) - (b.order || 0);
-    });
-    
-    let html = `
-        <div class="color-options">
-            <h4>Доступные цвета:</h4>
-            <div class="color-list">
-    `;
-    
-    sortedVariants.forEach((variant, index) => {
-        const isSelected = index === 0;
-        const badge = variant.is_original ? '<span class="original-badge">оригинал</span>' : '';
-        
-        html += `
-            <div class="color-option ${isSelected ? 'selected' : ''}" 
-                 data-variant-id="${variant.variant_id}"
-                 data-color-name="${variant.color_name}"
-                 data-color-hex="${variant.color_hex || '#2C2C2C'}">
-                <div class="color-sample" style="background-color: ${variant.color_hex || '#2C2C2C'}"></div>
-                <div class="color-info">
-                    <span class="color-name">${variant.color_name}</span>
-                    ${badge}
-                    <div class="color-code">${variant.variant_id}</div>
-                </div>
-                ${!variant.is_original && variant.price ? 
-                    `<div class="color-price">${dataManager.formatPrice(variant.price)}</div>` : ''}
-            </div>
-        `;
-    });
-    
-    html += `
-            </div>
-            <div class="selected-color-info" id="selectedColorInfo">
-                <!-- Информация о выбранном цвете будет обновляться -->
-            </div>
-        </div>
-    `;
-    
-    container.innerHTML = html;
-    
-    // Добавляем обработчики событий
-    addColorOptionListeners(variants);
-    
-    // Устанавливаем первый вариант как выбранный
-    if (variants.length > 0) {
-        selectColorVariant(variants[0]);
-    }
-}
-
-/**
- * Добавление обработчиков для цветовых опций
- */
-function addColorOptionListeners(variants) {
-    document.querySelectorAll('.color-option').forEach(option => {
-        option.addEventListener('click', () => {
-            const variantId = option.dataset.variantId;
-            const variant = variants.find(v => v.variant_id === variantId);
-            
-            if (variant) {
-                // Снимаем выделение со всех
-                document.querySelectorAll('.color-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                
-                // Выделяем выбранный
-                option.classList.add('selected');
-                
-                // Обновляем информацию
-                selectColorVariant(variant);
-            }
-        });
-    });
-}
-
-/**
- * Обновление информации при выборе цветового варианта
- */
 function selectColorVariant(variant) {
-    // Обновляем информацию о выбранном цвете
     const infoContainer = document.getElementById('selectedColorInfo');
     if (infoContainer) {
         infoContainer.innerHTML = `
@@ -295,17 +185,20 @@ function selectColorVariant(variant) {
             </div>
         `;
     }
-    
-    // Обновляем изображения
     updateProductImages(variant.images || []);
     
-    // Обновляем цену
+    // Обновляем цену и статус в зависимости от основного товара
+    const product = window.currentProduct;
+    if (product && product.is_price_on_request) {
+        // Если товар под заказ, цена и статус уже установлены, не меняем
+        return;
+    }
+    
     if (variant.price) {
         const priceElement = document.getElementById('productPrice');
         if (priceElement) {
             const oldPriceHtml = variant.old_price ? 
                 `<span class="old-price">${dataManager.formatPrice(variant.old_price)}</span>` : '';
-            
             priceElement.innerHTML = `
                 <span class="current-price">${dataManager.formatPrice(variant.price)}</span>
                 ${oldPriceHtml}
@@ -313,7 +206,6 @@ function selectColorVariant(variant) {
         }
     }
     
-    // Обновляем наличие
     const stockElement = document.getElementById('productStock');
     if (stockElement) {
         if (variant.stock > 10) {
@@ -328,20 +220,14 @@ function selectColorVariant(variant) {
         }
     }
     
-    // Обновляем кнопку добавления в корзину
     updateAddToCartButton(variant);
 }
 
-/**
- * Обновление изображений товара
- */
 function updateProductImages(images) {
     const mainImage = document.getElementById('productMainImage');
     const thumbnails = document.getElementById('productThumbnails');
-    
     if (!mainImage || !thumbnails) return;
     
-    // Обновляем основное изображение
     if (images && images.length > 0) {
         mainImage.src = images[0];
         mainImage.style.display = 'block';
@@ -351,7 +237,6 @@ function updateProductImages(images) {
         mainImage.nextElementSibling.style.display = 'flex';
     }
     
-    // Обновляем миниатюры
     thumbnails.innerHTML = '';
     if (images && images.length > 1) {
         images.forEach((image, index) => {
@@ -370,14 +255,22 @@ function updateProductImages(images) {
     }
 }
 
-/**
- * Обновление кнопки добавления в корзину
- */
 function updateAddToCartButton(variant) {
     const addToCartBtn = document.getElementById('addToCartBtn');
     if (!addToCartBtn) return;
     
-    // Если нет товара в наличии, блокируем кнопку
+    const product = window.currentProduct;
+    if (!product) return;
+    
+    // Если основной товар под заказ
+    if (product.is_price_on_request) {
+        addToCartBtn.innerHTML = '<i class="fas fa-phone"></i> Узнать цену';
+        addToCartBtn.onclick = () => showContactMessage();
+        addToCartBtn.disabled = false;
+        return;
+    }
+    
+    // Иначе стандартная логика
     if (variant.stock <= 0) {
         addToCartBtn.disabled = true;
         addToCartBtn.innerHTML = '<i class="fas fa-ban"></i> Нет в наличии';
@@ -386,23 +279,17 @@ function updateAddToCartButton(variant) {
         addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
     }
     
-    // Обновляем обработчик
     addToCartBtn.onclick = () => {
-        const product = window.currentProduct;
-        if (!product) return;
-        
-        // ВАЖНО: используем variant_id вместо product.id для цветовых копий
         const cartProduct = {
-            id: variant.variant_id, // Ключевое изменение!
+            id: variant.variant_id,
             name: variant.is_original ? product.name : `${product.name}${variant.suffix || ''}`,
             price: variant.price || product.price,
             image: variant.images?.[0] || product.images?.[0] || '',
             quantity: 1,
             original_product_id: product.id,
             color_name: variant.color_name,
-            variant_id: variant.variant_id // Сохраняем для идентификации
+            variant_id: variant.variant_id
         };
-        
         if (window.cartSystem) {
             window.cartSystem.addToCart(cartProduct);
         } else {
@@ -448,13 +335,10 @@ function showError(message) {
 }
 
 function showNotification(message, type = 'success') {
-    // Пробуем использовать cartSystem для уведомлений если доступен
     if (window.cartSystem && window.cartSystem.showNotification) {
         window.cartSystem.showNotification(message, type);
         return;
     }
-    
-    // Fallback уведомление
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
@@ -468,9 +352,7 @@ function showNotification(message, type = 'success') {
         border-radius: 8px;
         z-index: 1000;
     `;
-    
     document.body.appendChild(notification);
-    
     setTimeout(() => {
         notification.style.opacity = '0';
         notification.style.transition = 'opacity 0.3s';
@@ -478,127 +360,28 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Добавляем CSS стили для цветовых опций
+window.showContactMessage = function() {
+    alert('Для уточнения цены и оформления заказа свяжитесь с нами:\nТелефон: +7 (910) 005-34-24\nTelegram: @MAFurniture_ru');
+};
+
 const colorStyles = document.createElement('style');
 colorStyles.textContent = `
-    .color-options {
-        margin: 20px 0;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-    
-    .color-options h4 {
-        margin: 0 0 15px 0;
-        color: #333;
-        font-size: 1.1rem;
-    }
-    
-    .color-list {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .color-option {
-        display: flex;
-        align-items: center;
-        padding: 12px 15px;
-        background: white;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .color-option:hover {
-        border-color: #3498db;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .color-option.selected {
-        border-color: #2c3e50;
-        background: #f8f9fa;
-    }
-    
-    .color-sample {
-        width: 40px;
-        height: 40px;
-        border-radius: 6px;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-right: 15px;
-        flex-shrink: 0;
-    }
-    
-    .color-info {
-        flex: 1;
-    }
-    
-    .color-name {
-        font-weight: 600;
-        color: #333;
-        display: block;
-        margin-bottom: 4px;
-    }
-    
-    .original-badge {
-        display: inline-block;
-        background: #3498db;
-        color: white;
-        font-size: 0.75rem;
-        padding: 2px 6px;
-        border-radius: 4px;
-        margin-left: 8px;
-    }
-    
-    .color-code {
-        font-size: 0.85rem;
-        color: #666;
-        font-family: monospace;
-    }
-    
-    .color-price {
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 1rem;
-    }
-    
-    .selected-color-info {
-        margin-top: 15px;
-        padding: 12px;
-        background: white;
-        border-radius: 6px;
-        border: 1px solid #dee2e6;
-    }
-    
-    .selected-color-details {
-        color: #333;
-        font-size: 0.9rem;
-    }
-    
-    .selected-color-details small {
-        color: #666;
-        font-size: 0.8rem;
-    }
-    
-    @media (max-width: 768px) {
-        .color-option {
-            flex-direction: column;
-            text-align: center;
-            padding: 15px;
-        }
-        
-        .color-sample {
-            margin-right: 0;
-            margin-bottom: 10px;
-        }
-        
-        .color-price {
-            margin-top: 10px;
-        }
-    }
+    .color-options { margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+    .color-options h4 { margin: 0 0 15px 0; color: #333; font-size: 1.1rem; }
+    .color-list { display: flex; flex-direction: column; gap: 10px; }
+    .color-option { display: flex; align-items: center; padding: 12px 15px; background: white; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; }
+    .color-option:hover { border-color: #3498db; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .color-option.selected { border-color: #2c3e50; background: #f8f9fa; }
+    .color-sample { width: 40px; height: 40px; border-radius: 6px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-right: 15px; flex-shrink: 0; }
+    .color-info { flex: 1; }
+    .color-name { font-weight: 600; color: #333; display: block; margin-bottom: 4px; }
+    .original-badge { display: inline-block; background: #3498db; color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+    .color-code { font-size: 0.85rem; color: #666; font-family: monospace; }
+    .color-price { font-weight: 600; color: #2c3e50; font-size: 1rem; }
+    .selected-color-info { margin-top: 15px; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; }
+    .selected-color-details { color: #333; font-size: 0.9rem; }
+    .selected-color-details small { color: #666; font-size: 0.8rem; }
+    @media (max-width: 768px) { .color-option { flex-direction: column; text-align: center; padding: 15px; } .color-sample { margin-right: 0; margin-bottom: 10px; } .color-price { margin-top: 10px; } }
 `;
 document.head.appendChild(colorStyles);
 
@@ -610,165 +393,90 @@ class FullscreenViewer {
         this.prevBtn = document.getElementById('fullscreenPrev');
         this.nextBtn = document.getElementById('fullscreenNext');
         this.counter = document.getElementById('fullscreenCounter');
-        
         this.currentImages = [];
         this.currentIndex = 0;
-        
         this.init();
     }
     
     init() {
-        // Обработчики событий
         this.closeBtn.addEventListener('click', () => this.close());
         this.prevBtn.addEventListener('click', () => this.prev());
         this.nextBtn.addEventListener('click', () => this.next());
-        
-        // Закрытие по клику на фон
-        this.viewer.addEventListener('click', (e) => {
-            if (e.target === this.viewer) {
-                this.close();
-            }
-        });
-        
-        // Навигация с клавиатуры
+        this.viewer.addEventListener('click', (e) => { if (e.target === this.viewer) this.close(); });
         document.addEventListener('keydown', (e) => {
             if (!this.viewer.classList.contains('active')) return;
-            
             switch(e.key) {
-                case 'Escape':
-                    this.close();
-                    break;
-                case 'ArrowLeft':
-                    this.prev();
-                    break;
-                case 'ArrowRight':
-                    this.next();
-                    break;
+                case 'Escape': this.close(); break;
+                case 'ArrowLeft': this.prev(); break;
+                case 'ArrowRight': this.next(); break;
             }
         });
-        
-        // Предотвращаем закрытие при клике на изображение
-        this.fullscreenImage.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
+        this.fullscreenImage.addEventListener('click', (e) => e.stopPropagation());
     }
     
-    /**
-     * Открыть изображение в полноэкранном режиме
-     */
     open(images, startIndex = 0) {
         if (!images || images.length === 0) return;
-        
         this.currentImages = images;
         this.currentIndex = startIndex;
-        
         this.updateImage();
         this.viewer.classList.add('active');
-        
-        // Блокируем скролл body
         document.body.style.overflow = 'hidden';
     }
     
-    /**
-     * Закрыть полноэкранный режим
-     */
     close() {
         this.viewer.classList.remove('active');
         this.currentImages = [];
         this.currentIndex = 0;
-        
-        // Восстанавливаем скролл
         document.body.style.overflow = '';
     }
     
-    /**
-     * Предыдущее изображение
-     */
     prev() {
         if (this.currentImages.length <= 1) return;
-        
         this.currentIndex--;
-        if (this.currentIndex < 0) {
-            this.currentIndex = this.currentImages.length - 1;
-        }
-        
+        if (this.currentIndex < 0) this.currentIndex = this.currentImages.length - 1;
         this.updateImage();
     }
     
-    /**
-     * Следующее изображение
-     */
     next() {
         if (this.currentImages.length <= 1) return;
-        
         this.currentIndex++;
-        if (this.currentIndex >= this.currentImages.length) {
-            this.currentIndex = 0;
-        }
-        
+        if (this.currentIndex >= this.currentImages.length) this.currentIndex = 0;
         this.updateImage();
     }
     
-    /**
-     * Обновить отображаемое изображение
-     */
     updateImage() {
         const image = this.currentImages[this.currentIndex];
         this.fullscreenImage.src = image;
         this.fullscreenImage.alt = `Изображение ${this.currentIndex + 1}`;
-        
-        // Обновляем счетчик
         this.counter.textContent = `${this.currentIndex + 1} / ${this.currentImages.length}`;
-        
-        // Показываем/скрываем кнопки навигации
         this.prevBtn.style.display = this.currentImages.length > 1 ? 'flex' : 'none';
         this.nextBtn.style.display = this.currentImages.length > 1 ? 'flex' : 'none';
         this.counter.style.display = this.currentImages.length > 1 ? 'block' : 'none';
     }
 }
 
-/**
- * Инициализация полноэкранного просмотра
- */
 function initFullscreenViewer() {
     window.fullscreenViewer = new FullscreenViewer();
-    
-    // Добавляем кнопку открытия на главное изображение
     addFullscreenToggle();
 }
 
-/**
- * Добавить кнопку открытия в полноэкранный режим
- */
 function addFullscreenToggle() {
     const mainImageContainer = document.querySelector('.main-image-container');
     if (!mainImageContainer) return;
-    
-    // Создаем кнопку
     const toggleBtn = document.createElement('button');
     toggleBtn.className = 'fullscreen-toggle';
     toggleBtn.innerHTML = '<i class="fas fa-expand"></i>';
     toggleBtn.title = 'Открыть в полноэкранном режиме';
-    
-    // Добавляем кнопку в контейнер
     mainImageContainer.appendChild(toggleBtn);
-    
-    // Обработчик клика
     toggleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         openMainImageFullscreen();
     });
-    
-    // Также открываем по клику на само изображение
     const mainImage = document.getElementById('productMainImage');
     if (mainImage) {
         mainImage.style.cursor = 'zoom-in';
-        mainImage.addEventListener('click', () => {
-            openMainImageFullscreen();
-        });
+        mainImage.addEventListener('click', () => openMainImageFullscreen());
     }
-    
-    // Добавляем обработчики для миниатюр
     document.addEventListener('click', (e) => {
         if (e.target.closest('.thumbnail img')) {
             const thumbnail = e.target.closest('.thumbnail');
@@ -780,88 +488,52 @@ function addFullscreenToggle() {
     });
 }
 
-/**
- * Открыть главное изображение в полноэкранном режиме
- */
 function openMainImageFullscreen() {
     const product = window.currentProduct;
     if (!product || !product.images || product.images.length === 0) return;
-    
-    // Получаем текущее изображение (учитывая цветовые варианты)
     const mainImage = document.getElementById('productMainImage');
     const currentImage = mainImage.src;
-    
-    // Находим индекс текущего изображения
     const images = getCurrentProductImages();
     const startIndex = images.indexOf(currentImage);
-    
     window.fullscreenViewer.open(images, startIndex >= 0 ? startIndex : 0);
 }
 
-/**
- * Открыть все изображения товара в полноэкранном режиме
- */
 function openProductImagesFullscreen(startIndex = 0) {
     const images = getCurrentProductImages();
     if (images.length === 0) return;
-    
     window.fullscreenViewer.open(images, startIndex);
 }
 
-/**
- * Получить текущие изображения товара
- */
 function getCurrentProductImages() {
     const product = window.currentProduct;
     if (!product) return [];
-    
-    // Проверяем, есть ли цветовые варианты
     const colorOption = document.querySelector('.color-option.selected');
     if (colorOption && window.currentColorVariants) {
         const variantId = colorOption.dataset.variantId;
         const variant = window.currentColorVariants.find(v => v.variant_id === variantId);
-        if (variant && variant.images && variant.images.length > 0) {
-            return variant.images;
-        }
+        if (variant && variant.images && variant.images.length > 0) return variant.images;
     }
-    
-    // Возвращаем обычные изображения товара
     return product.images || [];
 }
 
-/**
- * Обновить полноэкранный просмотр при смене цветового варианта
- */
 function updateFullscreenViewer(variant) {
-    // Сохраняем текущие варианты в глобальной переменной
     window.currentColorVariants = window.currentColorVariants || [];
-    
-    // Если передан вариант, обновляем изображения
     if (variant && variant.images) {
-        // Находим индекс текущего варианта в массиве
         const variantIndex = window.currentColorVariants.findIndex(v => v.variant_id === variant.variant_id);
-        if (variantIndex >= 0) {
-            window.currentColorVariants[variantIndex] = variant;
-        }
+        if (variantIndex >= 0) window.currentColorVariants[variantIndex] = variant;
     }
 }
 
-// Инициализируем после загрузки страницы
 document.addEventListener('DOMContentLoaded', () => {
-    // Небольшая задержка, чтобы все элементы успели загрузиться
-    setTimeout(() => {
-        initFullscreenViewer();
-    }, 500);
+    setTimeout(() => { initFullscreenViewer(); }, 500);
 });
 
-// Обновляем функцию selectColorVariant для поддержки полноэкранного просмотра
 const originalSelectColorVariant = selectColorVariant;
 selectColorVariant = function(variant) {
     originalSelectColorVariant(variant);
     updateFullscreenViewer(variant);
 };
 
-// Обновляем функцию updateAddToCartButton для поддержки полноэкранного просмотра
 const originalUpdateAddToCartButton = updateAddToCartButton;
 updateAddToCartButton = function(variant) {
     originalUpdateAddToCartButton(variant);
