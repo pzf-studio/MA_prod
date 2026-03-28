@@ -96,7 +96,7 @@ def save_product(product_data):
                 UPDATE products
                 SET name=?, code=?, category=?, section=?, price=?, old_price=?, badge=?,
                     recommended=?, description=?, specifications=?, status=?, stock=?,
-                    images=?, color_variants=?, updated_at=?
+                    images=?, color_variants=?, updated_at=?, is_price_on_request=?
                 WHERE id=?
             ''', (
                 product_data.get('name'),
@@ -114,6 +114,7 @@ def save_product(product_data):
                 json.dumps(product_data.get('images', [])),
                 json.dumps(product_data.get('color_variants', [])),
                 now,
+                1 if product_data.get('is_price_on_request') else 0,
                 product_id
             ))
         return product_id
@@ -129,8 +130,8 @@ def save_product(product_data):
                 INSERT INTO products
                 (id, name, code, category, section, price, old_price, badge,
                  recommended, description, specifications, status, stock,
-                 images, color_variants, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 images, color_variants, created_at, updated_at, is_price_on_request)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 new_id,
                 product_data.get('name'),
@@ -148,7 +149,8 @@ def save_product(product_data):
                 json.dumps(product_data.get('images', [])),
                 json.dumps(product_data.get('color_variants', [])),
                 now,
-                now
+                now,
+                1 if product_data.get('is_price_on_request') else 0
             ))
         return new_id
 
@@ -649,7 +651,6 @@ def admin_reorder_sections():
 
 # ========== КОНСТАНТЫ ДЛЯ МЕДИА ==========
 
-
 # ========== ФУНКЦИИ РАБОТЫ С МЕДИА ==========
 def load_background():
     """Загрузить данные о фоне"""
@@ -909,8 +910,6 @@ def admin_dashboard_popular_products():
     except Exception as e:
         logger.error(f"Ошибка получения популярных товаров: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
-
-
 
 # ========== РОУТ ДЛЯ СТРАНИЦЫ УПРАВЛЕНИЯ МЕДИА ==========
 @app.route('/admin/media')
