@@ -73,14 +73,14 @@ function renderProduct(product) {
     const addToCartBtn = document.getElementById('addToCartBtn');
     
     if (product.is_price_on_request) {
-        // Цена под заказ
+        // Доступен для заказа
         if (priceElement) {
-            priceElement.innerHTML = `<span class="price-on-request">Цена под заказ</span>`;
+            priceElement.innerHTML = `<span class="price-on-request">Доступен для заказа</span>`;
         }
-        // Специальное сообщение
+        // Убираем специальное сообщение, показываем обычный статус "Под заказ"
         if (stockElement) {
-            stockElement.textContent = 'Данного товара нет в наличии, но может быть заказан в индивидуальном порядке';
-            stockElement.className = 'price-on-request-note';
+            stockElement.textContent = 'Под заказ';
+            stockElement.className = 'price-on-request-note'; // или переименуем класс, но оставим для стилей
         }
         // Кнопка активна, добавляем в корзину (обычная логика)
         if (addToCartBtn) {
