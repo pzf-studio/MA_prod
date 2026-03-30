@@ -1,4 +1,4 @@
-// Админ-панель: управление товарами (ВЕРСИЯ С ЦВЕТОВЫМИ КОПИЯМИ, ФИЛЬТРАМИ И ПОИСКОМ)
+// Админ-панель: управление товарами (с поддержкой availability и is_price_on_request)
 class AdminProductsManager {
     constructor() {
         this.API_BASE = window.location.origin;
@@ -215,6 +215,22 @@ class AdminProductsManager {
         }
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); this.logout(); });
+        
+        // Слушатель изменения селекта "Наличие" для управления чекбоксом "Отображать цену товара"
+        const availabilitySelect = document.getElementById('productCategory');
+        if (availabilitySelect) {
+            availabilitySelect.addEventListener('change', (e) => {
+                this.togglePriceOnRequestCheckbox(e.target.value === '1');
+            });
+        }
+    }
+    // Управление чекбоксом "Отображать цену товара"
+    togglePriceOnRequestCheckbox(enable) {
+        const checkbox = document.getElementById('priceOnRequest');
+        if (checkbox) {
+            checkbox.disabled = !enable;
+            if (!enable) checkbox.checked = false;
+        }
     }
     initColorModal() {
         const colorModal = document.getElementById('colorCopyModal');
@@ -387,6 +403,10 @@ class AdminProductsManager {
         if (imagePreview) imagePreview.innerHTML = '';
         document.getElementById('productId').value = '';
         document.getElementById('productImages').value = '[]';
+        // Сбросить чекбокс и селект
+        document.getElementById('priceOnRequest').checked = false;
+        document.getElementById('priceOnRequest').disabled = true;
+        document.getElementById('productCategory').value = '0';
         if (productId) { modalTitle.textContent = 'Редактировать товар'; this.loadProductData(productId); }
         else modalTitle.textContent = 'Добавить новый товар';
         modal.classList.add('active');
@@ -397,7 +417,7 @@ class AdminProductsManager {
         document.getElementById('productId').value = product.id;
         document.getElementById('productName').value = product.name || '';
         document.getElementById('productCode').value = product.code || '';
-        document.getElementById('productCategory').value = product.category || '';
+        document.getElementById('productCategory').value = product.availability !== undefined ? product.availability : 0;
         document.getElementById('productSection').value = product.section || '';
         document.getElementById('productPrice').value = product.price || 0;
         document.getElementById('productOldPrice').value = product.old_price || '';
@@ -409,6 +429,9 @@ class AdminProductsManager {
         document.getElementById('productStock').value = product.stock || 10;
         const priceOnRequestCheckbox = document.getElementById('priceOnRequest');
         if (priceOnRequestCheckbox) priceOnRequestCheckbox.checked = product.is_price_on_request === 1;
+        // Управляем активностью чекбокса в зависимости от выбранного availability
+        this.togglePriceOnRequestCheckbox(product.availability === 1);
+        
         const images = product.images || [];
         const imagePreview = document.getElementById('imagePreview');
         if (imagePreview && images.length > 0) {
@@ -425,6 +448,8 @@ class AdminProductsManager {
     async handleProductSubmit(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
+        const availability = parseInt(document.getElementById('productCategory').value) === 1 ? 1 : 0;
+        const is_price_on_request = document.getElementById('priceOnRequest').checked ? 1 : 0;
         const productData = {
             name: formData.get('productName'),
             code: formData.get('productCode'),
@@ -439,7 +464,8 @@ class AdminProductsManager {
             status: formData.get('productStatus'),
             stock: parseInt(formData.get('productStock')) || 0,
             images: JSON.parse(formData.get('productImages') || '[]'),
-            is_price_on_request: document.getElementById('priceOnRequest').checked
+            availability: availability,
+            is_price_on_request: is_price_on_request
         };
         const productId = formData.get('productId');
         try {

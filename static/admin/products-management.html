@@ -706,17 +706,14 @@
                         <div class="form-group">
                             <label for="productCategory">Наличие *</label>
                             <select id="productCategory" name="productCategory" class="form-control" required>
-                                <option value="">Выберите категорию</option>
-                                <option value="1">В наличии</option>
-                                <option value="2">Под заказ</option>
+                                <option value="0">В наличии</option>
+                                <option value="1">Под заказ</option>
                             </select>
                         </div>
-                        
                         <div class="form-group">
                             <label for="productSection">Раздел</label>
                             <select id="productSection" name="productSection" class="form-control">
                                 <option value="">Без раздела</option>
-                                <!-- Разделы загружаются динамически -->
                             </select>
                         </div>
                     </div>
@@ -775,9 +772,10 @@
                         </div>
                         <div class="form-group">
                             <label for="priceOnRequest">
-                                <input type="checkbox" id="priceOnRequest" name="priceOnRequest" value="1">
-                                Товар под заказ (цена не отображается)
+                                <input type="checkbox" id="priceOnRequest" name="priceOnRequest" value="1" disabled>
+                                Отображать цену товара
                             </label>
+                            <small class="text-muted">Доступно только при выборе "Под заказ". Если включено – цена будет показана, иначе скрыта.</small>
                         </div>
                     </div>
 
@@ -836,16 +834,7 @@
                             </select>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="productStock">Количество на складе</label>
-                            <input type="number" 
-                                   id="productStock" 
-                                   name="productStock" 
-                                   class="form-control" 
-                                   min="0" 
-                                   value="10"
-                                   placeholder="Количество">
-                        </div>
+                        
                     </div>
                     
                     <input type="hidden" id="productId" name="productId">

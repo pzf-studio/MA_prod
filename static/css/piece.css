@@ -3530,3 +3530,26 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
         justify-content: center;
     }
 }
+
+.product-badge.order-badge {
+    background: #f39c12;
+    color: white;
+}
+.order-badge {
+    display: inline-block;
+    background: #f39c12;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+.price-on-request {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #fef5e7;
+    color: #d4af37;
+    font-weight: 600;
+    border-radius: 25px;
+    font-size: 1rem;
+    border: 1px solid #d4af37;
+}
