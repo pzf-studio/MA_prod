@@ -871,3 +871,17 @@ textarea.form-control {
         grid-template-columns: 1fr !important;
     }
 }
+
+.docs-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #cbd5e1;
+    text-decoration: none;
+    padding: 8px 0;
+    transition: var(--transition);
+    margin-bottom: 8px;
+}
+.docs-btn:hover {
+    color: var(--secondary-color);
+}

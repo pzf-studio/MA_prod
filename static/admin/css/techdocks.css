@@ -1,0 +1,126 @@
+/* Стили для страницы технической документации */
+.docs-container {
+    display: flex;
+    gap: 30px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+}
+.docs-sidebar {
+    width: 280px;
+    background: #f8fafc;
+    border-right: 1px solid var(--border-color);
+    padding: 20px;
+}
+.docs-search {
+    position: relative;
+    margin-bottom: 20px;
+}
+.docs-search input {
+    width: 100%;
+    padding: 10px 35px 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+.docs-search i {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+.docs-nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.docs-nav li {
+    margin-bottom: 8px;
+}
+.docs-nav a {
+    display: block;
+    padding: 8px 12px;
+    color: #334155;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+.docs-nav a:hover {
+    background: #e2e8f0;
+}
+.docs-nav a.active {
+    background: var(--secondary-color);
+    color: white;
+}
+.docs-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    max-height: calc(100vh - 150px);
+}
+.docs-section {
+    display: none;
+}
+.docs-section.active {
+    display: block;
+}
+.docs-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 10px;
+}
+.docs-section h3 {
+    font-size: 1.3rem;
+    margin: 25px 0 15px;
+    color: #1e293b;
+}
+.docs-section p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+.docs-section ul, .docs-section ol {
+    margin: 15px 0;
+    padding-left: 25px;
+}
+.docs-section li {
+    margin-bottom: 8px;
+}
+.docs-section code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: #e74c3c;
+}
+.docs-section pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 15px 0;
+}
+.docs-section pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+}
+@media (max-width: 768px) {
+    .docs-container {
+        flex-direction: column;
+    }
+    .docs-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .docs-content {
+        max-height: none;
+    }
+}
