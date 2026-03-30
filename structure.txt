@@ -13,17 +13,20 @@
 │   │   ├── 📁 css
 │   │   │   ├── 📄 admin-backup.css
 │   │   │   ├── 📄 admin-login.css
-│   │   │   └── 📄 admin-styles.css
+│   │   │   ├── 📄 admin-styles.css
+│   │   │   └── 📄 techdocks.css
 │   │   ├── 📁 js
 │   │   │   ├── 📄 admin-auth.js
 │   │   │   ├── 📄 admin-backup.js
 │   │   │   ├── 📄 admin-categories.js
 │   │   │   ├── 📄 admin-color-picker.js
+│   │   │   ├── 📄 admin-common.js
 │   │   │   ├── 📄 admin-dashboard.js
 │   │   │   ├── 📄 admin-media.js
 │   │   │   ├── 📄 admin-products.js
 │   │   │   ├── 📄 admin-upload.js
-│   │   │   └── 📄 maintenance.js
+│   │   │   ├── 📄 maintenance.js
+│   │   │   └── 📄 techdocks.js
 │   │   ├── 📄 admin-dashboard.html
 │   │   ├── 📄 admin-login.html
 │   │   ├── 📄 backup-management.html
@@ -31,6 +34,7 @@
 │   │   ├── 📄 cleanup-uploads.php
 │   │   ├── 📄 media-management.html
 │   │   ├── 📄 products-management.html
+│   │   ├── 📄 techdocks.html
 │   │   └── 📄 upload-handler.php
 │   ├── 📁 css
 │   │   ├── 📄 index.css

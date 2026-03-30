@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="./css/index.css">
     <script src="./js/index.js" defer></script>
     <style>
-        /* Временные стили для отладки */
+        /* Временные стили для отладки (оставлены как есть) */
         .featured-product-card {
             background: white !important;
             border-radius: 10px !important;
@@ -35,7 +35,6 @@
             height: 100% !important;
             opacity: 1 !important;
             visibility: visible !important;
-            border: 2px solid red !important; /* Для видимости при отладке */
         }
         
         .featured-product-card .product-image {
@@ -116,7 +115,6 @@
             margin-bottom: 3rem !important;
         }
         
-        /* Стили для загрузки */
         .loading-products {
             grid-column: 1 / -1 !important;
             text-align: center !important;
@@ -160,9 +158,10 @@
                 </nav>
                 
                 <div class="header-actions">
-                    <a href="https://t.me/MAFurniture_ru" class="btn btn-outline btn-telegram btn-small">
-                        <i class="fab fa-telegram-plane"></i>
-                        <span>Telegram</span>
+                    <!-- Заменено: кнопка Telegram на кнопку телефона -->
+                    <a href="tel:+79100053424" class="btn btn-outline btn-phone">
+                        <i class="fas fa-phone-alt"></i>
+                        <span>+7 (910) 005-34-24</span>
                     </a>
                     <!-- Бургер-кнопка удалена -->
                 </div>
