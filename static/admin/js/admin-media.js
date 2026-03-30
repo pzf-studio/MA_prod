@@ -55,6 +55,24 @@ class AdminMediaManager {
         }
     }
     
+    async deleteBackground() {
+        if (!this.currentBackground) return;
+        if (!confirm('Удалить фоновое изображение?')) return;
+        try {
+            const res = await fetch(`${this.API_BASE}/api/admin/media/background/${this.currentBackground.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${this.authToken}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.currentBackground = null;
+                this.renderBackgroundPreview();
+                this.populateForm();
+                window.showNotification('Фон удалён');
+            }
+        } catch(e) { console.error(e); }
+    }
+
     renderBackgroundPreview() {
         const previewContainer = document.getElementById('currentBackgroundPreview');
         const infoContainer = document.getElementById('backgroundInfo');
