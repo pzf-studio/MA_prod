@@ -90,7 +90,7 @@ function renderProduct(product) {
             }
         } else {
             if (priceElement) {
-                priceElement.innerHTML = `<span class="price-on-request">Цена не указана</span>`;
+                priceElement.innerHTML = `<span class="price-on-request">Цена под заказ</span>`;
             }
         }
         // Кнопка активна всегда
@@ -230,7 +230,7 @@ function selectColorVariant(variant) {
                 }
             } else {
                 if (priceElement) {
-                    priceElement.innerHTML = `<span class="price-on-request">Цена не указана</span>`;
+                    priceElement.innerHTML = `<span class="price-on-request">Цена под заказ</span>`;
                 }
             }
             if (addToCartBtn) addToCartBtn.disabled = false;

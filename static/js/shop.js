@@ -149,7 +149,7 @@ async function initializeProducts() {
             if (product.is_price_on_request === 1) {
                 priceHtml = `<div class="product-price"><span class="current-price">${dataManager.formatPrice(product.price)}</span></div>`;
             } else {
-                priceHtml = `<div class="product-price"><span class="price-on-request">Цена не указана</span></div>`;
+                priceHtml = `<div class="product-price"><span class="price-on-request">Цена под заказ</span></div>`;
             }
         } else {
             // В наличии
