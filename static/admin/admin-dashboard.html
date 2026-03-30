@@ -9,7 +9,6 @@
     <link rel="icon" type="image/x-icon" href="/static/images/logo2.png">
 </head>
 <body>
-    <!-- Боковая панель -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">
@@ -19,273 +18,67 @@
                     <small>Админ панель</small>
                 </div>
             </div>
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
+            <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
         </div>
-        
         <div class="sidebar-menu">
             <div class="user-info">
-                <div class="user-avatar">
-                    <i class="fas fa-user-shield"></i>
-                </div>
+                <div class="user-avatar"><i class="fas fa-user-shield"></i></div>
                 <div class="user-details">
                     <h4 id="adminName">Администратор</h4>
                     <small id="adminRole">Владелец</small>
                 </div>
             </div>
-            
             <ul class="nav-links">
-                <li class="nav-item active">
-                    <a href="admin-dashboard.html">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Дашборд</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="products-management.html">
-                        <i class="fas fa-box"></i>
-                        <span>Товары</span>
-                        <span class="badge" id="productsBadge">0</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="categories-management.html">
-                        <i class="fas fa-tags"></i>
-                        <span>Разделы</span>
-                        <span class="badge" id="categoriesBadge">0</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="media-management.html">
-                        <i class="fas fa-images"></i>
-                        <span>Медиа</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="backup-management.html">
-                        <i class="fas fa-database"></i>
-                        <span>Резервное копирование</span>
-                    </a>
-                </li>
+                <li class="nav-item"><a href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Дашборд</span></a></li>
+                <li class="nav-item"><a href="products-management.html"><i class="fas fa-box"></i><span>Товары</span><span class="badge" id="productsBadge">0</span></a></li>
+                <li class="nav-item"><a href="categories-management.html"><i class="fas fa-tags"></i><span>Разделы</span><span class="badge" id="categoriesBadge">0</span></a></li>
+                <li class="nav-item"><a href="media-management.html"><i class="fas fa-images"></i><span>Медиа</span></a></li>
+                <li class="nav-item"><a href="backup-management.html"><i class="fas fa-database"></i><span>Резервное копирование</span></a></li>
             </ul>
-            
             <div class="sidebar-footer">
-                <a href="#" class="logout-btn" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Выйти</span>
-                </a>
-                <div class="version">v2.0.0</div>
+                <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>Выйти</span></a>
+                <div class="version">v3.0</div>
             </div>
         </div>
     </nav>
 
-    <!-- Основной контент -->
     <main class="main-content">
-        <!-- Верхняя панель -->
         <header class="topbar">
             <div class="topbar-left">
                 <h1 class="page-title">Дашборд</h1>
-                <nav class="breadcrumb">
-                    <a href="admin-dashboard.html">Главная</a>
-                    <span>/</span>
-                    <span class="current">Панель управления</span>
-                </nav>
+                <nav class="breadcrumb"><a href="admin-dashboard.html">Главная</a><span>/</span><span class="current">Панель управления</span></nav>
             </div>
             <div class="topbar-right">
-                <button class="btn btn-primary" onclick="window.location.href='products-management.html'">
-                    <i class="fas fa-plus"></i>
-                    Добавить товар
-                </button>
+                <button class="btn btn-primary" onclick="window.location.href='products-management.html'"><i class="fas fa-plus"></i> Добавить товар</button>
             </div>
         </header>
 
-        <!-- Виджет онлайн-трекинга -->
         <div class="online-tracker" id="onlineTracker">
             <div class="online-info">
                 <i class="fas fa-users"></i>
-                <div>
-                    <h4>Онлайн сейчас</h4>
-                    <div class="count" id="onlineCount">0</div>
-                </div>
+                <div><h4>Онлайн сейчас</h4><div class="count" id="onlineCount">0</div></div>
             </div>
-            <div class="online-status">
-                <span class="live"></span>
-                <span>Обновляется в реальном времени</span>
-            </div>
+            <div class="online-status"><span class="live"></span><span>Обновляется в реальном времени</span></div>
         </div>
 
-        <!-- Статистические карточки -->
         <section class="stats-cards">
-            <div class="stat-card">
-                <div class="stat-icon primary">
-                    <i class="fas fa-box"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="totalProducts">0</h3>
-                    <p>Всего товаров</p>
-                </div>
-                <div class="stat-trend up">
-                    <i class="fas fa-arrow-up"></i>
-                    <span id="productsTrend">0%</span>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon success">
-                    <i class="fas fa-tags"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="totalCategories">0</h3>
-                    <p>Активных разделов</p>
-                </div>
-                <div class="stat-trend up">
-                    <i class="fas fa-arrow-up"></i>
-                    <span id="categoriesTrend">0%</span>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon warning">
-                    <i class="fas fa-image"></i>
-                </div>
-                <div class="stat-info">
-                    <h3 id="backgroundStatusText">Нет</h3>
-                    <p>Фоновое изображение</p>
-                </div>
-            </div>
+            <div class="stat-card"><div class="stat-icon primary"><i class="fas fa-box"></i></div><div class="stat-info"><h3 id="totalProducts">0</h3><p>Всего товаров</p></div><div class="stat-trend up"><i class="fas fa-arrow-up"></i><span id="productsTrend">0%</span></div></div>
+            <div class="stat-card"><div class="stat-icon success"><i class="fas fa-tags"></i></div><div class="stat-info"><h3 id="totalCategories">0</h3><p>Активных разделов</p></div><div class="stat-trend up"><i class="fas fa-arrow-up"></i><span id="categoriesTrend">0%</span></div></div>
+            <div class="stat-card"><div class="stat-icon warning"><i class="fas fa-image"></i></div><div class="stat-info"><h3 id="backgroundStatusText">Нет</h3><p>Фоновое изображение</p></div></div>
         </section>
 
-        <!-- Основной контент -->
-        <div class="content-grid">
-            <!-- Левая колонка -->
-            <div class="content-col">
-                <!-- Последняя активность -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Последняя активность</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="activity-feed" id="activityFeed">
-                            <!-- Активность загружается динамически -->
-                            <div class="activity-item">
-                                <div class="activity-icon product">
-                                    <i class="fas fa-sync-alt"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="loading-skeleton"></div>
-                                    <div class="loading-skeleton time"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Превью фонового изображения -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Текущий фон главной страницы</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="background-preview" id="backgroundPreview">
-                            <div class="preview-image-container">
-                                <div class="no-background-message">
-                                    <i class="fas fa-image"></i>
-                                    <p>Фон не установлен</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="background-actions" style="margin-top: 15px;">
-                            <a href="media-management.html" class="btn btn-primary" style="width: 100%;">
-                                <i class="fas fa-edit"></i>
-                                Управление медиа
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Правая колонка -->
-            <div class="content-col">
-                <!-- Быстрые действия -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Быстрые действия</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="quick-actions-grid">
-                            <button class="quick-action-btn" onclick="window.location.href='products-management.html'">
-                                <i class="fas fa-box"></i>
-                                <span>Добавить товар</span>
-                            </button>
-                            <button class="quick-action-btn" onclick="window.location.href='categories-management.html'">
-                                <i class="fas fa-tags"></i>
-                                <span>Управление разделами</span>
-                            </button>
-                            <button class="quick-action-btn" onclick="window.location.href='media-management.html'">
-                                <i class="fas fa-image"></i>
-                                <span>Изменить фон</span>
-                            </button>
-                            <button class="quick-action-btn" onclick="window.open('/', '_blank')">
-                                <i class="fas fa-eye"></i>
-                                <span>Посмотреть сайт</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Популярные товары -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Популярные товары</h3>
-                        <a href="products-management.html" class="view-all">Все товары</a>
-                    </div>
-                    <div class="card-body">
-                        <div class="popular-products" id="popularProducts">
-                            <!-- Товары загружаются динамически -->
-                        </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Режим обслуживания</h3>
-                    </div>
-                    <div class="card-body">
-                        <p id="maintenanceStatusText">Сайт работает в обычном режиме.</p>
-                        <div class="maintenance-status" style="margin: 15px 0;">
-                            <span class="status-label">Текущий статус:</span>
-                            <span id="maintenanceStatus" class="badge badge-success">Выключен</span>
-                        </div>
-                        <button id="maintenanceToggle" class="btn btn-warning" style="width: 100%;">
-                            <i class="fas fa-tools"></i> Включить режим
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div class="content-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+            <div class="card"><div class="card-header"><h3>Последняя активность</h3></div><div class="card-body"><div class="activity-feed" id="activityFeed"><div class="activity-item"><div class="activity-icon"><i class="fas fa-sync-alt fa-spin"></i></div><div class="activity-content">Загрузка...</div></div></div></div></div>
+            <div class="card"><div class="card-header"><h3>Быстрые действия</h3></div><div class="card-body"><div class="quick-actions-grid"><button class="quick-action-btn" onclick="location.href='products-management.html'"><i class="fas fa-box"></i><span>Добавить товар</span></button><button class="quick-action-btn" onclick="location.href='categories-management.html'"><i class="fas fa-tags"></i><span>Управление разделами</span></button><button class="quick-action-btn" onclick="location.href='media-management.html'"><i class="fas fa-image"></i><span>Изменить фон</span></button><button class="quick-action-btn" onclick="window.open('/','_blank')"><i class="fas fa-eye"></i><span>Посмотреть сайт</span></button></div></div></div>
+            <div class="card"><div class="card-header"><h3>Популярные товары</h3><a href="products-management.html" class="view-all">Все товары</a></div><div class="card-body"><div id="popularProducts">Загрузка...</div></div></div>
+            <div class="card"><div class="card-header"><h3>Режим обслуживания</h3></div><div class="card-body"><p id="maintenanceStatusText">Сайт работает в обычном режиме.</p><div class="maintenance-status" style="margin:15px 0"><span class="status-label">Текущий статус:</span><span id="maintenanceStatus" class="badge badge-success">Выключен</span></div><button id="maintenanceToggle" class="btn btn-warning" style="width:100%"><i class="fas fa-tools"></i> Включить режим</button></div></div>
+            <div class="card"><div class="card-header"><h3>Текущий фон главной страницы</h3></div><div class="card-body"><div id="backgroundPreview" style="text-align:center"><div class="no-background-message"><i class="fas fa-image"></i><p>Фон не установлен</p></div></div><div style="margin-top:15px"><a href="media-management.html" class="btn btn-primary" style="width:100%"><i class="fas fa-edit"></i> Управление медиа</a></div></div></div>
         </div>
-        
-        <!-- Футер -->
-        <footer class="main-footer">
-            <p>&copy; 2024 MA Furniture Admin Panel. Все права защищены.</p>
-            <div class="footer-links">
-                <a href="/" target="_blank">Посмотреть сайт</a>
-                <a href="mailto:ma.furniture@mail.ru">Техподдержка</a>
-            </div>
-        </footer>
+        <footer class="main-footer" style="margin-top:20px; text-align:center; padding:15px; border-top:1px solid var(--border-color);"><p>&copy; 2024 MA Furniture Admin Panel. Все права защищены.</p></footer>
     </main>
 
+    <script src="/admin/js/admin-common.js"></script>
     <script src="/admin/js/admin-auth.js"></script>
     <script src="/admin/js/admin-dashboard.js"></script>
-    <script>
-        // Простой онлайн-трекер (имитация)
-        function updateOnlineCount() {
-            // Здесь должен быть реальный запрос к API
-            // Пока используем случайное число от 5 до 50
-            const count = Math.floor(Math.random() * 45) + 5;
-            document.getElementById('onlineCount').innerText = count;
-        }
-        updateOnlineCount();
-        setInterval(updateOnlineCount, 5000);
-    </script>
 </body>
 </html>
