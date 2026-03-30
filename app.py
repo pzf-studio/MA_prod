@@ -51,62 +51,54 @@ def get_uploads_path(): return os.path.join(STATIC_DIR,'uploads','products')
 
 def get_all_products():
     with db.get_db() as conn:
-        rows = conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products ORDER BY created_at DESC').fetchall()
-        products = []
+        rows=conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products ORDER BY created_at DESC').fetchall()
+        products=[]
         for row in rows:
-            prod = dict(row)
-            prod['images'] = json.loads(prod['images']) if prod['images'] else []
-            prod['color_variants'] = json.loads(prod['color_variants']) if prod['color_variants'] else []
+            prod=dict(row)
+            prod['images']=json.loads(prod['images']) if prod['images'] else []
+            prod['color_variants']=json.loads(prod['color_variants']) if prod['color_variants'] else []
             products.append(prod)
         return products
 
 def get_product_by_id(product_id):
     with db.get_db() as conn:
-        row = conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products WHERE id = ?', (product_id,)).fetchone()
+        row=conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products WHERE id = ?',(product_id,)).fetchone()
         if row:
-            prod = dict(row)
-            prod['images'] = json.loads(prod['images']) if prod['images'] else []
-            prod['color_variants'] = json.loads(prod['color_variants']) if prod['color_variants'] else []
+            prod=dict(row)
+            prod['images']=json.loads(prod['images']) if prod['images'] else []
+            prod['color_variants']=json.loads(prod['color_variants']) if prod['color_variants'] else []
             return prod
         return None
 
 def save_product(product_data):
-    now = datetime.now().isoformat()
+    now=datetime.now().isoformat()
     if 'id' in product_data and product_data['id']:
-        product_id = product_data['id']
+        product_id=product_data['id']
         with db.get_db() as conn:
             conn.execute('''UPDATE products SET name=?, code=?, category=?, section=?, price=?, old_price=?, badge=?,
                 recommended=?, description=?, specifications=?, status=?, stock=?, images=?, color_variants=?, updated_at=?, is_price_on_request=?, availability=?
-                WHERE id=?''',
-                (product_data.get('name'), product_data.get('code'), product_data.get('category'),
-                product_data.get('section'), product_data.get('price',0), product_data.get('old_price'),
-                product_data.get('badge'), 1 if product_data.get('recommended') else 0,
-                product_data.get('description'), product_data.get('specifications'),
-                product_data.get('status','active'), product_data.get('stock',0),
-                json.dumps(product_data.get('images',[])), json.dumps(product_data.get('color_variants',[])),
-                now, 1 if product_data.get('is_price_on_request') else 0, product_data.get('availability', 0), product_id))
+                WHERE id=?''',(product_data.get('name'),product_data.get('code'),product_data.get('category'),
+                product_data.get('section'),product_data.get('price',0),product_data.get('old_price'),product_data.get('badge'),
+                1 if product_data.get('recommended') else 0,product_data.get('description'),product_data.get('specifications'),
+                product_data.get('status','active'),product_data.get('stock',0),json.dumps(product_data.get('images',[])),
+                json.dumps(product_data.get('color_variants',[])),now,1 if product_data.get('is_price_on_request') else 0,product_data.get('availability', 0),product_id))
         return product_id
     else:
         with db.get_db() as conn:
-            cur = conn.execute('SELECT MAX(id) FROM products')
-            max_id = cur.fetchone()[0] or 0
-            new_id = max_id + 1
-            product_data['id'] = new_id
-            product_data['created_at'] = now
-            product_data['updated_at'] = now
-            conn.execute('''INSERT INTO products
-                (id, name, code, category, section, price, old_price, badge, recommended, description,
-                specifications, status, stock, images, color_variants, created_at, updated_at,
-                is_price_on_request, availability)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
-                (new_id, product_data.get('name'), product_data.get('code'),
-                product_data.get('category'), product_data.get('section'), product_data.get('price',0),
-                product_data.get('old_price'), product_data.get('badge'),
-                1 if product_data.get('recommended') else 0, product_data.get('description'),
-                product_data.get('specifications'), product_data.get('status','active'),
-                product_data.get('stock',0), json.dumps(product_data.get('images',[])),
-                json.dumps(product_data.get('color_variants',[])), now, now,
-                1 if product_data.get('is_price_on_request') else 0, product_data.get('availability', 0)))
+            cur=conn.execute('SELECT MAX(id) FROM products')
+            max_id=cur.fetchone()[0] or 0
+            new_id=max_id+1
+            product_data['id']=new_id
+            product_data['created_at']=now
+            product_data['updated_at']=now
+            conn.execute('''INSERT INTO products (id,name,code,category,section,price,old_price,badge,recommended,description,
+                specifications,status,stock,images,color_variants,created_at,updated_at,is_price_on_request,availability)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(new_id,product_data.get('name'),product_data.get('code'),
+                product_data.get('category'),product_data.get('section'),product_data.get('price',0),product_data.get('old_price'),
+                product_data.get('badge'),1 if product_data.get('recommended') else 0,product_data.get('description'),
+                product_data.get('specifications'),product_data.get('status','active'),product_data.get('stock',0),
+                json.dumps(product_data.get('images',[])),json.dumps(product_data.get('color_variants',[])),now,now,
+                1 if product_data.get('is_price_on_request') else 0,product_data.get('availability', 0)))
         return new_id
 
 def delete_product(product_id):
@@ -385,7 +377,7 @@ def admin_backup_delete():
         else: return jsonify({'success':False,'error':'Файл не найден'}),404
     except Exception as e: return jsonify({'success':False,'error':str(e)}),500
 
-# ========== ОСТАЛЬНЫЕ API (БЕЗ ИЗМЕНЕНИЙ) ==========
+# ========== ОСТАЛЬНЫЕ API ==========
 @app.route('/api/admin/sections',methods=['GET'])
 def admin_get_sections():
     try:
