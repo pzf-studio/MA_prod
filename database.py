@@ -44,17 +44,16 @@ def init_db():
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 is_price_on_request BOOLEAN DEFAULT 0,
-                availability INTEGER DEFAULT 0   -- 0 = в наличии, 1 = под заказ
+                availability INTEGER DEFAULT 0
             )
         ''')
-        # Проверяем и добавляем поле availability, если его нет
+        # Добавляем поле availability, если его нет
         try:
             conn.execute('ALTER TABLE products ADD COLUMN availability INTEGER DEFAULT 0')
             logger.info("Добавлено поле availability в таблицу products")
         except sqlite3.OperationalError:
             pass
 
-        # Остальные таблицы без изменений
         conn.execute('''
             CREATE TABLE IF NOT EXISTS sections (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -120,10 +119,9 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
                     conn.execute('''
                         INSERT OR REPLACE INTO products
                         (id, name, code, category, section, price, old_price, badge,
-                        recommended, description, specifications, status, stock,
-                        images, color_variants, created_at, updated_at, is_price_on_request, availability)
+                         recommended, description, specifications, status, stock,
+                         images, color_variants, created_at, updated_at, is_price_on_request, availability)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """
                     ''', (
                         product.get('id'),
                         product.get('name'),
@@ -142,8 +140,8 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
                         color_variants_json,
                         product.get('created_at', datetime.now().isoformat()),
                         product.get('updated_at', datetime.now().isoformat()),
-                        0,
-                        0
+                        0,  # is_price_on_request по умолчанию 0
+                        0   # availability по умолчанию 0 (в наличии)
                     ))
         logger.info("Товары перенесены")
 
