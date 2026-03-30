@@ -2271,3 +2271,31 @@ body {
         font-size: 1.2rem !important;
     }
 }
+
+/* Кнопка телефона в шапке */
+.btn-phone {
+    border-color: #d4af37;
+    color: #d4af37;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-phone:hover {
+    background: #d4af37;
+    color: white;
+    border-color: #d4af37;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .btn-phone span {
+        display: none; /* на мобильных скрываем текст, оставляем только иконку */
+    }
+    .btn-phone {
+        padding: 10px;
+        width: 40px;
+        justify-content: center;
+    }
+}

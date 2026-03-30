@@ -2220,3 +2220,86 @@ body {
     font-size: 1rem;
     border: 1px solid #d4af37;
 }
+
+/* Кнопка телефона в шапке */
+.btn-phone {
+    border-color: #d4af37;
+    color: #d4af37;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-phone:hover {
+    background: #d4af37;
+    color: white;
+    border-color: #d4af37;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+}
+
+/* Улучшения корзины (дополнительно к уже существующим стилям) */
+.cart-sidebar {
+    border-radius: 20px 0 0 20px;
+    box-shadow: -5px 0 30px rgba(0,0,0,0.15);
+}
+.cart-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+    border-bottom: 2px solid #d4af37;
+}
+.cart-title {
+    font-size: 1.6rem;
+    color: #2c3e50;
+}
+.cart-item {
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: #fff;
+}
+.cart-item:hover {
+    border-color: #d4af37;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+.quantity-btn {
+    transition: all 0.2s;
+}
+.quantity-btn:hover {
+    background: #d4af37;
+    color: white;
+    transform: scale(1.1);
+}
+.remove-item {
+    transition: all 0.2s;
+}
+.remove-item:hover {
+    background: #e74c3c;
+    color: white;
+    transform: scale(1.1);
+}
+.btn-checkout {
+    background: linear-gradient(135deg, #d4af37, #b8941f);
+    border: none;
+}
+.btn-checkout:hover {
+    background: linear-gradient(135deg, #b8941f, #a07e18);
+    transform: translateY(-2px);
+}
+.cart-count {
+    background: #d4af37;
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+/* Адаптивность кнопки телефона */
+@media (max-width: 768px) {
+    .btn-phone span {
+        display: none;
+    }
+    .btn-phone {
+        padding: 10px;
+        width: 40px;
+        justify-content: center;
+    }
+}
