@@ -22,6 +22,22 @@ def get_db():
     finally:
         conn.close()
 
+def ensure_columns(conn):
+    """Проверяет и добавляет отсутствующие колонки в таблицу products"""
+    # Получаем список существующих колонок
+    cursor = conn.execute("PRAGMA table_info(products)")
+    columns = [row[1] for row in cursor.fetchall()]
+    
+    # Добавляем is_price_on_request, если нет
+    if 'is_price_on_request' not in columns:
+        conn.execute('ALTER TABLE products ADD COLUMN is_price_on_request BOOLEAN DEFAULT 0')
+        logger.info("Добавлено поле is_price_on_request в таблицу products")
+    
+    # Добавляем availability, если нет
+    if 'availability' not in columns:
+        conn.execute('ALTER TABLE products ADD COLUMN availability INTEGER DEFAULT 0')
+        logger.info("Добавлено поле availability в таблицу products")
+
 def init_db():
     with get_db() as conn:
         conn.execute('''
@@ -42,17 +58,11 @@ def init_db():
                 images TEXT,
                 color_variants TEXT,
                 created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                is_price_on_request BOOLEAN DEFAULT 0,
-                availability INTEGER DEFAULT 0
+                updated_at TEXT NOT NULL
             )
         ''')
-        # Добавляем поле availability, если его нет
-        try:
-            conn.execute('ALTER TABLE products ADD COLUMN availability INTEGER DEFAULT 0')
-            logger.info("Добавлено поле availability в таблицу products")
-        except sqlite3.OperationalError:
-            pass
+        # Добавляем недостающие колонки после создания таблицы
+        ensure_columns(conn)
 
         conn.execute('''
             CREATE TABLE IF NOT EXISTS sections (
@@ -99,9 +109,11 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
     from datetime import datetime
 
     with get_db() as conn:
+        # Убеждаемся, что колонки есть перед миграцией
+        ensure_columns(conn)
         cur = conn.execute('SELECT COUNT(*) FROM products')
         if cur.fetchone()[0] > 0:
-            logger.info("База данных уже содержит товары, миграция не требуется")
+            logger.info("База данных уже содержит товары, миграция из JSON не требуется")
             return
 
     logger.info("Начинаем миграцию данных из JSON в SQLite...")
