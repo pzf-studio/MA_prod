@@ -35,51 +35,65 @@
                     <small id="adminRole">Владелец</small>
                 </div>
             </div>
-            
+
             <ul class="nav-links">
                 <li class="nav-item">
-                    <a href="/admin/dashboard">
+                    <a href="admin-dashboard.html">
                         <i class="fas fa-tachometer-alt"></i>
-                        <span>Дашборд</span>
+                        <span>Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="products-management.html">
                         <i class="fas fa-box"></i>
                         <span>Товары</span>
+                        <span class="badge" id="productsBadge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="categories-management.html">
+                        <i class="fas fa-tags"></i>
+                        <span>Разделы</span>
+                        <span class="badge" id="categoriesBadge">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="media-management.html">
+                        <i class="fas fa-image"></i>
+                        <span>Фон</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="#">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Заказы</span>
+                        <span class="badge" id="ordersBadge">0</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/admin/categories">
-                        <i class="fas fa-tags"></i>
-                        <span>Разделы</span>
+                    <a href="#">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Данные на сайте</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/admin/media-management.html">
-                        <i class="fas fa-images"></i>
-                        <span>Медиа</span>
-                    </a>
-                </li>
-                <li class="nav-item active">
                     <a href="backup-management.html">
                         <i class="fas fa-database"></i>
-                        <span>Резервное копирование</span>
+                        <span>Резервная копия</span>
                     </a>
                 </li>
             </ul>
-            
+
             <div class="sidebar-footer">
+                <a href="techdocks.html" class="docs-btn" id="docsBtn">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Техническая документация</span>
+                </a>
                 <a href="#" class="logout-btn" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Выйти</span>
                 </a>
+                <div class="version">v3.0</div>
             </div>
         </div>
     </nav>

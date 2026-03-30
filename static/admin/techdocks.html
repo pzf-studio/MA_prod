@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MA Furniture - Техническая документация</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin/css/admin-styles.css">
+    <link rel="stylesheet" href="/admin/css/techdocks.css">
+    <link rel="icon" type="image/x-icon" href="/static/images/logo2.png">
+</head>
+<body>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="/static/images/logo2.png" alt="MA Furniture">
+                <div class="logo-text">
+                    <h2>MA Furniture</h2>
+                    <small>Админ панель</small>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+        </div>
+        <div class="sidebar-menu">
+            <div class="user-info">
+                <div class="user-avatar"><i class="fas fa-user-shield"></i></div>
+                <div class="user-details">
+                    <h4 id="adminName">Администратор</h4>
+                    <small id="adminRole">Владелец</small>
+                </div>
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item"><a href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="products-management.html"><i class="fas fa-box"></i><span>Товары</span><span class="badge" id="productsBadge">0</span></a></li>
+                <li class="nav-item"><a href="categories-management.html"><i class="fas fa-tags"></i><span>Разделы</span><span class="badge" id="categoriesBadge">0</span></a></li>
+                <li class="nav-item"><a href="media-management.html"><i class="fas fa-image"></i><span>Фон</span></a></li>
+                <li class="nav-item"><a href="#"><i class="fas fa-shopping-cart"></i><span>Заказы</span><span class="badge" id="ordersBadge">0</span></a></li>
+                <li class="nav-item"><a href="#"><i class="fas fa-chart-line"></i><span>Данные на сайте</span></a></li>
+                <li class="nav-item"><a href="backup-management.html"><i class="fas fa-database"></i><span>Резервная копия</span></a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="techdocks.html" class="docs-btn" id="docsBtn">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Техническая документация</span>
+                </a>
+                <a href="#" class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </a>
+                <div class="version">v3.0</div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Техническая документация</h1>
+                <nav class="breadcrumb">
+                    <a href="admin-dashboard.html">Главная</a>
+                    <span>/</span>
+                    <span class="current">Техническая документация</span>
+                </nav>
+            </div>
+        </header>
+
+        <div class="docs-container">
+            <div class="docs-sidebar">
+                <div class="docs-search">
+                    <input type="text" id="docsSearch" placeholder="Поиск по документации...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <ul class="docs-nav" id="docsNav">
+                    <li><a href="#overview" class="active">Обзор системы</a></li>
+                    <li><a href="#api">API Endpoints</a></li>
+                    <li><a href="#database">Структура базы данных</a></li>
+                    <li><a href="#admin-panel">Админ-панель</a></li>
+                    <li><a href="#backup">Резервное копирование</a></li>
+                    <li><a href="#deployment">Развертывание на Amvera</a></li>
+                    <li><a href="#troubleshooting">Устранение неполадок</a></li>
+                </ul>
+            </div>
+
+            <div class="docs-content" id="docsContent">
+                <section id="overview" class="docs-section active">
+                    <h2>Обзор системы MA Furniture</h2>
+                    <p>Интернет-магазин мебели с админ-панелью на Flask + SQLite. Система поддерживает управление товарами, разделами, фоновым изображением, резервное копирование и онлайн-трекер.</p>
+                    <h3>Технологический стек</h3>
+                    <ul>
+                        <li><strong>Backend:</strong> Flask (Python 3.11)</li>
+                        <li><strong>База данных:</strong> SQLite</li>
+                        <li><strong>Frontend:</strong> HTML5, CSS3, JavaScript (ES6)</li>
+                        <li><strong>Стили:</strong> FontAwesome 6, кастомный CSS</li>
+                        <li><strong>HTTP-сервер:</strong> Gunicorn (на Amvera)</li>
+                    </ul>
+                </section>
+
+                <section id="api" class="docs-section">
+                    <h2>API Endpoints</h2>
+                    <h3>Товары</h3>
+                    <ul>
+                        <li><code>GET /api/products</code> - получить список товаров (с фильтрацией)</li>
+                        <li><code>GET /api/products/&lt;id&gt;</code> - получить товар по ID</li>
+                        <li><code>GET /api/admin/products</code> - все товары для админки</li>
+                        <li><code>POST /api/admin/products</code> - создать товар</li>
+                        <li><code>PUT /api/admin/products/&lt;id&gt;</code> - обновить товар</li>
+                        <li><code>DELETE /api/admin/products/&lt;id&gt;</code> - удалить товар</li>
+                    </ul>
+                    <h3>Разделы</h3>
+                    <ul>
+                        <li><code>GET /api/sections</code> - все разделы</li>
+                        <li><code>POST /api/admin/sections</code> - создать раздел</li>
+                        <li><code>PUT /api/admin/sections/&lt;id&gt;</code> - обновить раздел</li>
+                        <li><code>DELETE /api/admin/sections/&lt;id&gt;</code> - удалить раздел</li>
+                        <li><code>POST /api/admin/sections/reorder</code> - изменить порядок разделов</li>
+                    </ul>
+                    <h3>Медиа</h3>
+                    <ul>
+                        <li><code>GET /api/media/background</code> - получить фон главной страницы</li>
+                        <li><code>POST /api/admin/media/background</code> - создать/обновить фон</li>
+                        <li><code>DELETE /api/admin/media/background/&lt;id&gt;</code> - удалить фон</li>
+                        <li><code>POST /api/upload</code> - загрузить изображение</li>
+                        <li><code>POST /api/upload/delete</code> - удалить изображение</li>
+                    </ul>
+                    <h3>Заказы</h3>
+                    <ul>
+                        <li><code>POST /api/orders</code> - создать заказ (отправка в Telegram)</li>
+                    </ul>
+                    <h3>Бэкапы</h3>
+                    <ul>
+                        <li><code>GET /api/admin/backup/download</code> - скачать бэкап (БД + изображения)</li>
+                        <li><code>POST /api/admin/backup/upload</code> - восстановить из бэкапа</li>
+                        <li><code>GET /api/admin/backup/list</code> - список бэкапов</li>
+                        <li><code>POST /api/admin/backup/delete</code> - удалить бэкап</li>
+                    </ul>
+                    <h3>Системные</h3>
+                    <ul>
+                        <li><code>POST /api/admin/login</code> - авторизация</li>
+                        <li><code>GET /api/admin/verify</code> - проверка токена</li>
+                        <li><code>GET /api/admin/online/count</code> - количество онлайн-пользователей</li>
+                        <li><code>GET /api/admin/maintenance/status</code> - статус режима обслуживания</li>
+                        <li><code>POST /api/admin/maintenance/enable</code> - включить режим обслуживания</li>
+                        <li><code>POST /api/admin/maintenance/disable</code> - выключить режим обслуживания</li>
+                    </ul>
+                </section>
+
+                <section id="database" class="docs-section">
+                    <h2>Структура базы данных</h2>
+                    <p>Файл: <code>data/ma_furniture.db</code></p>
+                    <h3>Таблица products</h3>
+                    <pre><code>id INTEGER PRIMARY KEY
+name TEXT NOT NULL
+code TEXT
+category TEXT
+section TEXT
+price INTEGER NOT NULL
+old_price INTEGER
+badge TEXT
+recommended BOOLEAN
+description TEXT
+specifications TEXT
+status TEXT DEFAULT 'active'
+stock INTEGER DEFAULT 0
+images TEXT (JSON)
+color_variants TEXT (JSON)
+created_at TEXT
+updated_at TEXT
+is_price_on_request BOOLEAN</code></pre>
+                    <h3>Таблица sections</h3>
+                    <pre><code>id INTEGER PRIMARY KEY
+code TEXT UNIQUE NOT NULL
+name TEXT NOT NULL
+active BOOLEAN
+display_order INTEGER</code></pre>
+                    <h3>Таблица backgrounds</h3>
+                    <pre><code>id INTEGER PRIMARY KEY
+title TEXT
+description TEXT
+image_url TEXT
+active BOOLEAN
+created_at TEXT
+updated_at TEXT</code></pre>
+                    <h3>Таблица orders</h3>
+                    <pre><code>id INTEGER PRIMARY KEY
+order_id TEXT UNIQUE
+customer_name TEXT
+customer_phone TEXT
+customer_email TEXT
+customer_address TEXT
+customer_comment TEXT
+items TEXT (JSON)
+total INTEGER
+status TEXT
+created_at TEXT</code></pre>
+                </section>
+
+                <section id="admin-panel" class="docs-section">
+                    <h2>Админ-панель</h2>
+                    <p>Страницы админки находятся в папке <code>static/admin/</code>.</p>
+                    <ul>
+                        <li><strong>admin-login.html</strong> – страница входа</li>
+                        <li><strong>admin-dashboard.html</strong> – главная панель с виджетами</li>
+                        <li><strong>products-management.html</strong> – управление товарами (CRUD, цветовые копии)</li>
+                        <li><strong>categories-management.html</strong> – управление разделами (drag-and-drop)</li>
+                        <li><strong>media-management.html</strong> – загрузка/удаление фона</li>
+                        <li><strong>backup-management.html</strong> – резервное копирование и восстановление</li>
+                        <li><strong>techdocks.html</strong> – техническая документация (текущая страница)</li>
+                    </ul>
+                    <h3>Авторизация</h3>
+                    <p>Логин и пароль задаются через переменные окружения <code>STAD</code> и <code>SUTT</code>. Если они не заданы, используются значения по умолчанию: <code>obratites</code> / <code>koperatoru</code>.</p>
+                    <h3>Цветовые копии товаров</h3>
+                    <p>Для каждого товара можно создать до 4 цветовых копий. Каждая копия имеет свою цену, количество на складе и отдельные изображения.</p>
+                </section>
+
+                <section id="backup" class="docs-section">
+                    <h2>Резервное копирование</h2>
+                    <p>Система создает ZIP-архив, содержащий:</p>
+                    <ul>
+                        <li>Файл базы данных <code>ma_furniture.db</code></li>
+                        <li>Папку <code>uploads/products/</code> со всеми изображениями товаров и фона</li>
+                    </ul>
+                    <p>Архивы сохраняются в папку <code>data/backups/</code>. Восстановление заменяет текущую БД и изображения на те, что в архиве. Перед восстановлением автоматически создается резервная копия текущего состояния (с расширением <code>.backup</code>).</p>
+                </section>
+
+                <section id="deployment" class="docs-section">
+                    <h2>Развертывание на Amvera</h2>
+                    <p>Конфигурация задаётся в файле <code>amvera.yml</code> (менять нельзя по требованию заказчика). Основные параметры:</p>
+                    <ul>
+                        <li><code>version: null</code></li>
+                        <li><code>environment: python</code></li>
+                        <li><code>toolchain: pip, version: "3.11"</code></li>
+                        <li><code>build.requirementsPath: requirements.txt</code></li>
+                        <li><code>run.scriptName: app.py</code></li>
+                        <li><code>run.command: gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 wsgi:app</code></li>
+                        <li><code>run.persistenceMount: /data</code> – сохраняет данные между перезапусками</li>
+                    </ul>
+                    <p>Перед заливкой на Amvera убедитесь, что в <code>requirements.txt</code> есть все зависимости: flask, flask-cors, requests, gunicorn и т.д.</p>
+                </section>
+
+                <section id="troubleshooting" class="docs-section">
+                    <h2>Устранение неполадок</h2>
+                    <h3>Не загружаются изображения</h3>
+                    <ul>
+                        <li>Проверьте права на папку <code>static/uploads/products/</code> (должна быть доступна для записи).</li>
+                        <li>Убедитесь, что файл не превышает 5MB.</li>
+                        <li>Проверьте путь: загруженные изображения доступны по URL <code>/static/uploads/products/имя_файла</code>.</li>
+                    </ul>
+                    <h3>Не отправляются заказы в Telegram</h3>
+                    <ul>
+                        <li>Проверьте переменные окружения <code>TELEGRAM_BOT_TOKEN</code> и <code>TELEGRAM_CHAT_ID</code> в настройках Amvera.</li>
+                        <li>Убедитесь, что бот добавлен в чат и имеет права на отправку сообщений.</li>
+                    </ul>
+                    <h3>Не работает drag-and-drop в разделе "Разделы"</h3>
+                    <ul>
+                        <li>Убедитесь, что подключена библиотека SortableJS: <code>&lt;script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"&gt;&lt;/script&gt;</code>.</li>
+                        <li>Проверьте консоль браузера на ошибки JavaScript.</li>
+                    </ul>
+                    <h3>После восстановления бэкапа пропали изображения</h3>
+                    <ul>
+                        <li>Бэкап должен содержать папку <code>uploads/products/</code>. Если её нет, изображения не будут восстановлены.</li>
+                        <li>Попробуйте создать новый бэкап и восстановить его заново.</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            <p>&copy; 2024 MA Furniture Admin Panel. Все права защищены.</p>
+        </footer>
+    </main>
+
+    <script src="/admin/js/admin-common.js"></script>
+    <script src="/admin/js/admin-auth.js"></script>
+    <script src="/admin/js/techdocks.js"></script>
+</body>
+</html>
