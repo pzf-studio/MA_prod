@@ -97,7 +97,7 @@ async function initializeProducts() {
         card.className = 'product-card';
         card.dataset.section = product.section || 'all';
         
-        // Бейдж
+        // Бейдж для основного товара (хит, новинка и т.д.)
         let badgeClass = '';
         if (product.badge) {
             switch(product.badge.toLowerCase()) {
@@ -126,8 +126,13 @@ async function initializeProducts() {
             }
         }
         
-        const badge = product.badge ? 
-            `<div class="product-badge ${badgeClass}">${product.badge}</div>` : '';
+        const mainBadge = product.badge ? `<div class="product-badge ${badgeClass}">${product.badge}</div>` : '';
+        
+        // Бейдж "Под заказ" (если товар под заказ)
+        let orderBadge = '';
+        if (product.availability === 1) {
+            orderBadge = '<div class="product-badge order-badge">Под заказ</div>';
+        }
         
         // Изображение
         let imageContent = '';
@@ -137,11 +142,17 @@ async function initializeProducts() {
         
         const productUrl = `piece.html?id=${product.id}`;
         
-        // Цена
+        // Цена с учётом availability и is_price_on_request
         let priceHtml = '';
-        if (product.is_price_on_request) {
-            priceHtml = `<div class="product-price"><span class="price-on-request">Доступен для заказа</span></div>`;
+        if (product.availability === 1) {
+            // Под заказ
+            if (product.is_price_on_request === 1) {
+                priceHtml = `<div class="product-price"><span class="current-price">${dataManager.formatPrice(product.price)}</span></div>`;
+            } else {
+                priceHtml = `<div class="product-price"><span class="price-on-request">Цена не указана</span></div>`;
+            }
         } else {
+            // В наличии
             priceHtml = `
                 <div class="product-price">
                     <span class="current-price">${dataManager.formatPrice(product.price)}</span>
@@ -150,7 +161,6 @@ async function initializeProducts() {
             `;
         }
         
-        // Кнопка всегда "В корзину"
         const actionButton = `
             <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}">
                 <i class="fas fa-shopping-cart"></i> В корзину
@@ -163,7 +173,8 @@ async function initializeProducts() {
                 <div class="image-placeholder" style="${product.images && product.images.length > 0 ? 'display: none;' : 'display: flex;'}">
                     <i class="fas fa-couch"></i>
                 </div>
-                ${badge}
+                ${mainBadge}
+                ${orderBadge}
             </div>
             <div class="product-info">
                 <h3 class="product-title">${product.name}</h3>
@@ -225,7 +236,6 @@ async function initializeProducts() {
     }
 
     function attachProductEventListeners() {
-        // Обработчик для кнопки "В корзину"
         document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -238,13 +248,11 @@ async function initializeProducts() {
             });
         });
         
-        // Обработчик для всей карточки
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.add-to-cart-btn')) {
                     return;
                 }
-                
                 const link = card.querySelector('.product-link-overlay');
                 if (link) {
                     window.location.href = link.href;
