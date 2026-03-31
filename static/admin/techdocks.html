@@ -72,11 +72,15 @@
                 </div>
                 <ul class="docs-nav" id="docsNav">
                     <li><a href="#overview" class="active">Обзор системы</a></li>
+                    <li><a href="#architecture">Архитектура и технологии</a></li>
                     <li><a href="#api">API Endpoints</a></li>
                     <li><a href="#database">Структура базы данных</a></li>
                     <li><a href="#admin-panel">Админ-панель</a></li>
+                    <li><a href="#cart-orders">Корзина и заказы</a></li>
+                    <li><a href="#color-variants">Цветовые копии товаров</a></li>
                     <li><a href="#backup">Резервное копирование</a></li>
                     <li><a href="#deployment">Развертывание на Amvera</a></li>
+                    <li><a href="#maintenance">Режим обслуживания</a></li>
                     <li><a href="#troubleshooting">Устранение неполадок</a></li>
                 </ul>
             </div>
@@ -84,7 +88,7 @@
             <div class="docs-content" id="docsContent">
                 <section id="overview" class="docs-section active">
                     <h2>Обзор системы MA Furniture</h2>
-                    <p>Интернет-магазин мебели с админ-панелью на Flask + SQLite. Система поддерживает управление товарами, разделами, фоновым изображением, резервное копирование и онлайн-трекер.</p>
+                    <p>Интернет-магазин мебели с админ-панелью на Flask + SQLite. Система поддерживает управление товарами, разделами, фоновым изображением, резервное копирование, онлайн-трекер, цветовые варианты товаров и отправку заказов в Telegram.</p>
                     <h3>Технологический стек</h3>
                     <ul>
                         <li><strong>Backend:</strong> Flask (Python 3.11)</li>
@@ -92,6 +96,20 @@
                         <li><strong>Frontend:</strong> HTML5, CSS3, JavaScript (ES6)</li>
                         <li><strong>Стили:</strong> FontAwesome 6, кастомный CSS</li>
                         <li><strong>HTTP-сервер:</strong> Gunicorn (на Amvera)</li>
+                        <li><strong>Система контроля версий:</strong> Git (рекомендуется)</li>
+                    </ul>
+                    <p>Все статические файлы размещаются в папке <code>static/</code>, а база данных и пользовательские файлы — в <code>data/</code>.</p>
+                </section>
+
+                <section id="architecture" class="docs-section">
+                    <h2>Архитектура и технологии</h2>
+                    <p>Система построена по классической клиент-серверной схеме:</p>
+                    <ul>
+                        <li><strong>Frontend:</strong> статические HTML-страницы, динамически загружающие данные через JavaScript (fetch). Основные файлы: <code>index.html</code>, <code>shop.html</code>, <code>piece.html</code> и их соответствующие JS-скрипты.</li>
+                        <li><strong>Backend:</strong> Flask-приложение (<code>app.py</code>) предоставляет REST API. База данных SQLite инициализируется через <code>database.py</code>. Все данные хранятся в папке <code>data/</code>.</li>
+                        <li><strong>Взаимодействие:</strong> Клиентские скрипты (например, <code>data-manager.js</code>) обращаются к API, получают данные и отображают их на страницах.</li>
+                        <li><strong>Админ-панель:</strong> отдельный раздел с авторизацией, расположенный в <code>static/admin/</code>.</li>
+                        <li><strong>Развёртывание:</strong> На хостинге Amvera используется Gunicorn, конфигурация задана в <code>amvera.yml</code>. Данные сохраняются в персистентной директории <code>/data</code>.</li>
                     </ul>
                 </section>
 
@@ -99,54 +117,58 @@
                     <h2>API Endpoints</h2>
                     <h3>Товары</h3>
                     <ul>
-                        <li><code>GET /api/products</code> - получить список товаров (с фильтрацией)</li>
-                        <li><code>GET /api/products/&lt;id&gt;</code> - получить товар по ID</li>
-                        <li><code>GET /api/admin/products</code> - все товары для админки</li>
-                        <li><code>POST /api/admin/products</code> - создать товар</li>
-                        <li><code>PUT /api/admin/products/&lt;id&gt;</code> - обновить товар</li>
-                        <li><code>DELETE /api/admin/products/&lt;id&gt;</code> - удалить товар</li>
+                        <li><code>GET /api/products</code> – получить список товаров (фильтры: <code>?status=active</code>, <code>?section=pantographs</code>, <code>?search=текст</code>)</li>
+                        <li><code>GET /api/products/&lt;id&gt;</code> – получить товар по ID</li>
+                        <li><code>GET /api/admin/products</code> – все товары для админки (требуется авторизация)</li>
+                        <li><code>POST /api/admin/products</code> – создать товар</li>
+                        <li><code>PUT /api/admin/products/&lt;id&gt;</code> – обновить товар</li>
+                        <li><code>DELETE /api/admin/products/&lt;id&gt;</code> – удалить товар</li>
                     </ul>
-                    <h3>Разделы</h3>
+                    <h3>Разделы (категории)</h3>
                     <ul>
-                        <li><code>GET /api/sections</code> - все разделы</li>
-                        <li><code>POST /api/admin/sections</code> - создать раздел</li>
-                        <li><code>PUT /api/admin/sections/&lt;id&gt;</code> - обновить раздел</li>
-                        <li><code>DELETE /api/admin/sections/&lt;id&gt;</code> - удалить раздел</li>
-                        <li><code>POST /api/admin/sections/reorder</code> - изменить порядок разделов</li>
+                        <li><code>GET /api/sections</code> – все разделы</li>
+                        <li><code>POST /api/admin/sections</code> – создать раздел</li>
+                        <li><code>PUT /api/admin/sections/&lt;id&gt;</code> – обновить раздел</li>
+                        <li><code>DELETE /api/admin/sections/&lt;id&gt;</code> – удалить раздел</li>
+                        <li><code>POST /api/admin/sections/reorder</code> – изменить порядок разделов (принимает <code>{"order": [id1, id2, ...]}</code>)</li>
                     </ul>
-                    <h3>Медиа</h3>
+                    <h3>Медиа (фон главной страницы)</h3>
                     <ul>
-                        <li><code>GET /api/media/background</code> - получить фон главной страницы</li>
-                        <li><code>POST /api/admin/media/background</code> - создать/обновить фон</li>
-                        <li><code>DELETE /api/admin/media/background/&lt;id&gt;</code> - удалить фон</li>
-                        <li><code>POST /api/upload</code> - загрузить изображение</li>
-                        <li><code>POST /api/upload/delete</code> - удалить изображение</li>
+                        <li><code>GET /api/media/background</code> – получить фон (для публичного доступа)</li>
+                        <li><code>GET /api/admin/media/background</code> – получить фон для админки</li>
+                        <li><code>POST /api/admin/media/background</code> – создать/обновить фон</li>
+                        <li><code>PUT /api/admin/media/background/&lt;id&gt;</code> – обновить фон</li>
+                        <li><code>DELETE /api/admin/media/background/&lt;id&gt;</code> – удалить фон</li>
+                        <li><code>POST /api/upload</code> – загрузить изображение (принимает <code>file</code>)</li>
+                        <li><code>POST /api/upload/delete</code> – удалить загруженное изображение</li>
                     </ul>
                     <h3>Заказы</h3>
                     <ul>
-                        <li><code>POST /api/orders</code> - создать заказ (отправка в Telegram)</li>
+                        <li><code>POST /api/orders</code> – создать заказ (требуется Telegram бот)</li>
                     </ul>
-                    <h3>Бэкапы</h3>
+                    <h3>Цветовые варианты</h3>
                     <ul>
-                        <li><code>GET /api/admin/backup/download</code> - скачать бэкап (БД + изображения)</li>
-                        <li><code>POST /api/admin/backup/upload</code> - восстановить из бэкапа</li>
-                        <li><code>GET /api/admin/backup/list</code> - список бэкапов</li>
-                        <li><code>POST /api/admin/backup/delete</code> - удалить бэкап</li>
+                        <li><code>GET /api/products/&lt;id&gt;/colors</code> – получить цветовые варианты товара</li>
+                        <li><code>POST /api/admin/products/&lt;id&gt;/color-variant</code> – добавить цветовой вариант (требуется авторизация)</li>
                     </ul>
                     <h3>Системные</h3>
                     <ul>
-                        <li><code>POST /api/admin/login</code> - авторизация</li>
-                        <li><code>GET /api/admin/verify</code> - проверка токена</li>
-                        <li><code>GET /api/admin/online/count</code> - количество онлайн-пользователей</li>
-                        <li><code>GET /api/admin/maintenance/status</code> - статус режима обслуживания</li>
-                        <li><code>POST /api/admin/maintenance/enable</code> - включить режим обслуживания</li>
-                        <li><code>POST /api/admin/maintenance/disable</code> - выключить режим обслуживания</li>
+                        <li><code>POST /api/admin/login</code> – авторизация</li>
+                        <li><code>GET /api/admin/verify</code> – проверка токена</li>
+                        <li><code>GET /api/admin/online/count</code> – количество онлайн-пользователей (за последние 5 минут)</li>
+                        <li><code>GET /api/admin/maintenance/status</code> – статус режима обслуживания</li>
+                        <li><code>POST /api/admin/maintenance/enable</code> – включить режим обслуживания</li>
+                        <li><code>POST /api/admin/maintenance/disable</code> – выключить режим обслуживания</li>
+                        <li><code>GET /api/admin/dashboard/stats</code> – статистика для дашборда</li>
+                        <li><code>GET /api/admin/dashboard/activity</code> – последняя активность</li>
+                        <li><code>GET /api/admin/dashboard/popular-products</code> – популярные товары</li>
                     </ul>
                 </section>
 
                 <section id="database" class="docs-section">
                     <h2>Структура базы данных</h2>
-                    <p>Файл: <code>data/ma_furniture.db</code></p>
+                    <p>Файл: <code>data/ma_furniture.db</code>. Схема создаётся автоматически при первом запуске.</p>
+                    
                     <h3>Таблица products</h3>
                     <pre><code>id INTEGER PRIMARY KEY
 name TEXT NOT NULL
@@ -161,25 +183,29 @@ description TEXT
 specifications TEXT
 status TEXT DEFAULT 'active'
 stock INTEGER DEFAULT 0
-images TEXT (JSON)
-color_variants TEXT (JSON)
-created_at TEXT
-updated_at TEXT
-is_price_on_request BOOLEAN</code></pre>
+images TEXT (JSON-массив URL)
+color_variants TEXT (JSON-массив объектов вариантов)
+created_at TEXT (ISO дата)
+updated_at TEXT (ISO дата)
+is_price_on_request BOOLEAN (показывать ли цену, если товар под заказ)
+availability INTEGER (0 – в наличии, 1 – под заказ)</code></pre>
+
                     <h3>Таблица sections</h3>
                     <pre><code>id INTEGER PRIMARY KEY
 code TEXT UNIQUE NOT NULL
 name TEXT NOT NULL
-active BOOLEAN
-display_order INTEGER</code></pre>
+active BOOLEAN DEFAULT 1
+display_order INTEGER DEFAULT 0</code></pre>
+
                     <h3>Таблица backgrounds</h3>
                     <pre><code>id INTEGER PRIMARY KEY
 title TEXT
 description TEXT
 image_url TEXT
-active BOOLEAN
+active BOOLEAN DEFAULT 1
 created_at TEXT
 updated_at TEXT</code></pre>
+
                     <h3>Таблица orders</h3>
                     <pre><code>id INTEGER PRIMARY KEY
 order_id TEXT UNIQUE
@@ -188,77 +214,149 @@ customer_phone TEXT
 customer_email TEXT
 customer_address TEXT
 customer_comment TEXT
-items TEXT (JSON)
+items TEXT (JSON-массив товаров)
 total INTEGER
-status TEXT
+status TEXT DEFAULT 'new'
 created_at TEXT</code></pre>
+
+                    <h3>Миграция из JSON</h3>
+                    <p>При запуске приложения скрипт <code>database.py</code> проверяет наличие старых JSON-файлов в <code>data/products/</code>, <code>data/sections.json</code>, <code>data/background.json</code> и переносит их в SQLite, если таблицы пусты. После миграции JSON-файлы остаются, но не используются.</p>
                 </section>
 
                 <section id="admin-panel" class="docs-section">
                     <h2>Админ-панель</h2>
-                    <p>Страницы админки находятся в папке <code>static/admin/</code>.</p>
+                    <p>Страницы админки находятся в <code>static/admin/</code>.</p>
                     <ul>
-                        <li><strong>admin-login.html</strong> – страница входа</li>
-                        <li><strong>admin-dashboard.html</strong> – главная панель с виджетами</li>
-                        <li><strong>products-management.html</strong> – управление товарами (CRUD, цветовые копии)</li>
-                        <li><strong>categories-management.html</strong> – управление разделами (drag-and-drop)</li>
-                        <li><strong>media-management.html</strong> – загрузка/удаление фона</li>
-                        <li><strong>backup-management.html</strong> – резервное копирование и восстановление</li>
-                        <li><strong>techdocks.html</strong> – техническая документация (текущая страница)</li>
+                        <li><strong>admin-login.html</strong> – страница входа. Логин и пароль задаются через переменные окружения <code>STAD</code> и <code>SUTT</code>. Если они не заданы, используются значения по умолчанию: <code>obratites</code> / <code>koperatoru</code>.</li>
+                        <li><strong>admin-dashboard.html</strong> – главная панель с виджетами (статистика, активность, популярные товары, онлайн-счётчик).</li>
+                        <li><strong>products-management.html</strong> – управление товарами (CRUD, цветовые копии). Поддерживает фильтрацию, поиск, пагинацию.</li>
+                        <li><strong>categories-management.html</strong> – управление разделами (drag-and-drop для порядка, включение/выключение).</li>
+                        <li><strong>media-management.html</strong> – загрузка/удаление фона главной страницы.</li>
+                        <li><strong>backup-management.html</strong> – резервное копирование и восстановление (создание и загрузка ZIP-архива с БД и изображениями).</li>
+                        <li><strong>techdocks.html</strong> – техническая документация (текущая страница).</li>
                     </ul>
-                    <h3>Авторизация</h3>
-                    <p>Логин и пароль задаются через переменные окружения <code>STAD</code> и <code>SUTT</code>. Если они не заданы, используются значения по умолчанию: <code>obratites</code> / <code>koperatoru</code>.</p>
-                    <h3>Цветовые копии товаров</h3>
-                    <p>Для каждого товара можно создать до 4 цветовых копий. Каждая копия имеет свою цену, количество на складе и отдельные изображения.</p>
+                    <h3>Авторизация и безопасность</h3>
+                    <p>После успешного входа токен сохраняется в <code>localStorage</code> и передаётся в заголовке <code>Authorization: Bearer &lt;token&gt;</code> для всех защищённых эндпоинтов. Проверка токена выполняется на сервере через <code>/api/admin/verify</code>.</p>
+                </section>
+
+                <section id="cart-orders" class="docs-section">
+                    <h2>Корзина и заказы</h2>
+                    <p>Корзина реализована на клиентской стороне с использованием <code>localStorage</code> (файл <code>cart.js</code>). Товар добавляется через кнопку "В корзину", количество изменяется в боковом окне. При оформлении заказа открывается модальное окно с формой. После отправки данные передаются на <code>/api/orders</code>.</p>
+                    <h3>Обработка заказа</h3>
+                    <ul>
+                        <li>Сервер сохраняет заказ в таблицу <code>orders</code> (SQLite).</li>
+                        <li>Формируется сообщение для Telegram-бота и отправляется через API Telegram (если настроены переменные <code>TELEGRAM_BOT_TOKEN</code> и <code>TELEGRAM_CHAT_ID</code>).</li>
+                        <li>После успешного создания заказа пользователь перенаправляется на страницу <code>order-success.html</code> с параметрами заказа.</li>
+                        <li>Корзина очищается (удаляется запись из <code>localStorage</code>).</li>
+                    </ul>
+                    <h3>Поля формы заказа</h3>
+                    <ul>
+                        <li>ФИО (обязательно)</li>
+                        <li>Телефон (обязательно)</li>
+                        <li>Email</li>
+                        <li>Адрес доставки</li>
+                        <li>Комментарий к заказу</li>
+                    </ul>
+                    <p>Если Telegram не настроен, заказ всё равно сохранится, но вернётся сообщение об ошибке отправки в Telegram.</p>
+                </section>
+
+                <section id="color-variants" class="docs-section">
+                    <h2>Цветовые копии товаров</h2>
+                    <p>Система позволяет создавать до 4 цветовых вариантов для каждого товара. Каждый вариант имеет свой код, название цвета, HEX-код, цену, количество на складе и отдельные изображения.</p>
+                    <ul>
+                        <li>Варианты хранятся в JSON-поле <code>color_variants</code> таблицы <code>products</code>.</li>
+                        <li>На странице товара (<code>piece.html</code>) отображается круговой выбор цвета (<code>ColorPicker</code>). При выборе цвета обновляются цена, наличие и изображения.</li>
+                        <li>В админ-панели для товара есть кнопка <i class="fas fa-palette"></i> "Создать цветовую копию". Открывается модальное окно с цветовым пикером, полями цены, количества и загрузкой изображений.</li>
+                        <li>При создании копии генерируется уникальный код вида <code>OSNOVNOY_KOD/N</code>, где N – порядковый номер копии.</li>
+                    </ul>
+                    <p>Цветовой пикер в админке использует круговую палитру или ручной ввод HEX. Если библиотека <code>AdminColorPicker</code> не загружена, используется запасной вариант.</p>
                 </section>
 
                 <section id="backup" class="docs-section">
                     <h2>Резервное копирование</h2>
-                    <p>Система создает ZIP-архив, содержащий:</p>
+                    <p>Страница управления бэкапами (<code>backup-management.html</code>) предоставляет возможности:</p>
                     <ul>
-                        <li>Файл базы данных <code>ma_furniture.db</code></li>
-                        <li>Папку <code>uploads/products/</code> со всеми изображениями товаров и фона</li>
+                        <li><strong>Экспорт:</strong> создание ZIP-архива, содержащего файл базы данных <code>ma_furniture.db</code> и все изображения из папки <code>static/uploads/products/</code>. Архив скачивается на компьютер и одновременно сохраняется в папку <code>data/backups/</code>.</li>
+                        <li><strong>Импорт:</strong> загрузка ранее созданного ZIP-архива. Перед восстановлением создаются резервные копии текущей БД и папки <code>uploads</code> (с расширением <code>.backup</code>). После успешной распаковки данные заменяются.</li>
+                        <li><strong>Список сохранённых бэкапов:</strong> отображает все ранее созданные архивы с возможностью удаления.</li>
                     </ul>
-                    <p>Архивы сохраняются в папку <code>data/backups/</code>. Восстановление заменяет текущую БД и изображения на те, что в архиве. Перед восстановлением автоматически создается резервная копия текущего состояния (с расширением <code>.backup</code>).</p>
+                    <p>Важно: при восстановлении заменяется не только БД, но и все изображения товаров. Будьте внимательны. Рекомендуется регулярно создавать бэкапы перед крупными изменениями.</p>
                 </section>
 
                 <section id="deployment" class="docs-section">
                     <h2>Развертывание на Amvera</h2>
-                    <p>Конфигурация задаётся в файле <code>amvera.yml</code> (менять нельзя по требованию заказчика). Основные параметры:</p>
+                    <p>Конфигурация задаётся в файле <code>amvera.yml</code> (менять его нельзя по требованию заказчика). Основные параметры:</p>
+                    <pre><code>version: null
+meta:
+  environment: python
+  toolchain:
+    name: pip
+    version: "3.11"
+build:
+  requirementsPath: requirements.txt
+  useCache: true
+run:
+  scriptName: app.py
+  command: "gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 wsgi:app"
+  persistenceMount: /data
+  containerPort: 5000</code></pre>
+                    <p>Перед заливкой убедитесь, что в <code>requirements.txt</code> есть все зависимости: <code>flask</code>, <code>flask-cors</code>, <code>requests</code>, <code>gunicorn</code> и др.</p>
+                    <p><strong>Важно:</strong> папка <code>static/uploads</code> должна быть доступна для записи. На Amvera это обеспечивается монтированием <code>/data</code>. Файлы, сохранённые в <code>/data</code>, сохраняются между перезапусками. База данных и изображения, загруженные через админку, по умолчанию сохраняются в <code>/data/.../</code> (см. код <code>app.py</code>).</p>
+                </section>
+
+                <section id="maintenance" class="docs-section">
+                    <h2>Режим обслуживания</h2>
+                    <p>Администратор может временно отключить сайт для посетителей, включив режим обслуживания. При этом:</p>
                     <ul>
-                        <li><code>version: null</code></li>
-                        <li><code>environment: python</code></li>
-                        <li><code>toolchain: pip, version: "3.11"</code></li>
-                        <li><code>build.requirementsPath: requirements.txt</code></li>
-                        <li><code>run.scriptName: app.py</code></li>
-                        <li><code>run.command: gunicorn --bind 0.0.0.0:5000 --workers 2 --timeout 120 wsgi:app</code></li>
-                        <li><code>run.persistenceMount: /data</code> – сохраняет данные между перезапусками</li>
+                        <li>Все публичные маршруты (кроме статики, админки и API-эндпоинтов, начинающихся с <code>/api/admin/</code>) возвращают страницу <code>maintenance.html</code> с кодом 503.</li>
+                        <li>Режим включается/выключается через кнопку в дашборде админки (эндпоинты <code>/api/admin/maintenance/enable</code> и <code>/api/admin/maintenance/disable</code>).</li>
+                        <li>Состояние сохраняется в файл <code>data/.maintenance</code>.</li>
                     </ul>
-                    <p>Перед заливкой на Amvera убедитесь, что в <code>requirements.txt</code> есть все зависимости: flask, flask-cors, requests, gunicorn и т.д.</p>
+                    <p>Страница <code>maintenance.html</code> содержит игру "Угадай число", чтобы посетители могли скоротать время.</p>
                 </section>
 
                 <section id="troubleshooting" class="docs-section">
                     <h2>Устранение неполадок</h2>
+                    
+                    <h3>Не загружаются товары на главной или в каталоге</h3>
+                    <ul>
+                        <li>Проверьте, работает ли API: откройте <code>/api/products</code> в браузере. Должен вернуться JSON с товарами.</li>
+                        <li>Убедитесь, что в админ-панели есть активные товары (статус "active").</li>
+                        <li>Проверьте консоль браузера на ошибки JavaScript (например, 404 на файлы).</li>
+                    </ul>
+
                     <h3>Не загружаются изображения</h3>
                     <ul>
-                        <li>Проверьте права на папку <code>static/uploads/products/</code> (должна быть доступна для записи).</li>
-                        <li>Убедитесь, что файл не превышает 5MB.</li>
-                        <li>Проверьте путь: загруженные изображения доступны по URL <code>/static/uploads/products/имя_файла</code>.</li>
+                        <li>Проверьте права на папку <code>static/uploads/products/</code>. На сервере она должна быть доступна для записи.</li>
+                        <li>Убедитесь, что пути к изображениям в базе данных начинаются с <code>/static/uploads/products/...</code> и файлы физически существуют.</li>
+                        <li>Если изображения не отображаются на странице товара, проверьте поле <code>images</code> в JSON товара.</li>
                     </ul>
+
                     <h3>Не отправляются заказы в Telegram</h3>
                     <ul>
-                        <li>Проверьте переменные окружения <code>TELEGRAM_BOT_TOKEN</code> и <code>TELEGRAM_CHAT_ID</code> в настройках Amvera.</li>
-                        <li>Убедитесь, что бот добавлен в чат и имеет права на отправку сообщений.</li>
+                        <li>Убедитесь, что в переменных окружения Amvera заданы <code>TELEGRAM_BOT_TOKEN</code> и <code>TELEGRAM_CHAT_ID</code>. Их можно проверить в настройках проекта.</li>
+                        <li>Проверьте, что бот добавлен в чат и имеет права на отправку сообщений.</li>
+                        <li>При тестировании смотрите логи сервера (через Amvera: Logs).</li>
                     </ul>
-                    <h3>Не работает drag-and-drop в разделе "Разделы"</h3>
+
+                    <h3>Проблемы с резервным копированием</h3>
                     <ul>
-                        <li>Убедитесь, что подключена библиотека SortableJS: <code>&lt;script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"&gt;&lt;/script&gt;</code>.</li>
-                        <li>Проверьте консоль браузера на ошибки JavaScript.</li>
+                        <li>Если при скачивании бэкапа возникает ошибка, проверьте, что папка <code>data/backups</code> существует и доступна для записи.</li>
+                        <li>При восстановлении бэкапа убедитесь, что архив содержит файл <code>ma_furniture.db</code>. Если он не содержит папку <code>uploads/products</code>, изображения не будут восстановлены, но БД обновится.</li>
+                        <li>После восстановления может потребоваться очистить кэш браузера, чтобы изменения отобразились.</li>
                     </ul>
-                    <h3>После восстановления бэкапа пропали изображения</h3>
+
+                    <h3>Цветовые варианты не отображаются на странице товара</h3>
                     <ul>
-                        <li>Бэкап должен содержать папку <code>uploads/products/</code>. Если её нет, изображения не будут восстановлены.</li>
-                        <li>Попробуйте создать новый бэкап и восстановить его заново.</li>
+                        <li>Убедитесь, что в админ-панели добавлены цветовые копии (кнопка "Создать цветовую копию").</li>
+                        <li>Проверьте, что JS-класс <code>ColorPicker</code> инициализирован и получил данные по эндпоинту <code>/api/products/&lt;id&gt;/colors</code>.</li>
+                        <li>Если товар имеет только один вариант (оригинал), блок выбора цвета скрывается.</li>
+                    </ul>
+
+                    <h3>Режим обслуживания не включается</h3>
+                    <ul>
+                        <li>Проверьте, что вы авторизованы в админке. Токен передаётся в заголовках.</li>
+                        <li>Посмотрите, создаётся ли файл <code>data/.maintenance</code> при включении. На сервере должны быть права на запись в папку <code>data</code>.</li>
                     </ul>
                 </section>
             </div>
