@@ -713,27 +713,63 @@ def get_product_colors(product_id):
         return jsonify({'success':True,'product_id':product_id,'variants':variants,'base_name':product.get('name',''),'base_code':product.get('code','')})
     except Exception as e: return jsonify({'success':False,'error':str(e)}),500
 
-@app.route('/api/admin/products/<int:product_id>/color-variant',methods=['POST'])
+@app.route('/api/admin/products/<int:product_id>/color-variant', methods=['POST'])
 def add_color_variant(product_id):
     try:
-        product=get_product_by_id(product_id)
-        if not product: return jsonify({'success':False,'error':'Товар не найден'}),404
-        data=request.get_json()
-        if 'color_variants' not in product: product['color_variants']=[]
-        if len(product['color_variants'])>=5: return jsonify({'success':False,'error':'Максимум 5 цветовых вариантов'}),400
-        base_code=product.get('code',f"ID{product_id}")
-        new_index=len([v for v in product['color_variants'] if not v.get('is_original',False)])+1
-        variant_id=f"{base_code}/{new_index}"
-        new_variant={'variant_id':variant_id,'color_name':data['color_name'],'color_hex':data['color_hex'],
-            'suffix':f" - {data['color_name']}",'price':data.get('price',product.get('price',0)),
-            'old_price':data.get('old_price'),'stock':data.get('stock',0),'images':data.get('images',[]),
-            'is_original':False,'order':len(product['color_variants'])+1}
+        # Получаем товар из БД
+        product = get_product_by_id(product_id)
+        if not product:
+            return jsonify({'success': False, 'error': 'Товар не найден'}), 404
+
+        data = request.get_json()
+
+        # Проверяем обязательные поля
+        if 'color_name' not in data or 'color_hex' not in data:
+            return jsonify({'success': False, 'error': 'Не указаны название или цвет'}), 400
+
+        # Убеждаемся, что поле color_variants существует и является списком
+        if 'color_variants' not in product or not isinstance(product['color_variants'], list):
+            product['color_variants'] = []
+
+        # Проверка лимита (максимум 5 вариантов, включая оригинал)
+        if len(product['color_variants']) >= 5:
+            return jsonify({'success': False, 'error': 'Максимум 5 цветовых вариантов'}), 400
+
+        # Генерация нового variant_id
+        base_code = product.get('code', f"ID{product_id}")
+        new_index = len([v for v in product['color_variants'] if not v.get('is_original', False)]) + 1
+        variant_id = f"{base_code}/{new_index}"
+
+        # Формируем новый вариант
+        new_variant = {
+            'variant_id': variant_id,
+            'color_name': data['color_name'],
+            'color_hex': data['color_hex'],
+            'suffix': f" - {data['color_name']}",
+            'price': data.get('price', product.get('price', 0)),
+            'old_price': data.get('old_price'),
+            'stock': data.get('stock', 0),
+            'images': data.get('images', []),
+            'is_original': False,
+            'order': len(product['color_variants']) + 1
+        }
+
+        # Добавляем вариант в массив
         product['color_variants'].append(new_variant)
-        product['updated_at']=datetime.now().isoformat()
-        filepath=os.path.join(PRODUCTS_DIR,f"{product_id}.json")
-        with open(filepath,'w',encoding='utf-8') as f: json.dump(product,f,ensure_ascii=False,indent=2)
-        return jsonify({'success':True,'variant':new_variant,'message':'Цветовой вариант добавлен'})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+
+        # Сохраняем обновлённый товар в БД (используем существующую функцию save_product)
+        save_product(product)
+
+        # Возвращаем успешный ответ
+        return jsonify({
+            'success': True,
+            'variant': new_variant,
+            'message': 'Цветовой вариант добавлен'
+        })
+
+    except Exception as e:
+        logger.error(f"Ошибка добавления цветового варианта: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========== РЕЖИМ ОБСЛУЖИВАНИЯ ==========
 MAINTENANCE_FLAG=os.path.join(DATA_DIR,'.maintenance')
