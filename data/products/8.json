@@ -1,0 +1,24 @@
+{
+    "id": 11,
+    "name": "Обувница Nuomi Hera",
+    "code": "6182305",
+    "category": "2",
+    "section": "obuvnitsy",
+    "price": 59900,
+    "old_price": null,
+    "badge": null,
+    "recommended": false,
+    "description": "Представляем вам повортную на 360 градусов обувницу Nuomi в коллекции Hera. Обувница станет в вашем пространстве стильным и функциональным дополнением. Этот аксессуар незаменим для удобного хранения и быстрого доступа к вашим любимым пара",
+    "specifications": "Ширина: 720 мм (для базы 764 и более)\nГлубина: 360 мм\nВысота: от 790-990 (4 полки) до 1910-2110 (12 полок)\nМатериал: алюминий и экокожа\nХранение: много уровненное, позволяет хранить до 30 пар обуви\nПоворот: поворот на 360 градусов",
+    "status": "active",
+    "stock": 10,
+    "images": [
+        "https://ma-furniture.ru/static/uploads/products/1774687699_d731bb72.jpg",
+        "https://ma-furniture.ru/static/uploads/products/1774687700_db15c89f.png",
+        "https://ma-furniture.ru/static/uploads/products/1774687700_4d0b1451.jpg"
+    ],
+    "color_variants": "[]",
+    "created_at": "2026-03-28T08:51:41.498479",
+    "updated_at": "2026-03-28T08:51:41.498479",
+    "is_price_on_request": 1
+}
