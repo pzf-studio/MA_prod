@@ -1,0 +1,21 @@
+{
+    "id": 22,
+    "name": "Кухонный лифт для сушки посуды (опускающийся)",
+    "code": "kich1",
+    "category": "2",
+    "section": "kuhonnye_lifty",
+    "price": 45000,
+    "old_price": null,
+    "badge": null,
+    "recommended": 0,
+    "description": "Кухонный лифт со встроенный подсветкой и отсеками для сушки посуды. Удобное, функциональное и технологичное решение для вашей кухни! Плавны спуск, подсветка и качество исполнения на высоте. ",
+    "specifications": "- Ширина: доступны под заказ 564, 664, 764, 864, 964 мм \n- Высота: 700 мм\n- Общая глубина: 290\n- Цвет: серый\n- Материал: алюминиевый сплав, сталь\n- Нагрузка: 18-20 кг\n- Движение: активация движения лифта осуществляется прикосновением к\nсенсорной поверхности\n- Подсветка: автоматически включается при опускании, выключается при\nподъеме. Цвет свечения 4000К\n- Время опускания: 8 сек",
+    "status": "active",
+    "stock": 10,
+    "images": "[\"https://ma-furniture.ru/static/uploads/products/1774701391_d2ecdce2.jpeg\", \"https://ma-furniture.ru/static/uploads/products/1774701391_689c2958.jpeg\", \"https://ma-furniture.ru/static/uploads/products/1774701391_7336f1db.jpeg\", \"https://ma-furniture.ru/static/uploads/products/1774701447_931922c0.png\"]",
+    "color_variants": "[]",
+    "created_at": "2026-03-28T12:36:36.275325",
+    "updated_at": "2026-03-28T12:37:45.640380",
+    "is_price_on_request": 1,
+    "availability": 0
+}

@@ -1,0 +1,21 @@
+{
+    "id": 17,
+    "name": "Обувница Time ",
+    "code": "MAF-09",
+    "category": "2",
+    "section": "obuvnitsy",
+    "price": 56900,
+    "old_price": null,
+    "badge": "Хит продаж",
+    "recommended": 1,
+    "description": "Эксклюзивная обувница в коллекции Hera от MA Furniture! Поворотная обувница с вращением на 180 градусов позволяет удобно хранить вашу любимую обувь. Обувници выполняет не только функцию хранения, но и является великолепным элементом в дизайне гардеробной комнаты",
+    "specifications": "Ширина: 650 мм (под базу 700 и более) \nГлубина: 320 мм\nВысота: от 1050-1150 (6 полок) до 1989-2076 (12 полок)\nМатериал: алюминиевый сплав, экокожа и замша\nЦвета каркаса: серый, черный и золотой\nЦвета ковриков: под заказ на выбор из более чем 30 цветов\nКол-во полок: 6, 8, 10, 12\n",
+    "status": "active",
+    "stock": 10,
+    "images": "[\"https://ma-furniture.ru/static/uploads/products/1774690921_44b61665.jpg\", \"https://ma-furniture.ru/static/uploads/products/1774690921_8f57be26.jpg\", \"https://ma-furniture.ru/static/uploads/products/1774690922_9cf4a1b8.jpeg\", \"https://ma-furniture.ru/static/uploads/products/1774690922_e8c87cef.jpg\"]",
+    "color_variants": "[]",
+    "created_at": "2026-03-28T09:42:07.843906",
+    "updated_at": "2026-03-28T09:42:21.086087",
+    "is_price_on_request": 1,
+    "availability": 0
+}
