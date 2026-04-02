@@ -1,0 +1,21 @@
+{
+    "id": 9,
+    "name": "Обувница Nuomi Ralphie",
+    "code": "6112304",
+    "category": "2",
+    "section": "obuvnitsy",
+    "price": 55900,
+    "old_price": null,
+    "badge": null,
+    "recommended": 0,
+    "description": "Представляем вам элегантную повортную на 360 градусов обувницу Nuomi в коллекции Ralphie, которая станет стильным и функциональным дополнением вашего гардероба. Этот аксессуар незаменим для удобного хранения и быстрого доступа к  вашим любимым парам обуви.",
+    "specifications": "Ширина: 700 мм (для базы 764 и более)\nГлубина: 360 мм\nВысота: от 790-990 (4 полки) до 1910-2110 (12 полок)\nМатериал: алюминий и экокожа\nХранение: много уровненное, позволяет хранить до 36 пар обуви\nПоворот: поворот на 360 градусов",
+    "status": "active",
+    "stock": 10,
+    "images": "[\"https://ma-furniture.ru/static/uploads/products/1774687313_776cd38a.png\", \"https://ma-furniture.ru/static/uploads/products/1774687321_fc635901.png\", \"https://ma-furniture.ru/static/uploads/products/1774687327_02b1996e.png\"]",
+    "color_variants": "[]",
+    "created_at": "2026-03-28T08:42:11.476808",
+    "updated_at": "2026-03-28T08:42:11.476808",
+    "is_price_on_request": 1,
+    "availability": 0
+}

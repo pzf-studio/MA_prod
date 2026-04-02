@@ -1,0 +1,21 @@
+{
+    "id": 13,
+    "name": "Брючница Nuomi Hera",
+    "code": "6110460",
+    "category": "2",
+    "section": "bryuchnitsy",
+    "price": 18000,
+    "old_price": null,
+    "badge": null,
+    "recommended": 0,
+    "description": "Брючница для хранения в шкаф от Nuomi Hera! Удобное хранение ваших брюк и джинс. Передвижные перекладины позволяют организовать пространство под ваши желания\n",
+    "specifications": "- Ширина: доступны под заказ 564, 664, 764, 864 и 964 мм.\n- Глубина: 470 мм\n- Высота: 62 мм\n- Материал: алюминий, экокожа\n- Цвет: темно-коричневый\n",
+    "status": "active",
+    "stock": 10,
+    "images": "[\"https://ma-furniture.ru/static/uploads/products/1774688525_66a1f266.png\", \"https://ma-furniture.ru/static/uploads/products/1774688526_d4e4f369.png\", \"https://ma-furniture.ru/static/uploads/products/1774688527_c7765a7c.jpg\"]",
+    "color_variants": "[]",
+    "created_at": "2026-03-28T09:02:09.010706",
+    "updated_at": "2026-03-28T09:02:24.287226",
+    "is_price_on_request": 1,
+    "availability": 0
+}
