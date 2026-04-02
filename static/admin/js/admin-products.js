@@ -89,9 +89,16 @@ class AdminProductsManager {
             const date = new Date(product.created_at);
             const formattedDate = date.toLocaleDateString('ru-RU');
             const priceFormatted = window.formatPrice(product.price);
-            const colorVariants = product.color_variants || [];
+            
+            // Исправление: гарантируем, что color_variants – массив
+            let colorVariants = product.color_variants;
+            if (!Array.isArray(colorVariants)) {
+                try { colorVariants = JSON.parse(colorVariants); } catch(e) { colorVariants = []; }
+                if (!Array.isArray(colorVariants)) colorVariants = [];
+            }
             const copyCount = colorVariants.filter(v => !v.is_original).length;
             const colorCountHTML = copyCount > 0 ? `<span class="color-count" title="${copyCount} цветовых копий" style="background: #3498db; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8em;">+${copyCount}</span>` : '';
+            
             row.innerHTML = `
                 <td>${product.id}</td>
                 ${imageCell}
@@ -215,16 +222,11 @@ class AdminProductsManager {
         }
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); this.logout(); });
-        
-        // Слушатель изменения селекта "Наличие" для управления чекбоксом "Отображать цену товара"
         const availabilitySelect = document.getElementById('productCategory');
         if (availabilitySelect) {
-            availabilitySelect.addEventListener('change', (e) => {
-                this.togglePriceOnRequestCheckbox(e.target.value === '1');
-            });
+            availabilitySelect.addEventListener('change', (e) => { this.togglePriceOnRequestCheckbox(e.target.value === '1'); });
         }
     }
-    // Управление чекбоксом "Отображать цену товара"
     togglePriceOnRequestCheckbox(enable) {
         const checkbox = document.getElementById('priceOnRequest');
         if (checkbox) {
@@ -298,7 +300,14 @@ class AdminProductsManager {
         document.getElementById('baseProductName').textContent = product.name;
         document.getElementById('baseProductCode').textContent = product.code || `ID${product.id}`;
         const baseCode = product.code || `ID${product.id}`;
-        const existingCopies = (product.color_variants || []).filter(v => !v.is_original);
+        
+        // Исправление: гарантируем массив color_variants
+        let colorVariants = product.color_variants;
+        if (!Array.isArray(colorVariants)) {
+            try { colorVariants = JSON.parse(colorVariants); } catch(e) { colorVariants = []; }
+            if (!Array.isArray(colorVariants)) colorVariants = [];
+        }
+        const existingCopies = colorVariants.filter(v => !v.is_original);
         const newIndex = existingCopies.length + 1;
         document.getElementById('copyProductCode').textContent = `${baseCode}/${newIndex}`;
         document.getElementById('copyPrice').value = product.price || '';
@@ -403,7 +412,6 @@ class AdminProductsManager {
         if (imagePreview) imagePreview.innerHTML = '';
         document.getElementById('productId').value = '';
         document.getElementById('productImages').value = '[]';
-        // Сбросить чекбокс и селект
         document.getElementById('priceOnRequest').checked = false;
         document.getElementById('priceOnRequest').disabled = true;
         document.getElementById('productCategory').value = '0';
@@ -429,7 +437,6 @@ class AdminProductsManager {
         document.getElementById('productStock').value = product.stock || 10;
         const priceOnRequestCheckbox = document.getElementById('priceOnRequest');
         if (priceOnRequestCheckbox) priceOnRequestCheckbox.checked = product.is_price_on_request === 1;
-        // Управляем активностью чекбокса в зависимости от выбранного availability
         this.togglePriceOnRequestCheckbox(product.availability === 1);
         
         const images = product.images || [];
