@@ -7,7 +7,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'ma_furniture.db')
+# Используем постоянный том Amvera
+DB_PATH = '/data/ma_furniture.db'
 
 @contextmanager
 def get_db():
@@ -24,21 +25,21 @@ def get_db():
 
 def ensure_columns(conn):
     """Проверяет и добавляет отсутствующие колонки в таблицу products"""
-    # Получаем список существующих колонок
     cursor = conn.execute("PRAGMA table_info(products)")
     columns = [row[1] for row in cursor.fetchall()]
     
-    # Добавляем is_price_on_request, если нет
     if 'is_price_on_request' not in columns:
         conn.execute('ALTER TABLE products ADD COLUMN is_price_on_request BOOLEAN DEFAULT 0')
         logger.info("Добавлено поле is_price_on_request в таблицу products")
     
-    # Добавляем availability, если нет
     if 'availability' not in columns:
         conn.execute('ALTER TABLE products ADD COLUMN availability INTEGER DEFAULT 0')
         logger.info("Добавлено поле availability в таблицу products")
 
 def init_db():
+    # Убедимся, что папка /data существует
+    os.makedirs('/data', exist_ok=True)
+    
     with get_db() as conn:
         conn.execute('''
             CREATE TABLE IF NOT EXISTS products (
@@ -61,7 +62,6 @@ def init_db():
                 updated_at TEXT NOT NULL
             )
         ''')
-        # Добавляем недостающие колонки после создания таблицы
         ensure_columns(conn)
 
         conn.execute('''
@@ -104,13 +104,8 @@ def init_db():
         conn.execute('CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)')
 
 def migrate_from_json(products_dir, sections_file, background_file, data_dir):
-    import os
-    import json
-    from datetime import datetime
-
+    import shutil
     with get_db() as conn:
-        # Убеждаемся, что колонки есть перед миграцией
-        ensure_columns(conn)
         cur = conn.execute('SELECT COUNT(*) FROM products')
         if cur.fetchone()[0] > 0:
             logger.info("База данных уже содержит товары, миграция из JSON не требуется")
