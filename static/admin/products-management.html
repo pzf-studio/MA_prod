@@ -745,7 +745,15 @@
                             <small class="text-muted">Доступно только при выборе "Под заказ". Если включено – цена будет показана, иначе скрыта.</small>
                         </div>
                     </div>
-
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="priceFrom">
+                                <input type="checkbox" id="priceFrom" name="priceFrom" value="1">
+                                Отображать цену как «От …»
+                            </label>
+                            <small class="text-muted">Если включено – цена будет показываться с приставкой «От», например «От 22 000 ₽».</small>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="productDescription">Описание товара *</label>
                         <textarea id="productDescription" name="productDescription" class="form-control" required rows="4" placeholder="Подробное описание товара..."></textarea>
