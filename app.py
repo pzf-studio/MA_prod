@@ -1,35 +1,34 @@
-import os, json, logging, sys, zipfile, tempfile, shutil
-from datetime import datetime, timedelta
-from flask import Flask, request, jsonify, send_from_directory, send_file
+import os,json,logging,sys,zipfile,tempfile,shutil
+from datetime import datetime,timedelta
+from flask import Flask,request,jsonify,send_from_directory,send_file
 from flask_cors import CORS
-import hashlib, uuid
+import hashlib,uuid
 from werkzeug.utils import secure_filename
 from order_manager import order_manager
 import database as db
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR=os.path.dirname(os.path.abspath(__file__))
 print("="*60)
-print("MA FURNITURE - SQLITE STORAGE (PERSISTENT /data)")
+print("MA FURNITURE - SQLITE STORAGE")
 print("="*60)
 print(f"Python version: {sys.version}")
 print(f"Current working directory: {os.getcwd()}")
 print(f"BASE_DIR: {BASE_DIR}")
 
-# ========== ПЕРСИСТЕНТНЫЕ ПУТИ (том /data) ==========
-DATA_DIR = '/data'                     # постоянный том Amvera
-DB_PATH = os.path.join(DATA_DIR, 'ma_furniture.db')
-PRODUCTS_DIR = os.path.join(DATA_DIR, 'products')       # JSON-файлы товаров (для обратной совместимости)
-SECTIONS_FILE = os.path.join(DATA_DIR, 'sections.json')
-BACKGROUND_FILE = os.path.join(DATA_DIR, 'background.json')
-BACKUP_DIR = os.path.join(DATA_DIR, 'backups')          # папка с сохранёнными бэкапами
-UPLOAD_FOLDER = os.path.join(DATA_DIR, 'uploads', 'products')
-TEMP_FOLDER = os.path.join(DATA_DIR, 'temp')
+DATA_DIR=os.path.join(BASE_DIR,'data')
+STATIC_DIR=os.path.join(BASE_DIR,'static')
+UPLOAD_FOLDER=os.path.join(STATIC_DIR,'uploads/products')
+TEMP_FOLDER=os.path.join(STATIC_DIR,'uploads/temp')
+DB_PATH=os.path.join(DATA_DIR,'ma_furniture.db')
+PRODUCTS_DIR=os.path.join(DATA_DIR,'products')
+SECTIONS_FILE=os.path.join(DATA_DIR,'sections.json')
+BACKGROUND_FILE=os.path.join(DATA_DIR,'background.json')
 
-# ========== СТАТИЧЕСКИЕ ПУТИ (для фронтенда) ==========
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
-# Папка для временных файлов загрузки (можно оставить в статике, но лучше тоже в /data)
-# TEMP_FOLDER уже определён выше как /data/temp
+os.makedirs(DATA_DIR,exist_ok=True)
+os.makedirs(UPLOAD_FOLDER,exist_ok=True)
+os.makedirs(TEMP_FOLDER,exist_ok=True)
 
+<<<<<<< HEAD
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TEMP_FOLDER, exist_ok=True)
@@ -109,62 +108,47 @@ db.migrate_from_json(PRODUCTS_DIR, SECTIONS_FILE, BACKGROUND_FILE, DATA_DIR)
 
 # ========== НАСТРОЙКИ FLASK ==========
 app = Flask(__name__, static_folder='static', static_url_path='')
+=======
+app=Flask(__name__,static_folder='static',static_url_path='')
+>>>>>>> parent of 2f2ebf4 (Database_PriceFrom)
 CORS(app)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['TEMP_FOLDER'] = TEMP_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+app.config['UPLOAD_FOLDER']=UPLOAD_FOLDER
+app.config['TEMP_FOLDER']=TEMP_FOLDER
+app.config['MAX_CONTENT_LENGTH']=100*1024*1024
+ALLOWED_EXTENSIONS={'png','jpg','jpeg','gif','webp'}
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = app.logger
+logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger=app.logger
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+db.init_db()
+db.migrate_from_json(PRODUCTS_DIR,SECTIONS_FILE,BACKGROUND_FILE,DATA_DIR)
 
+def allowed_file(filename): return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
 def generate_filename(original_name):
-    timestamp = int(datetime.now().timestamp())
-    random_str = hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
-    ext = original_name.rsplit('.', 1)[1].lower() if '.' in original_name else 'jpg'
+    timestamp=int(datetime.now().timestamp())
+    random_str=hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
+    ext=original_name.rsplit('.',1)[1].lower() if '.' in original_name else 'jpg'
     return f"{timestamp}_{random_str}.{ext}"
-
-def get_uploads_path():
-    return UPLOAD_FOLDER
+def get_uploads_path(): return os.path.join(STATIC_DIR,'uploads','products')
 
 def get_all_products():
     with db.get_db() as conn:
-        rows = conn.execute('''
-            SELECT id, name, code, category, section, price, old_price, badge,
-                   recommended, description, specifications, status, stock,
-                   images, color_variants, created_at, updated_at,
-                   is_price_on_request, availability
-            FROM products ORDER BY created_at DESC
-        ''').fetchall()
-        products = []
+        rows=conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products ORDER BY created_at DESC').fetchall()
+        products=[]
         for row in rows:
-            prod = dict(row)
-            prod['images'] = json.loads(prod['images']) if prod['images'] else []
-            prod['color_variants'] = json.loads(prod['color_variants']) if prod['color_variants'] else []
-            # Добавляем флаг из внешнего файла
-            prod['is_price_from'] = get_product_flag(prod['id'], 'is_price_from', False)
+            prod=dict(row)
+            prod['images']=json.loads(prod['images']) if prod['images'] else []
+            prod['color_variants']=json.loads(prod['color_variants']) if prod['color_variants'] else []
             products.append(prod)
         return products
 
 def get_product_by_id(product_id):
     with db.get_db() as conn:
-        row = conn.execute('''
-            SELECT id, name, code, category, section, price, old_price, badge,
-                   recommended, description, specifications, status, stock,
-                   images, color_variants, created_at, updated_at,
-                   is_price_on_request, availability
-            FROM products WHERE id = ?
-        ''', (product_id,)).fetchone()
+        row=conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products WHERE id = ?',(product_id,)).fetchone()
         if row:
-            prod = dict(row)
-            prod['images'] = json.loads(prod['images']) if prod['images'] else []
-            prod['color_variants'] = json.loads(prod['color_variants']) if prod['color_variants'] else []
-            # Добавляем флаг
-            prod['is_price_from'] = get_product_flag(product_id, 'is_price_from', False)
+            prod=dict(row)
+            prod['images']=json.loads(prod['images']) if prod['images'] else []
+            prod['color_variants']=json.loads(prod['color_variants']) if prod['color_variants'] else []
             return prod
         return None
 
@@ -656,52 +640,30 @@ def admin_get_products():
         return jsonify({'success':True,'products':products})
     except Exception as e: return jsonify({'success':False,'error':str(e)}),500
 
-@app.route('/api/admin/products', methods=['POST'])
+@app.route('/api/admin/products',methods=['POST'])
 def admin_create_product():
     try:
-        data = request.get_json()
-        required_fields = ['name', 'price', 'description']
+        data=request.get_json()
+        required_fields=['name','price','description']
         for field in required_fields:
             if field not in data or not str(data[field]).strip():
-                return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
-        
-        # Сохраняем флаг отдельно, если он передан
-        is_price_from = data.pop('is_price_from', False)
-        
-        product_id = save_product(data)
-        if not product_id:
-            return jsonify({'success': False, 'error': 'Ошибка сохранения'}), 500
-        
-        # Сохраняем флаг
-        set_product_flag(product_id, 'is_price_from', is_price_from)
-        
-        return jsonify({'success': True, 'product_id': product_id, 'message': 'Товар успешно создан'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+                return jsonify({'success':False,'error':f'Поле {field} обязательно'}),400
+        product_id=save_product(data)
+        if not product_id: return jsonify({'success':False,'error':'Ошибка сохранения'}),500
+        return jsonify({'success':True,'product_id':product_id,'message':'Товар успешно создан'})
+    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
 
-@app.route('/api/admin/products/<int:product_id>', methods=['PUT'])
+@app.route('/api/admin/products/<int:product_id>',methods=['PUT'])
 def admin_update_product(product_id):
     try:
-        data = request.get_json()
-        existing = get_product_by_id(product_id)
-        if not existing:
-            return jsonify({'success': False, 'error': 'Товар не найден'}), 404
-        
-        # Извлекаем флаг, если он передан
-        is_price_from = data.pop('is_price_from', None)
-        
-        for key, value in data.items():
-            existing[key] = value
-        existing['updated_at'] = datetime.now().isoformat()
+        data=request.get_json()
+        existing=get_product_by_id(product_id)
+        if not existing: return jsonify({'success':False,'error':'Товар не найден'}),404
+        for key,value in data.items(): existing[key]=value
+        existing['updated_at']=datetime.now().isoformat()
         save_product(existing)
-        
-        # Сохраняем флаг, если он был в запросе
-        if is_price_from is not None:
-            set_product_flag(product_id, 'is_price_from', is_price_from)
-        
-        return jsonify({'success': True, 'message': 'Товар успешно обновлен'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        return jsonify({'success':True,'message':'Товар успешно обновлен'})
+    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
 
 @app.route('/api/admin/products/<int:product_id>',methods=['DELETE'])
 def admin_delete_product(product_id):
@@ -936,9 +898,7 @@ def admin_maintenance_disable():
 def serve_static(filename): return send_from_directory(STATIC_DIR,filename)
 
 @app.route('/uploads/products/<filename>')
-def serve_uploaded_file(filename):
-    """Отдаём файлы из постоянного хранилища /data/uploads/products"""
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+def serve_uploaded_file(filename): return send_from_directory(app.config['UPLOAD_FOLDER'],filename)
 
 @app.errorhandler(404)
 def not_found_error(error):
@@ -950,166 +910,6 @@ def not_found_error(error):
         if os.path.exists(index_path): return send_file(index_path)
         return jsonify({'success':False,'error':'Ресурс не найден'}),404
     except Exception as e: return jsonify({'success':False,'error':str(e)}),404
-
-@app.route('/api/admin/backup/download', methods=['GET'])
-def admin_backup_download():
-    try:
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
-        temp_dir = tempfile.mkdtemp()
-        try:
-            # Копируем БД из постоянного тома
-            backup_db_path = os.path.join(temp_dir, 'ma_furniture.db')
-            shutil.copy2(DB_PATH, backup_db_path)
-            
-            # Копируем папку с изображениями из /data/uploads/products
-            uploads_src = UPLOAD_FOLDER
-            uploads_dst = os.path.join(temp_dir, 'uploads', 'products')
-            if os.path.exists(uploads_src) and os.listdir(uploads_src):
-                shutil.copytree(uploads_src, uploads_dst)
-            else:
-                os.makedirs(uploads_dst, exist_ok=True)
-            
-            # Создаём ZIP
-            zip_path = os.path.join(temp_dir, 'ma_furniture_backup.zip')
-            with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-                zf.write(backup_db_path, arcname='ma_furniture.db')
-                for root, dirs, files in os.walk(uploads_dst):
-                    for file in files:
-                        full_path = os.path.join(root, file)
-                        rel_path = os.path.relpath(full_path, temp_dir)
-                        zf.write(full_path, arcname=rel_path)
-            
-            # Сохраняем копию в BACKUP_DIR
-            backup_copy_path = os.path.join(BACKUP_DIR, f'ma_furniture_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip')
-            shutil.copy2(zip_path, backup_copy_path)
-            
-            return send_file(zip_path, as_attachment=True,
-                             download_name=f'ma_furniture_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip',
-                             mimetype='application/zip')
-        finally:
-            shutil.rmtree(temp_dir, ignore_errors=True)
-    except Exception as e:
-        logger.error(f"Ошибка создания бэкапа: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/admin/backup/upload', methods=['POST'])
-def admin_backup_upload():
-    try:
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
-        if 'file' not in request.files:
-            return jsonify({'success': False, 'error': 'Файл не загружен'}), 400
-        
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'success': False, 'error': 'Файл не выбран'}), 400
-        if not file.filename.endswith('.zip'):
-            return jsonify({'success': False, 'error': 'Допустим только ZIP-архив'}), 400
-        
-        temp_dir = tempfile.mkdtemp()
-        try:
-            zip_path = os.path.join(temp_dir, 'upload.zip')
-            file.save(zip_path)
-            
-            with zipfile.ZipFile(zip_path, 'r') as zf:
-                if 'ma_furniture.db' not in zf.namelist():
-                    return jsonify({'success': False, 'error': 'Архив не содержит файл ma_furniture.db'}), 400
-                zf.extractall(temp_dir)
-            
-            extracted_db = os.path.join(temp_dir, 'ma_furniture.db')
-            if not os.path.exists(extracted_db):
-                return jsonify({'success': False, 'error': 'Не удалось извлечь базу данных'}), 500
-            
-            extracted_uploads = os.path.join(temp_dir, 'uploads', 'products')
-            has_uploads = os.path.exists(extracted_uploads) and os.listdir(extracted_uploads)
-            
-            # Создаём бэкап текущих данных
-            backup_db_path = DB_PATH + '.backup'
-            if os.path.exists(DB_PATH):
-                shutil.copy2(DB_PATH, backup_db_path)
-            
-            backup_uploads_path = UPLOAD_FOLDER + '.backup'
-            if os.path.exists(UPLOAD_FOLDER):
-                if os.path.exists(backup_uploads_path):
-                    shutil.rmtree(backup_uploads_path)
-                shutil.copytree(UPLOAD_FOLDER, backup_uploads_path)
-            
-            # Восстанавливаем
-            shutil.copy2(extracted_db, DB_PATH)
-            if has_uploads:
-                if os.path.exists(UPLOAD_FOLDER):
-                    shutil.rmtree(UPLOAD_FOLDER)
-                shutil.copytree(extracted_uploads, UPLOAD_FOLDER)
-            else:
-                logger.info("Архив не содержит изображений, папка uploads не изменена")
-            
-            return jsonify({'success': True, 'message': 'База данных и изображения успешно восстановлены. Перезагрузите страницу.'})
-        except Exception as e:
-            logger.error(f"Ошибка восстановления из бэкапа: {e}")
-            # Пытаемся откатить
-            try:
-                if os.path.exists(DB_PATH + '.backup'):
-                    shutil.copy2(DB_PATH + '.backup', DB_PATH)
-                if os.path.exists(UPLOAD_FOLDER + '.backup'):
-                    if os.path.exists(UPLOAD_FOLDER):
-                        shutil.rmtree(UPLOAD_FOLDER)
-                    shutil.copytree(UPLOAD_FOLDER + '.backup', UPLOAD_FOLDER)
-            except:
-                pass
-            return jsonify({'success': False, 'error': str(e)}), 500
-        finally:
-            shutil.rmtree(temp_dir, ignore_errors=True)
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/admin/backup/list', methods=['GET'])
-def admin_backup_list():
-    try:
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
-        os.makedirs(BACKUP_DIR, exist_ok=True)
-        backups = []
-        for filename in os.listdir(BACKUP_DIR):
-            if filename.endswith('.zip'):
-                filepath = os.path.join(BACKUP_DIR, filename)
-                stat = os.stat(filepath)
-                backups.append({
-                    'filename': filename,
-                    'size': stat.st_size,
-                    'created': datetime.fromtimestamp(stat.st_ctime).isoformat()
-                })
-        backups.sort(key=lambda x: x['created'], reverse=True)
-        return jsonify({'success': True, 'backups': backups})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/admin/backup/delete', methods=['POST'])
-def admin_backup_delete():
-    try:
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-        
-        data = request.get_json()
-        filename = data.get('filename')
-        if not filename:
-            return jsonify({'success': False, 'error': 'Не указано имя файла'}), 400
-        
-        filepath = os.path.join(BACKUP_DIR, filename)
-        if os.path.exists(filepath):
-            os.remove(filepath)
-            return jsonify({'success': True, 'message': 'Бэкап удалён'})
-        else:
-            return jsonify({'success': False, 'error': 'Файл не найден'}), 404
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__=='__main__':
     print("\n"+"="*60)

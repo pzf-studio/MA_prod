@@ -438,11 +438,7 @@ class AdminProductsManager {
         const priceOnRequestCheckbox = document.getElementById('priceOnRequest');
         if (priceOnRequestCheckbox) priceOnRequestCheckbox.checked = product.is_price_on_request === 1;
         this.togglePriceOnRequestCheckbox(product.availability === 1);
-
-        const priceFromCheckbox = document.getElementById('priceFrom');
-            if (priceFromCheckbox) {
-                priceFromCheckbox.checked = product.is_price_from === true;
-            }
+        
         const images = product.images || [];
         const imagePreview = document.getElementById('imagePreview');
         if (imagePreview && images.length > 0) {
@@ -461,8 +457,6 @@ class AdminProductsManager {
         const formData = new FormData(e.target);
         const availability = parseInt(document.getElementById('productCategory').value) === 1 ? 1 : 0;
         const is_price_on_request = document.getElementById('priceOnRequest').checked ? 1 : 0;
-        const is_price_from = document.getElementById('priceFrom').checked ? true : false;   // НОВОЕ
-
         const productData = {
             name: formData.get('productName'),
             code: formData.get('productCode'),
@@ -478,8 +472,7 @@ class AdminProductsManager {
             stock: parseInt(formData.get('productStock')) || 0,
             images: JSON.parse(formData.get('productImages') || '[]'),
             availability: availability,
-            is_price_on_request: is_price_on_request,
-            is_price_from: is_price_from   // НОВОЕ
+            is_price_on_request: is_price_on_request
         };
         const productId = formData.get('productId');
         try {
