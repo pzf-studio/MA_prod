@@ -7,7 +7,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Используем постоянный том Amvera
 DB_PATH = '/data/ma_furniture.db'
 
 @contextmanager
@@ -23,24 +22,31 @@ def get_db():
     finally:
         conn.close()
 
-def ensure_columns(conn):
-    """Проверяет и добавляет отсутствующие колонки в таблицу products"""
-    cursor = conn.execute("PRAGMA table_info(products)")
+def column_exists(conn, table, column):
+    """Проверяет существование колонки в таблице"""
+    cursor = conn.execute(f"PRAGMA table_info({table})")
     columns = [row[1] for row in cursor.fetchall()]
-    
-    if 'is_price_on_request' not in columns:
+    return column in columns
+
+def ensure_columns(conn):
+    """Добавляет отсутствующие колонки (безопасно)"""
+    # is_price_on_request
+    if not column_exists(conn, 'products', 'is_price_on_request'):
         conn.execute('ALTER TABLE products ADD COLUMN is_price_on_request BOOLEAN DEFAULT 0')
-        logger.info("Добавлено поле is_price_on_request в таблицу products")
+        logger.info("Добавлено поле is_price_on_request")
     
-    if 'availability' not in columns:
+    # availability
+    if not column_exists(conn, 'products', 'availability'):
         conn.execute('ALTER TABLE products ADD COLUMN availability INTEGER DEFAULT 0')
-        logger.info("Добавлено поле availability в таблицу products")
+        logger.info("Добавлено поле availability")
+    
+    # Примечание: is_price_from НЕ добавляем в БД – будем хранить в JSON
 
 def init_db():
-    # Убедимся, что папка /data существует
     os.makedirs('/data', exist_ok=True)
     
     with get_db() as conn:
+        # Создаём таблицу, если её нет (с полным набором колонок)
         conn.execute('''
             CREATE TABLE IF NOT EXISTS products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,8 +68,17 @@ def init_db():
                 updated_at TEXT NOT NULL
             )
         ''')
+        
+        # Добавляем недостающие колонки
         ensure_columns(conn)
-
+        
+        # Создаём индексы только если колонки существуют
+        if column_exists(conn, 'products', 'status'):
+            conn.execute('CREATE INDEX IF NOT EXISTS idx_products_status ON products(status)')
+        if column_exists(conn, 'products', 'section'):
+            conn.execute('CREATE INDEX IF NOT EXISTS idx_products_section ON products(section)')
+        
+        # Таблица разделов
         conn.execute('''
             CREATE TABLE IF NOT EXISTS sections (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,6 +88,8 @@ def init_db():
                 display_order INTEGER DEFAULT 0
             )
         ''')
+        
+        # Таблица фонов
         conn.execute('''
             CREATE TABLE IF NOT EXISTS backgrounds (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,6 +101,8 @@ def init_db():
                 updated_at TEXT NOT NULL
             )
         ''')
+        
+        # Таблица заказов
         conn.execute('''
             CREATE TABLE IF NOT EXISTS orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,11 +118,15 @@ def init_db():
                 created_at TEXT NOT NULL
             )
         ''')
-        conn.execute('CREATE INDEX IF NOT EXISTS idx_products_status ON products(status)')
-        conn.execute('CREATE INDEX IF NOT EXISTS idx_products_section ON products(section)')
-        conn.execute('CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)')
+        
+        # Индекс для orders
+        if column_exists(conn, 'orders', 'created_at'):
+            conn.execute('CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)')
+        
+        logger.info("База данных инициализирована/проверена")
 
 def migrate_from_json(products_dir, sections_file, background_file, data_dir):
+    # ... (оставьте как было, без изменений) ...
     import shutil
     with get_db() as conn:
         cur = conn.execute('SELECT COUNT(*) FROM products')
