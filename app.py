@@ -36,11 +36,9 @@ os.makedirs(TEMP_FOLDER, exist_ok=True)
 os.makedirs(BACKUP_DIR, exist_ok=True)
 os.makedirs(PRODUCTS_DIR, exist_ok=True)   # на случай, если будем сохранять JSON
 
-# ========== РАБОТА С ФЛАГАМИ ТОВАРОВ (без изменения БД) ==========
 PRODUCT_FLAGS_FILE = os.path.join(DATA_DIR, 'product_flags.json')
 
 def load_product_flags():
-    """Загружает словарь флагов из JSON-файла."""
     if os.path.exists(PRODUCT_FLAGS_FILE):
         try:
             with open(PRODUCT_FLAGS_FILE, 'r', encoding='utf-8') as f:
@@ -50,7 +48,6 @@ def load_product_flags():
     return {}
 
 def save_product_flags(flags):
-    """Сохраняет словарь флагов в JSON-файл."""
     try:
         with open(PRODUCT_FLAGS_FILE, 'w', encoding='utf-8') as f:
             json.dump(flags, f, ensure_ascii=False, indent=2)
@@ -58,12 +55,10 @@ def save_product_flags(flags):
         logger.error(f"Ошибка сохранения флагов товаров: {e}")
 
 def get_product_flag(product_id, flag_name='is_price_from', default=False):
-    """Возвращает значение флага для товара."""
     flags = load_product_flags()
     return flags.get(str(product_id), {}).get(flag_name, default)
 
 def set_product_flag(product_id, flag_name, value):
-    """Устанавливает флаг для товара."""
     flags = load_product_flags()
     pid = str(product_id)
     if pid not in flags:
