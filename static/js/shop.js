@@ -108,6 +108,7 @@ async function initializeProducts() {
         card.className = 'product-card';
         card.dataset.section = product.section || 'all';
         
+        // Бейдж (хит, новинка и т.д.)
         let badgeClass = '';
         if (product.badge) {
             switch(product.badge.toLowerCase()) {
@@ -135,14 +136,9 @@ async function initializeProducts() {
                     badgeClass = 'new';
             }
         }
-        
         const mainBadge = product.badge ? `<div class="product-badge ${badgeClass}">${product.badge}</div>` : '';
         
-        let orderBadge = '';
-        if (product.availability === 1) {
-            orderBadge = '<div class="product-badge order-badge">Под заказ</div>';
-        }
-        
+        // Изображение
         let imageContent = '';
         if (product.images && product.images.length > 0) {
             imageContent = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
@@ -150,6 +146,7 @@ async function initializeProducts() {
         
         const productUrl = `piece.html?id=${product.id}`;
         
+        // Цена
         let priceHtml = '';
         if (product.availability === 1) {
             if (product.is_price_on_request === 1) {
@@ -160,10 +157,36 @@ async function initializeProducts() {
         } else {
             priceHtml = `<div class="product-price">${formatCardPrice(product)}</div>`;
         }
-        
+
+        // Определяем статус наличия и плашку
+        let stockStatus = '';
+        let stockBadgeClass = '';
+        let addToCartDisabled = false;
+        let addToCartText = '<i class="fas fa-shopping-cart"></i> В корзину';
+
+        if (product.availability === 1) {
+            stockStatus = 'Под заказ';
+            stockBadgeClass = 'on-order';
+        } else {
+            if (product.stock > 0) {
+                stockStatus = 'В наличии';
+                stockBadgeClass = 'in-stock';
+            } else {
+                stockStatus = 'Нет в наличии';
+                stockBadgeClass = 'out-of-stock';
+                addToCartDisabled = true;
+                addToCartText = '<i class="fas fa-ban"></i> Нет в наличии';
+            }
+        }
+
+        // Плашка статуса (будет справа от кнопки)
+        const stockBadgeHtml = stockStatus ? 
+            `<span class="stock-badge ${stockBadgeClass}">${stockStatus}</span>` : '';
+
+        // Кнопка "В корзину"
         const actionButton = `
-            <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}">
-                <i class="fas fa-shopping-cart"></i> В корзину
+            <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}" ${addToCartDisabled ? 'disabled' : ''}>
+                ${addToCartText}
             </button>
         `;
         
@@ -174,7 +197,6 @@ async function initializeProducts() {
                     <i class="fas fa-couch"></i>
                 </div>
                 ${mainBadge}
-                ${orderBadge}
             </div>
             <div class="product-info">
                 <h3 class="product-title">${product.name}</h3>
@@ -184,6 +206,7 @@ async function initializeProducts() {
                 ${priceHtml}
                 <div class="product-actions">
                     ${actionButton}
+                    ${stockBadgeHtml}
                 </div>
             </div>
             <a href="${productUrl}" class="product-link-overlay"></a>

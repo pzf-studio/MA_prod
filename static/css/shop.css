@@ -309,7 +309,7 @@ body {
 
 /* Удаляем старые стили Hero, которые могут конфликтовать */
 .hero {
-    display: none; /* Скрываем старый стиль Hero */
+    display: none;
 }
 
 /* Мобильная адаптация для Hero в магазине */
@@ -519,6 +519,10 @@ body {
 
 .product-price {
     margin-bottom: 1rem;
+    min-height: 3.5rem;  /* фиксированная высота, чтобы не прыгало */
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .current-price {
@@ -529,11 +533,12 @@ body {
 
 .product-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     align-items: center;
     margin-top: auto;
     position: relative;
     z-index: 2;
+    flex-wrap: wrap;
 }
 
 /* Убираем быстрый осмотр */
@@ -556,7 +561,7 @@ body {
     color: #e74c3c;
 }
 
-/* Обновленные стили для бейджей */
+/* Обновленные стили для бейджей (хит, новинка) */
 .product-badge {
     position: absolute;
     top: 12px;
@@ -2106,13 +2111,13 @@ body {
     }
     
     .product-actions {
-        flex-direction: column;
-        gap: 0.5rem;
+        flex-direction: row;
+        flex-wrap: wrap;
     }
     
     .product-actions .btn {
-        width: 100%;
-        justify-content: center;
+        flex: 1;
+        min-width: 140px;
     }
 }
 
@@ -2169,7 +2174,7 @@ body {
     .page-btn,
     .cart-icon,
     .quantity-btn {
-        min-height: 44px !important; /* Минимальный размер для касания пальцем */
+        min-height: 44px !important;
         min-width: 44px !important;
     }
     
@@ -2333,4 +2338,50 @@ body {
     font-size: 0.9rem;
     margin-left: 8px;
     font-weight: normal;
+}
+
+/* ========== НОВЫЕ СТИЛИ ДЛЯ ПЛАШЕК НАЛИЧИЯ ========== */
+.stock-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    min-height: 44px;
+    background-color: white;
+    border: 2px solid;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.stock-badge.in-stock {
+    border-color: #27ae60;
+    color: #27ae60;
+}
+
+.stock-badge.on-order {
+    border-color: #d4af37;
+    color: #d4af37;
+}
+
+.stock-badge.out-of-stock {
+    border-color: #95a5a6;
+    color: #95a5a6;
+}
+
+/* Адаптивность для плашек */
+@media (max-width: 480px) {
+    .stock-badge {
+        padding: 6px 12px;
+        font-size: 12px;
+        min-height: 36px;
+        white-space: nowrap;
+    }
+    
+    .product-actions {
+        gap: 0.5rem;
+    }
 }
