@@ -118,10 +118,16 @@
                 </div>
                 <div class="card-body">
                     <p>Скачайте архив с текущей базой данных (SQLite). Файл будет содержать все товары, разделы, заказы и настройки.</p>
-                    <button id="downloadBackupBtn" class="btn btn-primary">
-                        <i class="fas fa-database"></i>
-                        Скачать бэкап
-                    </button>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="downloadBackupBtn" class="btn btn-primary">
+                            <i class="fas fa-database"></i>
+                            Скачать бэкап (ZIP)
+                        </button>
+                        <button id="exportExcelBtn" class="btn btn-success">
+                            <i class="fas fa-file-excel"></i>
+                            Экспорт в Excel
+                        </button>
+                    </div>
                     <div id="downloadMessage" class="message"></div>
                 </div>
             </div>
