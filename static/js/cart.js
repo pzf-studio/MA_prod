@@ -54,13 +54,21 @@ class CartSystem {
         const productId = String(product.id);
         const existingItem = this.cart.find(item => String(item.id) === productId);
         
+        // Определяем цену, которая будет использоваться для отображения и расчётов
+        let effectivePrice = product.price;
+        if (product.old_price != null && product.price > product.old_price) {
+            effectivePrice = product.old_price;
+        }
+        
         if (existingItem) {
             existingItem.quantity += 1;
         } else {
             this.cart.push({
                 id: productId,
                 name: product.name,
-                price: product.price,
+                price: effectivePrice,           // сохраняем эффективную цену
+                original_price: product.price,    // сохраняем исходную для справки (опционально)
+                old_price: product.old_price,
                 image: product.images?.[0] || product.image || '',
                 quantity: 1,
                 original_product_id: product.original_product_id || product.id,
@@ -131,6 +139,15 @@ class CartSystem {
         }
     }
     
+    // Форматирование отображения цены в корзине
+    formatCartItemPrice(item) {
+        // Если у товара была старая цена и она меньше исходной, показываем "От"
+        if (item.old_price != null && item.original_price > item.old_price) {
+            return `От ${dataManager.formatPrice(item.old_price)}`;
+        }
+        return dataManager.formatPrice(item.price);
+    }
+    
     renderCart() {
         const cartItems = document.getElementById('cartItems');
         const cartEmpty = document.getElementById('cartEmpty');
@@ -163,9 +180,10 @@ class CartSystem {
             
             const safeId = String(item.id).replace(/"/g, '&quot;').replace(/'/g, "&#39;");
             
-            // Пометка "под заказ"
             const requestBadge = item.is_price_on_request ? 
                 `<span class="price-on-request-badge" style="display: inline-block; margin-left: 8px; font-size: 0.7rem; background: #fef5e7; color: #d4af37; padding: 2px 6px; border-radius: 12px;">под заказ</span>` : '';
+            
+            const displayPrice = this.formatCartItemPrice(item);
             
             itemsHTML += `
                 <div class="cart-item" data-id="${safeId}">
@@ -178,7 +196,7 @@ class CartSystem {
                     <div class="cart-item-details">
                         <h4 class="cart-item-name">${item.name} ${requestBadge}</h4>
                         ${item.color_name ? `<div class="cart-item-color">Цвет: ${item.color_name}</div>` : ''}
-                        <div class="cart-item-price">${dataManager.formatPrice(item.price)}</div>
+                        <div class="cart-item-price">${displayPrice}</div>
                         <div class="cart-item-actions">
                             <div class="quantity-controls">
                                 <button class="quantity-btn decrease-btn" data-action="decrease" data-id="${safeId}">
@@ -377,12 +395,13 @@ class CartSystem {
             total += itemTotal;
             
             const requestNote = item.is_price_on_request ? ' <span style="color: #d4af37; font-size: 0.8rem;">(под заказ)</span>' : '';
+            const displayPrice = this.formatCartItemPrice(item);
             
             itemsHTML += `
                 <div class="checkout-order-item">
                     <span class="item-name">${item.name}${requestNote}</span>
                     <span class="item-quantity">${item.quantity} шт.</span>
-                    <span class="item-price">${dataManager.formatPrice(itemTotal)}</span>
+                    <span class="item-price">${displayPrice}</span>
                 </div>
             `;
         });
@@ -397,6 +416,7 @@ class CartSystem {
         const form = e.target;
         const formData = new FormData(form);
         
+        // Формируем items с эффективной ценой (уже сохранённой в корзине)
         const orderData = {
             customer_name: formData.get('customerName'),
             customer_phone: formData.get('customerPhone'),
@@ -407,7 +427,7 @@ class CartSystem {
                 id: item.id,
                 variant_id: item.variant_id || item.id,
                 name: item.name,
-                price: item.price,
+                price: item.price,   // здесь уже скорректированная цена
                 quantity: item.quantity,
                 color_name: item.color_name || '',
                 is_price_on_request: item.is_price_on_request || false

@@ -22,6 +22,17 @@ function initializeCart() {
     }
 }
 
+// Вспомогательная функция: форматирование цены для карточки с учётом "От"
+function formatCardPrice(product) {
+    const price = product.price || 0;
+    const oldPrice = product.old_price;
+    if (oldPrice != null && price > oldPrice) {
+        return `<span class="current-price">От ${dataManager.formatPrice(oldPrice)}</span>`;
+    }
+    const oldPriceHtml = oldPrice ? `<span class="old-price">${dataManager.formatPrice(oldPrice)}</span>` : '';
+    return `<span class="current-price">${dataManager.formatPrice(price)}</span> ${oldPriceHtml}`;
+}
+
 async function initializeProducts() {
     console.log('MA Furniture Shop - загрузка товаров с сервера...');
     const productsGrid = document.getElementById('productsGrid');
@@ -97,7 +108,6 @@ async function initializeProducts() {
         card.className = 'product-card';
         card.dataset.section = product.section || 'all';
         
-        // Бейдж для основного товара (хит, новинка и т.д.)
         let badgeClass = '';
         if (product.badge) {
             switch(product.badge.toLowerCase()) {
@@ -128,13 +138,11 @@ async function initializeProducts() {
         
         const mainBadge = product.badge ? `<div class="product-badge ${badgeClass}">${product.badge}</div>` : '';
         
-        // Бейдж "Под заказ" (если товар под заказ)
         let orderBadge = '';
         if (product.availability === 1) {
             orderBadge = '<div class="product-badge order-badge">Под заказ</div>';
         }
         
-        // Изображение
         let imageContent = '';
         if (product.images && product.images.length > 0) {
             imageContent = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
@@ -142,23 +150,15 @@ async function initializeProducts() {
         
         const productUrl = `piece.html?id=${product.id}`;
         
-        // Цена с учётом availability и is_price_on_request
         let priceHtml = '';
         if (product.availability === 1) {
-            // Под заказ
             if (product.is_price_on_request === 1) {
-                priceHtml = `<div class="product-price"><span class="current-price">${dataManager.formatPrice(product.price)}</span></div>`;
+                priceHtml = `<div class="product-price">${formatCardPrice(product)}</div>`;
             } else {
                 priceHtml = `<div class="product-price"><span class="price-on-request">Цена под заказ</span></div>`;
             }
         } else {
-            // В наличии
-            priceHtml = `
-                <div class="product-price">
-                    <span class="current-price">${dataManager.formatPrice(product.price)}</span>
-                    ${product.old_price ? `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : ''}
-                </div>
-            `;
+            priceHtml = `<div class="product-price">${formatCardPrice(product)}</div>`;
         }
         
         const actionButton = `

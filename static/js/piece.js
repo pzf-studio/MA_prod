@@ -29,6 +29,19 @@ async function initializeProductPage() {
     }
 }
 
+// Вспомогательная функция: форматирование цены с учётом условия "От"
+function formatDisplayPrice(productOrVariant) {
+    const price = productOrVariant.price !== undefined ? productOrVariant.price : 0;
+    const oldPrice = productOrVariant.old_price;
+    // Если есть старая цена и текущая цена больше старой -> "От old_price"
+    if (oldPrice != null && price > oldPrice) {
+        return `<span class="current-price">От ${dataManager.formatPrice(oldPrice)}</span>`;
+    }
+    // Иначе обычное отображение
+    const oldPriceHtml = oldPrice ? `<span class="old-price">${dataManager.formatPrice(oldPrice)}</span>` : '';
+    return `<span class="current-price">${dataManager.formatPrice(price)}</span> ${oldPriceHtml}`;
+}
+
 function renderProduct(product) {
     document.title = `${product.name} - MA Furniture`;
     
@@ -72,28 +85,23 @@ function renderProduct(product) {
     const stockElement = document.getElementById('productStock');
     const addToCartBtn = document.getElementById('addToCartBtn');
     
-    // Новая логика отображения цены и статуса
-    const isOnOrder = (product.availability === 1); // под заказ
-    const showPrice = (product.is_price_on_request === 1); // показывать цену
+    const isOnOrder = (product.availability === 1);
+    const showPrice = (product.is_price_on_request === 1);
     
     if (isOnOrder) {
-        // Бейдж "Под заказ"
         if (stockElement) {
             stockElement.textContent = 'Под заказ';
             stockElement.className = 'order-badge';
         }
-        // Отображение цены
         if (showPrice) {
-            const oldPriceHtml = product.old_price ? `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : '';
             if (priceElement) {
-                priceElement.innerHTML = `<span class="current-price">${dataManager.formatPrice(product.price)}</span> ${oldPriceHtml}`;
+                priceElement.innerHTML = formatDisplayPrice(product);
             }
         } else {
             if (priceElement) {
                 priceElement.innerHTML = `<span class="price-on-request">Цена под заказ</span>`;
             }
         }
-        // Кнопка активна всегда
         if (addToCartBtn) {
             addToCartBtn.disabled = false;
             addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
@@ -106,10 +114,9 @@ function renderProduct(product) {
             };
         }
     } else {
-        // Товар в наличии – стандартное поведение
-        const oldPriceHtml = product.old_price ? `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : '';
+        // Товар в наличии
         if (priceElement) {
-            priceElement.innerHTML = `<span class="current-price">${dataManager.formatPrice(product.price)}</span> ${oldPriceHtml}`;
+            priceElement.innerHTML = formatDisplayPrice(product);
         }
         if (stockElement) {
             if (product.stock > 10) {
@@ -203,14 +210,11 @@ function selectColorVariant(variant) {
     updateProductImages(variant.images || []);
     
     const product = window.currentProduct;
-    // При смене цвета обновляем цену и наличие, если вариант их переопределяет
-    // Флаги availability и is_price_on_request берутся из основного товара (не меняются)
     if (product) {
         const priceElement = document.getElementById('productPrice');
         const stockElement = document.getElementById('productStock');
         const addToCartBtn = document.getElementById('addToCartBtn');
         
-        // Используем цену варианта, если указана, иначе основную
         const currentPrice = variant.price !== undefined ? variant.price : product.price;
         const currentOldPrice = variant.old_price !== undefined ? variant.old_price : product.old_price;
         const currentStock = variant.stock !== undefined ? variant.stock : product.stock;
@@ -218,15 +222,20 @@ function selectColorVariant(variant) {
         const isOnOrder = (product.availability === 1);
         const showPrice = (product.is_price_on_request === 1);
         
+        // Создаём временный объект для форматирования цены варианта
+        const variantForDisplay = {
+            price: currentPrice,
+            old_price: currentOldPrice
+        };
+        
         if (isOnOrder) {
             if (stockElement) {
                 stockElement.textContent = 'Под заказ';
                 stockElement.className = 'order-badge';
             }
             if (showPrice) {
-                const oldPriceHtml = currentOldPrice ? `<span class="old-price">${dataManager.formatPrice(currentOldPrice)}</span>` : '';
                 if (priceElement) {
-                    priceElement.innerHTML = `<span class="current-price">${dataManager.formatPrice(currentPrice)}</span> ${oldPriceHtml}`;
+                    priceElement.innerHTML = formatDisplayPrice(variantForDisplay);
                 }
             } else {
                 if (priceElement) {
@@ -235,9 +244,8 @@ function selectColorVariant(variant) {
             }
             if (addToCartBtn) addToCartBtn.disabled = false;
         } else {
-            const oldPriceHtml = currentOldPrice ? `<span class="old-price">${dataManager.formatPrice(currentOldPrice)}</span>` : '';
             if (priceElement) {
-                priceElement.innerHTML = `<span class="current-price">${dataManager.formatPrice(currentPrice)}</span> ${oldPriceHtml}`;
+                priceElement.innerHTML = formatDisplayPrice(variantForDisplay);
             }
             if (stockElement) {
                 if (currentStock > 10) {
@@ -300,6 +308,7 @@ function updateAddToCartButton(variant) {
     
     const currentStock = variant.stock !== undefined ? variant.stock : product.stock;
     const currentPrice = variant.price !== undefined ? variant.price : product.price;
+    const currentOldPrice = variant.old_price !== undefined ? variant.old_price : product.old_price;
     const isOnOrder = (product.availability === 1);
     
     if (isOnOrder) {
@@ -310,6 +319,7 @@ function updateAddToCartButton(variant) {
                 id: variant.variant_id,
                 name: variant.is_original ? product.name : `${product.name}${variant.suffix || ''}`,
                 price: currentPrice,
+                old_price: currentOldPrice,
                 image: variant.images?.[0] || product.images?.[0] || '',
                 quantity: 1,
                 original_product_id: product.id,
@@ -337,6 +347,7 @@ function updateAddToCartButton(variant) {
                 id: variant.variant_id,
                 name: variant.is_original ? product.name : `${product.name}${variant.suffix || ''}`,
                 price: currentPrice,
+                old_price: currentOldPrice,
                 image: variant.images?.[0] || product.images?.[0] || '',
                 quantity: 1,
                 original_product_id: product.id,
