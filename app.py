@@ -486,54 +486,7 @@ def admin_backup_delete():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# Экспорт в Excel
-@app.route('/api/admin/export/excel', methods=['GET'])
-def admin_export_excel():
-    try:
-        from openpyxl import Workbook
-        from openpyxl.utils import get_column_letter
-    except ImportError:
-        return jsonify({'success': False, 'error': 'Библиотека openpyxl не установлена. Добавьте в requirements.txt'}), 500
-    token = request.headers.get('Authorization')
-    if not token:
-        return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
-    wb = Workbook()
-    if 'Sheet' in wb.sheetnames:
-        wb.remove(wb['Sheet'])
-    with db.get_db() as conn:
-        tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").fetchall()
-        for table in tables:
-            table_name = table['name']
-            sheet_name = table_name[:31]
-            ws = wb.create_sheet(title=sheet_name)
-            rows = conn.execute(f"SELECT * FROM {table_name}").fetchall()
-            if not rows:
-                continue
-            columns = rows[0].keys()
-            for col_idx, col_name in enumerate(columns, 1):
-                ws.cell(row=1, column=col_idx, value=col_name)
-            for row_idx, row in enumerate(rows, 2):
-                for col_idx, col_name in enumerate(columns, 1):
-                    value = row[col_name]
-                    ws.cell(row=row_idx, column=col_idx, value=value)
-            for col_idx, col_name in enumerate(columns, 1):
-                max_length = len(str(col_name))
-                for row in rows[:100]:
-                    cell_value = str(row[col_name])
-                    if len(cell_value) > max_length:
-                        max_length = len(cell_value)
-                adjusted_width = min(max_length + 2, 50)
-                ws.column_dimensions[get_column_letter(col_idx)].width = adjusted_width
-    import tempfile
-    fd, tmp_path = tempfile.mkstemp(suffix='.xlsx')
-    os.close(fd)
-    wb.save(tmp_path)
-    filename = f"ma_furniture_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-    return send_file(tmp_path, as_attachment=True, download_name=filename,
-                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-# Остальные API эндпоинты (sections, products, background, login, etc.)
-# ВАЖНО: только ОДИН маршрут /api/admin/login
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login_handler():
     try:
