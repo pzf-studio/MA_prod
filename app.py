@@ -43,7 +43,6 @@ logger = app.logger
 db.init_db()
 db.migrate_from_json(PRODUCTS_DIR, SECTIONS_FILE, BACKGROUND_FILE, DATA_DIR)
 
-# Вспомогательные функции (без изменений)
 def allowed_file(filename): return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 def generate_filename(original_name):
     timestamp = int(datetime.now().timestamp())
@@ -52,74 +51,75 @@ def generate_filename(original_name):
     return f"{timestamp}_{random_str}.{ext}"
 def get_uploads_path(): return os.path.join(STATIC_DIR, 'uploads', 'products')
 
+# ----- Вспомогательные функции для товаров и разделов (без изменений) -----
 def get_all_products():
     with db.get_db() as conn:
-        rows=conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products ORDER BY created_at DESC').fetchall()
-        products=[]
+        rows = conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products ORDER BY created_at DESC').fetchall()
+        products = []
         for row in rows:
-            prod=dict(row)
-            prod['images']=json.loads(prod['images']) if prod['images'] else []
-            prod['color_variants']=json.loads(prod['color_variants']) if prod['color_variants'] else []
+            prod = dict(row)
+            prod['images'] = json.loads(prod['images']) if prod['images'] else []
+            prod['color_variants'] = json.loads(prod['color_variants']) if prod['color_variants'] else []
             products.append(prod)
         return products
 
 def get_product_by_id(product_id):
     with db.get_db() as conn:
-        row=conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products WHERE id = ?',(product_id,)).fetchone()
+        row = conn.execute('SELECT id, name, code, category, section, price, old_price, badge, recommended, description, specifications, status, stock, images, color_variants, created_at, updated_at, is_price_on_request, availability FROM products WHERE id = ?', (product_id,)).fetchone()
         if row:
-            prod=dict(row)
-            prod['images']=json.loads(prod['images']) if prod['images'] else []
-            prod['color_variants']=json.loads(prod['color_variants']) if prod['color_variants'] else []
+            prod = dict(row)
+            prod['images'] = json.loads(prod['images']) if prod['images'] else []
+            prod['color_variants'] = json.loads(prod['color_variants']) if prod['color_variants'] else []
             return prod
         return None
 
 def save_product(product_data):
-    now=datetime.now().isoformat()
+    now = datetime.now().isoformat()
     if 'id' in product_data and product_data['id']:
-        product_id=product_data['id']
+        product_id = product_data['id']
         with db.get_db() as conn:
             conn.execute('''UPDATE products SET name=?, code=?, category=?, section=?, price=?, old_price=?, badge=?,
                 recommended=?, description=?, specifications=?, status=?, stock=?, images=?, color_variants=?, updated_at=?, is_price_on_request=?, availability=?
-                WHERE id=?''',(product_data.get('name'),product_data.get('code'),product_data.get('category'),
-                product_data.get('section'),product_data.get('price',0),product_data.get('old_price'),product_data.get('badge'),
-                1 if product_data.get('recommended') else 0,product_data.get('description'),product_data.get('specifications'),
-                product_data.get('status','active'),product_data.get('stock',0),json.dumps(product_data.get('images',[])),
-                json.dumps(product_data.get('color_variants',[])),now,1 if product_data.get('is_price_on_request') else 0,product_data.get('availability', 0),product_id))
+                WHERE id=?''', (product_data.get('name'), product_data.get('code'), product_data.get('category'),
+                product_data.get('section'), product_data.get('price', 0), product_data.get('old_price'), product_data.get('badge'),
+                1 if product_data.get('recommended') else 0, product_data.get('description'), product_data.get('specifications'),
+                product_data.get('status', 'active'), product_data.get('stock', 0), json.dumps(product_data.get('images', [])),
+                json.dumps(product_data.get('color_variants', [])), now, 1 if product_data.get('is_price_on_request') else 0, product_data.get('availability', 0), product_id))
         return product_id
     else:
         with db.get_db() as conn:
-            cur=conn.execute('SELECT MAX(id) FROM products')
-            max_id=cur.fetchone()[0] or 0
-            new_id=max_id+1
-            product_data['id']=new_id
-            product_data['created_at']=now
-            product_data['updated_at']=now
+            cur = conn.execute('SELECT MAX(id) FROM products')
+            max_id = cur.fetchone()[0] or 0
+            new_id = max_id + 1
+            product_data['id'] = new_id
+            product_data['created_at'] = now
+            product_data['updated_at'] = now
             conn.execute('''INSERT INTO products (id,name,code,category,section,price,old_price,badge,recommended,description,
                 specifications,status,stock,images,color_variants,created_at,updated_at,is_price_on_request,availability)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(new_id,product_data.get('name'),product_data.get('code'),
-                product_data.get('category'),product_data.get('section'),product_data.get('price',0),product_data.get('old_price'),
-                product_data.get('badge'),1 if product_data.get('recommended') else 0,product_data.get('description'),
-                product_data.get('specifications'),product_data.get('status','active'),product_data.get('stock',0),
-                json.dumps(product_data.get('images',[])),json.dumps(product_data.get('color_variants',[])),now,now,
-                1 if product_data.get('is_price_on_request') else 0,product_data.get('availability', 0)))
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', (new_id, product_data.get('name'), product_data.get('code'),
+                product_data.get('category'), product_data.get('section'), product_data.get('price', 0), product_data.get('old_price'),
+                product_data.get('badge'), 1 if product_data.get('recommended') else 0, product_data.get('description'),
+                product_data.get('specifications'), product_data.get('status', 'active'), product_data.get('stock', 0),
+                json.dumps(product_data.get('images', [])), json.dumps(product_data.get('color_variants', [])), now, now,
+                1 if product_data.get('is_price_on_request') else 0, product_data.get('availability', 0)))
         return new_id
 
 def delete_product(product_id):
     with db.get_db() as conn:
-        conn.execute('DELETE FROM products WHERE id = ?',(product_id,))
+        conn.execute('DELETE FROM products WHERE id = ?', (product_id,))
         return True
 
 def load_sections():
     with db.get_db() as conn:
-        rows=conn.execute('SELECT * FROM sections ORDER BY display_order').fetchall()
-        sections=[dict(row) for row in rows]
+        rows = conn.execute('SELECT * FROM sections ORDER BY display_order').fetchall()
+        sections = [dict(row) for row in rows]
         if not sections:
-            default_sections=[{"id":1,"code":"pantographs","name":"Пантографы","active":True,"display_order":1},
+            default_sections = [{"id":1,"code":"pantographs","name":"Пантографы","active":True,"display_order":1},
                 {"id":2,"code":"wardrobes","name":"Гардеробные системы","active":True,"display_order":2},
                 {"id":3,"code":"shoeracks","name":"Обувницы","active":True,"display_order":3}]
             for s in default_sections:
                 conn.execute('INSERT INTO sections (id,code,name,active,display_order) VALUES (?,?,?,?,?)',
-                    (s['id'],s['code'],s['name'],1,s['display_order']))
+                    (s['id'], s['code'], s['name'], 1, s['display_order']))
             return default_sections
         return sections
 
@@ -128,48 +128,47 @@ def save_sections(sections):
         conn.execute('DELETE FROM sections')
         for s in sections:
             conn.execute('INSERT INTO sections (id,code,name,active,display_order) VALUES (?,?,?,?,?)',
-                (s.get('id'),s.get('code'),s.get('name'),1 if s.get('active') else 0,s.get('display_order',0)))
+                (s.get('id'), s.get('code'), s.get('name'), 1 if s.get('active') else 0, s.get('display_order', 0)))
 
 def load_background():
     with db.get_db() as conn:
-        row=conn.execute('SELECT * FROM backgrounds LIMIT 1').fetchone()
+        row = conn.execute('SELECT * FROM backgrounds LIMIT 1').fetchone()
         return dict(row) if row else None
 
 def save_background(background_data):
-    now=datetime.now().isoformat()
+    now = datetime.now().isoformat()
     with db.get_db() as conn:
         if 'id' in background_data and background_data['id']:
             conn.execute('UPDATE backgrounds SET title=?, description=?, image_url=?, active=?, updated_at=? WHERE id=?',
-                (background_data.get('title'),background_data.get('description'),background_data.get('image_url'),
-                 1 if background_data.get('active',True) else 0,now,background_data['id']))
+                (background_data.get('title'), background_data.get('description'), background_data.get('image_url'),
+                 1 if background_data.get('active', True) else 0, now, background_data['id']))
         else:
             conn.execute('INSERT INTO backgrounds (title,description,image_url,active,created_at,updated_at) VALUES (?,?,?,?,?,?)',
-                (background_data.get('title'),background_data.get('description'),background_data.get('image_url'),
-                 1 if background_data.get('active',True) else 0,now,now))
+                (background_data.get('title'), background_data.get('description'), background_data.get('image_url'),
+                 1 if background_data.get('active', True) else 0, now, now))
 
 def get_recent_activity():
-    activity=[]
-    products=get_all_products()
-    recent_products=sorted(products,key=lambda x: x.get('created_at',''),reverse=True)[:3]
+    activity = []
+    products = get_all_products()
+    recent_products = sorted(products, key=lambda x: x.get('created_at', ''), reverse=True)[:3]
     for product in recent_products:
-        activity.append({'type':'product','title':'Добавлен новый товар','description':product.get('name','Товар'),
-            'time':product.get('created_at',''),'icon':'fas fa-box'})
-    background=load_background()
+        activity.append({'type': 'product', 'title': 'Добавлен новый товар', 'description': product.get('name', 'Товар'),
+            'time': product.get('created_at', ''), 'icon': 'fas fa-box'})
+    background = load_background()
     if background and background.get('updated_at'):
-        activity.append({'type':'background','title':'Обновлен фон','description':background.get('title','Главный фон'),
-            'time':background.get('updated_at',''),'icon':'fas fa-image'})
-    activity.sort(key=lambda x: x.get('time',''),reverse=True)
+        activity.append({'type': 'background', 'title': 'Обновлен фон', 'description': background.get('title', 'Главный фон'),
+            'time': background.get('updated_at', ''), 'icon': 'fas fa-image'})
+    activity.sort(key=lambda x: x.get('time', ''), reverse=True)
     return activity
 
-# ==================== НОВЫЕ МАРШРУТЫ (ЧПУ) ====================
-
+# ========== НОВЫЕ МАРШРУТЫ (ЧПУ) ==========
 @app.route('/')
 def index():
     try:
         index_path = os.path.join(STATIC_DIR, 'index.html')
         if os.path.exists(index_path):
             return send_file(index_path)
-        return '<!DOCTYPE html>...'  # fallback
+        return '<!DOCTYPE html><html><head><title>MA Furniture</title></head><body><h1>MA Furniture - Backend работает!</h1><p>База данных SQLite активирована.</p><a href="/shop">Магазин</a> | <a href="/admin">Админка</a> | <a href="/api/products">API товаров</a></body></html>'
     except Exception as e:
         return f'Error: {str(e)}', 500
 
@@ -194,13 +193,12 @@ def product_page(product_id):
     except Exception as e:
         return str(e), 500
 
-# Для обратной совместимости: /piece?id=...
+# Обратная совместимость для /piece?id=...
 @app.route('/piece')
 def piece_legacy():
     product_id = request.args.get('id')
     if product_id:
         return redirect(url_for('product_page', product_id=product_id), code=301)
-    # Если нет id, просто показываем страницу (хотя она без товара бесполезна)
     piece_path = os.path.join(STATIC_DIR, 'piece.html')
     if os.path.exists(piece_path):
         return send_file(piece_path)
@@ -292,7 +290,7 @@ def admin_techdocks():
     except Exception as e:
         return str(e), 500
 
-# Редиректы со старых .html URL на новые (301 Moved Permanently)
+# Редиректы со старых .html на новые
 @app.route('/index.html')
 def redirect_index():
     return redirect('/', code=301)
@@ -303,7 +301,6 @@ def redirect_shop():
 
 @app.route('/piece.html')
 def redirect_piece():
-    # Если есть id, перенаправляем на /product/<id>
     product_id = request.args.get('id')
     if product_id:
         return redirect(url_for('product_page', product_id=product_id), code=301)
@@ -313,380 +310,257 @@ def redirect_piece():
 def redirect_order_success():
     return redirect('/order-success', code=301)
 
-@app.route('/admin.html')
-def redirect_admin():
-    return redirect('/admin', code=301)
+# ========== API ==========
+# ВАЖНО: убедитесь, что нет дубликатов. Ниже все эндпоинты по одному разу.
 
-# ========== НОВЫЕ ЭНДПОИНТЫ ДЛЯ ОНЛАЙН-ТРЕКЕРА ==========
-active_sessions={}
-@app.route('/api/admin/online/count',methods=['GET'])
+@app.route('/api/orders', methods=['POST'])
+def create_order():
+    try:
+        TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+        TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+        if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+            return jsonify({'success': False, 'error': 'Telegram бот не настроен. Обратитесь к администратору.'}), 500
+        data = request.get_json()
+        required_fields = ['customer_name', 'customer_phone', 'items']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
+        if not isinstance(data['items'], list) or len(data['items']) == 0:
+            return jsonify({'success': False, 'error': 'Корзина пуста'}), 400
+        result = order_manager.process_order(data)
+        if result['success']:
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Онлайн-трекер
+active_sessions = {}
+@app.route('/api/admin/online/count', methods=['GET'])
 def admin_online_count():
     try:
-        now=datetime.now()
-        cutoff=now-timedelta(minutes=5)
-        expired=[ip for ip,ts in active_sessions.items() if ts<cutoff]
-        for ip in expired: del active_sessions[ip]
-        client_ip=request.remote_addr
-        active_sessions[client_ip]=now
-        return jsonify({'success':True,'count':len(active_sessions)})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+        now = datetime.now()
+        cutoff = now - timedelta(minutes=5)
+        expired = [ip for ip, ts in active_sessions.items() if ts < cutoff]
+        for ip in expired:
+            del active_sessions[ip]
+        client_ip = request.remote_addr
+        active_sessions[client_ip] = now
+        return jsonify({'success': True, 'count': len(active_sessions)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== РАСШИРЕННЫЕ ЭНДПОИНТЫ БЭКАПОВ ==========
-@app.route('/api/admin/backup/download',methods=['GET'])
+# Резервное копирование
+@app.route('/api/admin/backup/download', methods=['GET'])
 def admin_backup_download():
     try:
-        token=request.headers.get('Authorization')
-        if not token: return jsonify({'success':False,'error':'Требуется авторизация'}),401
-        temp_dir=tempfile.mkdtemp()
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+        temp_dir = tempfile.mkdtemp()
         try:
-            backup_db_path=os.path.join(temp_dir,'ma_furniture.db')
-            shutil.copy2(DB_PATH,backup_db_path)
-            uploads_src=get_uploads_path()
-            uploads_dst=os.path.join(temp_dir,'uploads','products')
-            if os.path.exists(uploads_src) and os.listdir(uploads_src): shutil.copytree(uploads_src,uploads_dst)
-            else: os.makedirs(uploads_dst,exist_ok=True)
-            zip_path=os.path.join(temp_dir,'ma_furniture_backup.zip')
-            with zipfile.ZipFile(zip_path,'w',zipfile.ZIP_DEFLATED) as zf:
-                zf.write(backup_db_path,arcname='ma_furniture.db')
-                for root,dirs,files in os.walk(uploads_dst):
+            backup_db_path = os.path.join(temp_dir, 'ma_furniture.db')
+            shutil.copy2(DB_PATH, backup_db_path)
+            uploads_src = get_uploads_path()
+            uploads_dst = os.path.join(temp_dir, 'uploads', 'products')
+            if os.path.exists(uploads_src) and os.listdir(uploads_src):
+                shutil.copytree(uploads_src, uploads_dst)
+            else:
+                os.makedirs(uploads_dst, exist_ok=True)
+            zip_path = os.path.join(temp_dir, 'ma_furniture_backup.zip')
+            with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+                zf.write(backup_db_path, arcname='ma_furniture.db')
+                for root, dirs, files in os.walk(uploads_dst):
                     for file in files:
-                        full_path=os.path.join(root,file)
-                        rel_path=os.path.relpath(full_path,temp_dir)
-                        zf.write(full_path,arcname=rel_path)
-            backup_dir=os.path.join(DATA_DIR,'backups')
-            os.makedirs(backup_dir,exist_ok=True)
-            backup_copy_path=os.path.join(backup_dir,f'ma_furniture_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip')
-            shutil.copy2(zip_path,backup_copy_path)
-            return send_file(zip_path,as_attachment=True,
-                download_name=f'ma_furniture_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip',mimetype='application/zip')
-        finally: shutil.rmtree(temp_dir,ignore_errors=True)
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+                        full_path = os.path.join(root, file)
+                        rel_path = os.path.relpath(full_path, temp_dir)
+                        zf.write(full_path, arcname=rel_path)
+            backup_dir = os.path.join(DATA_DIR, 'backups')
+            os.makedirs(backup_dir, exist_ok=True)
+            backup_copy_path = os.path.join(backup_dir, f'ma_furniture_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip')
+            shutil.copy2(zip_path, backup_copy_path)
+            return send_file(zip_path, as_attachment=True,
+                download_name=f'ma_furniture_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip', mimetype='application/zip')
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/admin/backup/upload',methods=['POST'])
+@app.route('/api/admin/backup/upload', methods=['POST'])
 def admin_backup_upload():
     try:
-        token=request.headers.get('Authorization')
-        if not token: return jsonify({'success':False,'error':'Требуется авторизация'}),401
-        if 'file' not in request.files: return jsonify({'success':False,'error':'Файл не загружен'}),400
-        file=request.files['file']
-        if file.filename=='': return jsonify({'success':False,'error':'Файл не выбран'}),400
-        if not file.filename.endswith('.zip'): return jsonify({'success':False,'error':'Допустим только ZIP-архив'}),400
-        temp_dir=tempfile.mkdtemp()
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'Файл не загружен'}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'Файл не выбран'}), 400
+        if not file.filename.endswith('.zip'):
+            return jsonify({'success': False, 'error': 'Допустим только ZIP-архив'}), 400
+        temp_dir = tempfile.mkdtemp()
         try:
-            zip_path=os.path.join(temp_dir,'upload.zip')
+            zip_path = os.path.join(temp_dir, 'upload.zip')
             file.save(zip_path)
-            with zipfile.ZipFile(zip_path,'r') as zf:
-                if 'ma_furniture.db' not in zf.namelist(): return jsonify({'success':False,'error':'Архив не содержит файл ma_furniture.db'}),400
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                if 'ma_furniture.db' not in zf.namelist():
+                    return jsonify({'success': False, 'error': 'Архив не содержит файл ma_furniture.db'}), 400
                 zf.extractall(temp_dir)
-            extracted_db=os.path.join(temp_dir,'ma_furniture.db')
-            if not os.path.exists(extracted_db): return jsonify({'success':False,'error':'Не удалось извлечь базу данных'}),500
-            extracted_uploads=os.path.join(temp_dir,'uploads','products')
-            has_uploads=os.path.exists(extracted_uploads) and os.listdir(extracted_uploads)
-            backup_db_path=DB_PATH+'.backup'
-            if os.path.exists(DB_PATH): shutil.copy2(DB_PATH,backup_db_path)
-            uploads_path=get_uploads_path()
-            backup_uploads_path=uploads_path+'.backup'
+            extracted_db = os.path.join(temp_dir, 'ma_furniture.db')
+            if not os.path.exists(extracted_db):
+                return jsonify({'success': False, 'error': 'Не удалось извлечь базу данных'}), 500
+            extracted_uploads = os.path.join(temp_dir, 'uploads', 'products')
+            has_uploads = os.path.exists(extracted_uploads) and os.listdir(extracted_uploads)
+            backup_db_path = DB_PATH + '.backup'
+            if os.path.exists(DB_PATH):
+                shutil.copy2(DB_PATH, backup_db_path)
+            uploads_path = get_uploads_path()
+            backup_uploads_path = uploads_path + '.backup'
             if os.path.exists(uploads_path):
-                if os.path.exists(backup_uploads_path): shutil.rmtree(backup_uploads_path)
-                shutil.copytree(uploads_path,backup_uploads_path)
-            shutil.copy2(extracted_db,DB_PATH)
+                if os.path.exists(backup_uploads_path):
+                    shutil.rmtree(backup_uploads_path)
+                shutil.copytree(uploads_path, backup_uploads_path)
+            shutil.copy2(extracted_db, DB_PATH)
             if has_uploads:
-                if os.path.exists(uploads_path): shutil.rmtree(uploads_path)
-                shutil.copytree(extracted_uploads,uploads_path)
-            else: logger.info("Архив не содержит изображений, папка uploads не изменена")
-            return jsonify({'success':True,'message':'База данных и изображения успешно восстановлены. Перезагрузите страницу.'})
+                if os.path.exists(uploads_path):
+                    shutil.rmtree(uploads_path)
+                shutil.copytree(extracted_uploads, uploads_path)
+            else:
+                logger.info("Архив не содержит изображений, папка uploads не изменена")
+            return jsonify({'success': True, 'message': 'База данных и изображения успешно восстановлены. Перезагрузите страницу.'})
         except Exception as e:
             logger.error(f"Ошибка восстановления из бэкапа: {e}")
             try:
-                if os.path.exists(DB_PATH+'.backup'): shutil.copy2(DB_PATH+'.backup',DB_PATH)
-                uploads_path=get_uploads_path()
-                if os.path.exists(uploads_path+'.backup'):
-                    if os.path.exists(uploads_path): shutil.rmtree(uploads_path)
-                    shutil.copytree(uploads_path+'.backup',uploads_path)
-            except: pass
-            return jsonify({'success':False,'error':str(e)}),500
-        finally: shutil.rmtree(temp_dir,ignore_errors=True)
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+                if os.path.exists(DB_PATH + '.backup'):
+                    shutil.copy2(DB_PATH + '.backup', DB_PATH)
+                if os.path.exists(uploads_path + '.backup'):
+                    if os.path.exists(uploads_path):
+                        shutil.rmtree(uploads_path)
+                    shutil.copytree(uploads_path + '.backup', uploads_path)
+            except:
+                pass
+            return jsonify({'success': False, 'error': str(e)}), 500
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/admin/backup/list',methods=['GET'])
+@app.route('/api/admin/backup/list', methods=['GET'])
 def admin_backup_list():
     try:
-        token=request.headers.get('Authorization')
-        if not token: return jsonify({'success':False,'error':'Требуется авторизация'}),401
-        backup_dir=os.path.join(DATA_DIR,'backups')
-        os.makedirs(backup_dir,exist_ok=True)
-        backups=[]
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+        backup_dir = os.path.join(DATA_DIR, 'backups')
+        os.makedirs(backup_dir, exist_ok=True)
+        backups = []
         for filename in os.listdir(backup_dir):
             if filename.endswith('.zip'):
-                filepath=os.path.join(backup_dir,filename)
-                stat=os.stat(filepath)
-                backups.append({'filename':filename,'size':stat.st_size,'created':datetime.fromtimestamp(stat.st_ctime).isoformat()})
-        backups.sort(key=lambda x: x['created'],reverse=True)
-        return jsonify({'success':True,'backups':backups})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+                filepath = os.path.join(backup_dir, filename)
+                stat = os.stat(filepath)
+                backups.append({'filename': filename, 'size': stat.st_size, 'created': datetime.fromtimestamp(stat.st_ctime).isoformat()})
+        backups.sort(key=lambda x: x['created'], reverse=True)
+        return jsonify({'success': True, 'backups': backups})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/admin/backup/delete',methods=['POST'])
+@app.route('/api/admin/backup/delete', methods=['POST'])
 def admin_backup_delete():
     try:
-        token=request.headers.get('Authorization')
-        if not token: return jsonify({'success':False,'error':'Требуется авторизация'}),401
-        data=request.get_json()
-        filename=data.get('filename')
-        if not filename: return jsonify({'success':False,'error':'Не указано имя файла'}),400
-        backup_dir=os.path.join(DATA_DIR,'backups')
-        filepath=os.path.join(backup_dir,filename)
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+        data = request.get_json()
+        filename = data.get('filename')
+        if not filename:
+            return jsonify({'success': False, 'error': 'Не указано имя файла'}), 400
+        backup_dir = os.path.join(DATA_DIR, 'backups')
+        filepath = os.path.join(backup_dir, filename)
         if os.path.exists(filepath):
             os.remove(filepath)
-            return jsonify({'success':True,'message':'Бэкап удалён'})
-        else: return jsonify({'success':False,'error':'Файл не найден'}),404
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+            return jsonify({'success': True, 'message': 'Бэкап удалён'})
+        else:
+            return jsonify({'success': False, 'error': 'Файл не найден'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== ОСТАЛЬНЫЕ API ==========
-@app.route('/api/admin/sections',methods=['GET'])
-def admin_get_sections():
+# Экспорт в Excel
+@app.route('/api/admin/export/excel', methods=['GET'])
+def admin_export_excel():
     try:
-        sections=load_sections()
-        return jsonify({'success':True,'sections':sections})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+        from openpyxl import Workbook
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        return jsonify({'success': False, 'error': 'Библиотека openpyxl не установлена. Добавьте в requirements.txt'}), 500
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+    wb = Workbook()
+    if 'Sheet' in wb.sheetnames:
+        wb.remove(wb['Sheet'])
+    with db.get_db() as conn:
+        tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").fetchall()
+        for table in tables:
+            table_name = table['name']
+            sheet_name = table_name[:31]
+            ws = wb.create_sheet(title=sheet_name)
+            rows = conn.execute(f"SELECT * FROM {table_name}").fetchall()
+            if not rows:
+                continue
+            columns = rows[0].keys()
+            for col_idx, col_name in enumerate(columns, 1):
+                ws.cell(row=1, column=col_idx, value=col_name)
+            for row_idx, row in enumerate(rows, 2):
+                for col_idx, col_name in enumerate(columns, 1):
+                    value = row[col_name]
+                    ws.cell(row=row_idx, column=col_idx, value=value)
+            for col_idx, col_name in enumerate(columns, 1):
+                max_length = len(str(col_name))
+                for row in rows[:100]:
+                    cell_value = str(row[col_name])
+                    if len(cell_value) > max_length:
+                        max_length = len(cell_value)
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[get_column_letter(col_idx)].width = adjusted_width
+    import tempfile
+    fd, tmp_path = tempfile.mkstemp(suffix='.xlsx')
+    os.close(fd)
+    wb.save(tmp_path)
+    filename = f"ma_furniture_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return send_file(tmp_path, as_attachment=True, download_name=filename,
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-@app.route('/api/admin/sections',methods=['POST'])
-def admin_create_section():
+# Остальные API эндпоинты (sections, products, background, login, etc.)
+# ВАЖНО: только ОДИН маршрут /api/admin/login
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login_handler():
     try:
-        data=request.get_json()
-        required_fields=['name','code']
-        for field in required_fields:
-            if field not in data or not str(data[field]).strip():
-                return jsonify({'success':False,'error':f'Поле {field} обязательно'}),400
-        sections=load_sections()
-        new_id=max([s.get('id',0) for s in sections],default=0)+1
-        if any(s.get('code')==data['code'] for s in sections):
-            return jsonify({'success':False,'error':'Раздел с таким кодом уже существует'}),400
-        new_section={'id':new_id,'name':data['name'].strip(),'code':data['code'].strip().lower(),
-            'active':data.get('active',True),'display_order':data.get('display_order',len(sections)+1)}
-        sections.append(new_section)
-        save_sections(sections)
-        return jsonify({'success':True,'section':new_section,'message':'Раздел успешно создан'})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/sections/<int:section_id>',methods=['PUT'])
-def admin_update_section(section_id):
-    try:
-        data=request.get_json()
-        sections=load_sections()
-        section_index=None
-        for i,section in enumerate(sections):
-            if section.get('id')==section_id: section_index=i; break
-        if section_index is None: return jsonify({'success':False,'error':'Раздел не найден'}),404
-        if 'name' in data: sections[section_index]['name']=data['name'].strip()
-        if 'code' in data:
-            new_code=data['code'].strip().lower()
-            if any(s.get('code')==new_code and s.get('id')!=section_id for s in sections):
-                return jsonify({'success':False,'error':'Раздел с таким кодом уже существует'}),400
-            sections[section_index]['code']=new_code
-        if 'active' in data: sections[section_index]['active']=bool(data['active'])
-        if 'display_order' in data: sections[section_index]['display_order']=int(data['display_order'])
-        save_sections(sections)
-        return jsonify({'success':True,'section':sections[section_index],'message':'Раздел успешно обновлен'})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/sections/<int:section_id>',methods=['DELETE'])
-def admin_delete_section(section_id):
-    try:
-        sections=load_sections()
-        section_index=None
-        section_to_delete=None
-        for i,section in enumerate(sections):
-            if section.get('id')==section_id: section_index=i; section_to_delete=section; break
-        if section_index is None: return jsonify({'success':False,'error':'Раздел не найден'}),404
-        products=get_all_products()
-        products_in_section=[p for p in products if p.get('section')==section_to_delete.get('code')]
-        if products_in_section:
-            return jsonify({'success':False,'error':f'Нельзя удалить раздел, так как в нем есть товары ({len(products_in_section)} шт.)'}),400
-        sections.pop(section_index)
-        save_sections(sections)
-        return jsonify({'success':True,'message':'Раздел успешно удален'})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/sections/reorder',methods=['POST'])
-def admin_reorder_sections():
-    try:
-        data=request.get_json()
-        new_order=data.get('order',[])
-        if not new_order: return jsonify({'success':False,'error':'Не указан новый порядок'}),400
-        sections=load_sections()
-        for section in sections:
-            if str(section.get('id')) in new_order:
-                section['display_order']=new_order.index(str(section.get('id')))+1
-        save_sections(sections)
-        return jsonify({'success':True,'message':'Порядок разделов обновлен'})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/media/background',methods=['GET'])
-def get_background():
-    try:
-        background=load_background()
-        if not background: return jsonify({'success':False,'error':'Фон не найден','background':None}),404
-        return jsonify({'success':True,'background':background})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/media/background',methods=['GET'])
-def admin_get_background():
-    try:
-        background=load_background()
-        return jsonify({'success':True,'background':background})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/media/background',methods=['POST'])
-def admin_create_background():
-    try:
-        data=request.get_json()
-        if not data.get('image_url'): return jsonify({'success':False,'error':'Изображение обязательно'}),400
-        if save_background(data):
-            background=load_background()
-            return jsonify({'success':True,'background':background,'message':'Фон успешно создан'})
-        else: return jsonify({'success':False,'error':'Ошибка сохранения'}),500
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/media/background/<int:background_id>',methods=['PUT'])
-def admin_update_background(background_id):
-    try:
-        data=request.get_json()
-        current_background=load_background()
-        if not current_background or current_background.get('id')!=background_id:
-            return jsonify({'success':False,'error':'Фон не найден'}),404
-        for key,value in data.items():
-            if key in ['title','description','image_url','active']: current_background[key]=value
-        current_background['updated_at']=datetime.now().isoformat()
-        if save_background(current_background):
-            return jsonify({'success':True,'background':current_background,'message':'Фон успешно обновлен'})
-        else: return jsonify({'success':False,'error':'Ошибка сохранения'}),500
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/media/background/<int:background_id>',methods=['DELETE'])
-def admin_delete_background(background_id):
-    try:
-        current_background=load_background()
-        if not current_background or current_background.get('id')!=background_id:
-            return jsonify({'success':False,'error':'Фон не найден'}),404
-        if os.path.exists(BACKGROUND_FILE):
-            os.remove(BACKGROUND_FILE)
-            image_url=current_background.get('image_url','')
-            if image_url and '/uploads/' in image_url:
-                try:
-                    filename=image_url.split('/')[-1]
-                    filepath=os.path.join(UPLOAD_FOLDER,filename)
-                    if os.path.exists(filepath): os.remove(filepath)
-                except: pass
-            return jsonify({'success':True,'message':'Фон успешно удален'})
-        else: return jsonify({'success':False,'error':'Файл фона не найден'}),404
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/dashboard/stats',methods=['GET'])
-def admin_dashboard_stats():
-    try:
-        products=get_all_products()
-        active_products=len([p for p in products if p.get('status')=='active'])
-        sections=load_sections()
-        active_sections=len([s for s in sections if s.get('active',True)])
-        background=load_background()
-        background_exists=bool(background and background.get('image_url'))
-        return jsonify({'success':True,'stats':{'total_products':len(products),'active_products':active_products,
-            'total_sections':len(sections),'active_sections':active_sections,'background_exists':background_exists}})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/dashboard/activity',methods=['GET'])
-def admin_dashboard_activity():
-    try:
-        activity=get_recent_activity()
-        return jsonify({'success':True,'activity':activity[:5]})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/dashboard/popular-products',methods=['GET'])
-def admin_dashboard_popular_products():
-    try:
-        products=get_all_products()
-        popular_products=[]
-        for product in products:
-            if product.get('status')=='active':
-                badge=product.get('badge','')
-                if badge in ['Хит продаж','Новинка','Акция'] or product.get('recommended'):
-                    popular_products.append(product)
-        popular_products=popular_products[:3]
-        return jsonify({'success':True,'products':popular_products})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/products',methods=['GET'])
-def admin_get_products():
-    try:
-        products=get_all_products()
-        return jsonify({'success':True,'products':products})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/products',methods=['POST'])
-def admin_create_product():
-    try:
-        data=request.get_json()
-        required_fields=['name','price','description']
-        for field in required_fields:
-            if field not in data or not str(data[field]).strip():
-                return jsonify({'success':False,'error':f'Поле {field} обязательно'}),400
-        product_id=save_product(data)
-        if not product_id: return jsonify({'success':False,'error':'Ошибка сохранения'}),500
-        return jsonify({'success':True,'product_id':product_id,'message':'Товар успешно создан'})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/products/<int:product_id>',methods=['PUT'])
-def admin_update_product(product_id):
-    try:
-        data=request.get_json()
-        existing=get_product_by_id(product_id)
-        if not existing: return jsonify({'success':False,'error':'Товар не найден'}),404
-        for key,value in data.items(): existing[key]=value
-        existing['updated_at']=datetime.now().isoformat()
-        save_product(existing)
-        return jsonify({'success':True,'message':'Товар успешно обновлен'})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/products/<int:product_id>',methods=['DELETE'])
-def admin_delete_product(product_id):
-    try:
-        if delete_product(product_id): return jsonify({'success':True,'message':'Товар успешно удален'})
-        else: return jsonify({'success':False,'error':'Товар не найден'}),404
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/colors/palette',methods=['GET'])
-def get_color_palette():
-    try:
-        palette=[{"name":"Черный матовый","hex":"#2C2C2C"},{"name":"Белый глянцевый","hex":"#FFFFFF"},
-            {"name":"Серый металлик","hex":"#7D7D7D"},{"name":"Коричневый","hex":"#8B4513"},
-            {"name":"Бежевый","hex":"#F5DEB3"},{"name":"Серый бетон","hex":"#9E9E9E"},
-            {"name":"Черный глянец","hex":"#1A1A1A"},{"name":"Белый матовый","hex":"#F8F8F8"}]
-        return jsonify({'success':True,'palette':palette})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
-
-@app.route('/api/admin/login',methods=['POST'])
-def admin_login():
-    try:
-        data=request.get_json()
-        username=data.get('username','').strip()
-        password=data.get('password','')
-        if not username or not password: return jsonify({'success':False,'error':'Заполните все поля'}),400
-        expected_username=os.environ.get("STAD")
-        expected_password=os.environ.get("SUTT")
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        if not username or not password:
+            return jsonify({'success': False, 'error': 'Заполните все поля'}), 400
+        expected_username = os.environ.get("STAD")
+        expected_password = os.environ.get("SUTT")
         if not expected_username or not expected_password:
-            expected_username="obratites"
-            expected_password="koperatoru"
+            expected_username = "obratites"
+            expected_password = "koperatoru"
             logger.warning("Используются учетные данные по умолчанию (секреты не настроены)")
-        if username==expected_username and password==expected_password:
-            return jsonify({'success':True,'admin':{'username':username,'role':'admin'},'session_token':str(uuid.uuid4()),'message':'Авторизация успешна'})
-        else: return jsonify({'success':False,'error':'Неверный логин или пароль'}),401
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+        if username == expected_username and password == expected_password:
+            return jsonify({'success': True, 'admin': {'username': username, 'role': 'admin'}, 'session_token': str(uuid.uuid4()), 'message': 'Авторизация успешна'})
+        else:
+            return jsonify({'success': False, 'error': 'Неверный логин или пароль'}), 401
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/admin/verify')
 def verify_admin():
-    token=request.headers.get('Authorization')
-    if token: return jsonify({'success':True})
-    return jsonify({'success':False,'error':'Требуется авторизация'}),401
+    token = request.headers.get('Authorization')
+    if token:
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
 
 @app.route('/api/upload',methods=['POST'])
 def upload_file():
@@ -966,7 +840,6 @@ def serve_static(filename):
 def serve_uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# 404 обработчик
 @app.errorhandler(404)
 def not_found_error(error):
     logger.warning(f"404 Not Found: {request.path}")
@@ -982,12 +855,9 @@ def not_found_error(error):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 404
 
-if __name__=='__main__':
-    print("\n"+"="*60)
-    print("Starting Flask development server...")
-    print("="*60)
-    app.run(host='0.0.0.0',port=5000,debug=True)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
 else:
-    print("\n"+"="*60)
+    print("\n" + "=" * 60)
     print("MA Furniture File Storage initialized")
-    print("="*60)
+    print("=" * 60)
