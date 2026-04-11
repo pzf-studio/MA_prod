@@ -81,6 +81,11 @@ class AdminBackupManager {
     initEventListeners() {
         const downloadBtn = document.getElementById('downloadBackupBtn');
         if (downloadBtn) downloadBtn.addEventListener('click', () => this.downloadBackup());
+        
+        // Новая кнопка экспорта в Excel
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+        if (exportExcelBtn) exportExcelBtn.addEventListener('click', () => this.exportToExcel());
+        
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('backupFile');
         const selectFileBtn = document.getElementById('selectFileBtn');
@@ -165,12 +170,49 @@ class AdminBackupManager {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
             this.showMessage('downloadMessage', 'Бэкап успешно скачан', 'success');
-            this.loadBackupList(); // обновить список
+            this.loadBackupList();
         } catch (error) {
             this.showMessage('downloadMessage', `Ошибка: ${error.message}`, 'error');
         } finally {
             downloadBtn.disabled = false;
-            downloadBtn.innerHTML = '<i class="fas fa-database"></i> Скачать бэкап';
+            downloadBtn.innerHTML = '<i class="fas fa-database"></i> Скачать бэкап (ZIP)';
+        }
+    }
+    
+    // НОВЫЙ МЕТОД: Экспорт в Excel
+    async exportToExcel() {
+        const exportBtn = document.getElementById('exportExcelBtn');
+        exportBtn.disabled = true;
+        exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Генерация Excel...';
+        try {
+            const response = await fetch(`${this.API_BASE}/api/admin/export/excel`, {
+                headers: { 'Authorization': `Bearer ${this.authToken}` }
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Ошибка ${response.status}`);
+            }
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            let filename = 'ma_furniture_export.xlsx';
+            const contentDisposition = response.headers.get('Content-Disposition');
+            if (contentDisposition) {
+                const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (match && match[1]) filename = match[1].replace(/['"]/g, '');
+            }
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            this.showMessage('downloadMessage', 'Excel-файл успешно сгенерирован', 'success');
+        } catch (error) {
+            this.showMessage('downloadMessage', `Ошибка экспорта: ${error.message}`, 'error');
+        } finally {
+            exportBtn.disabled = false;
+            exportBtn.innerHTML = '<i class="fas fa-file-excel"></i> Экспорт в Excel';
         }
     }
     

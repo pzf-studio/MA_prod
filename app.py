@@ -6,6 +6,7 @@ import hashlib,uuid
 from werkzeug.utils import secure_filename
 from order_manager import order_manager
 import database as db
+import openpyxl
 
 BASE_DIR=os.path.dirname(os.path.abspath(__file__))
 print("="*60)
@@ -771,6 +772,80 @@ def add_color_variant(product_id):
     except Exception as e:
         logger.error(f"Ошибка добавления цветового варианта: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# ========== ЭКСПОРТ БАЗЫ В EXCEL ==========
+@app.route('/api/admin/export/excel', methods=['GET'])
+def admin_export_excel():
+    """Экспорт всей базы данных в файл Excel (.xlsx)"""
+    try:
+        from openpyxl import Workbook
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        return jsonify({'success': False, 'error': 'Библиотека openpyxl не установлена. Добавьте в requirements.txt'}), 500
+
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
+
+    wb = Workbook()
+    # Удаляем стандартный пустой лист, если есть
+    if 'Sheet' in wb.sheetnames:
+        std_sheet = wb['Sheet']
+        wb.remove(std_sheet)
+
+    with db.get_db() as conn:
+        # Получаем список всех таблиц (кроме системных)
+        tables = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+        ).fetchall()
+
+        for table in tables:
+            table_name = table['name']
+            # Создаём лист с именем таблицы (обрезаем до 31 символа – ограничение Excel)
+            sheet_name = table_name[:31]
+            ws = wb.create_sheet(title=sheet_name)
+
+            # Получаем данные таблицы
+            rows = conn.execute(f"SELECT * FROM {table_name}").fetchall()
+            if not rows:
+                continue
+
+            # Заголовки – названия колонок
+            columns = rows[0].keys()
+            for col_idx, col_name in enumerate(columns, 1):
+                ws.cell(row=1, column=col_idx, value=col_name)
+
+            # Данные
+            for row_idx, row in enumerate(rows, 2):
+                for col_idx, col_name in enumerate(columns, 1):
+                    value = row[col_name]
+                    # JSON-поля оставляем как строку (можно и распарсить, но для экспорта сойдёт)
+                    ws.cell(row=row_idx, column=col_idx, value=value)
+
+            # Автоширина столбцов (приблизительно)
+            for col_idx, col_name in enumerate(columns, 1):
+                max_length = len(str(col_name))
+                for row in rows[:100]:  # ограничим для скорости
+                    cell_value = str(row[col_name])
+                    if len(cell_value) > max_length:
+                        max_length = len(cell_value)
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[get_column_letter(col_idx)].width = adjusted_width
+
+    # Сохраняем во временный файл
+    import tempfile
+    import os
+    fd, tmp_path = tempfile.mkstemp(suffix='.xlsx')
+    os.close(fd)
+    wb.save(tmp_path)
+
+    filename = f"ma_furniture_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return send_file(
+        tmp_path,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
 
 # ========== РЕЖИМ ОБСЛУЖИВАНИЯ ==========
 MAINTENANCE_FLAG=os.path.join(DATA_DIR,'.maintenance')
