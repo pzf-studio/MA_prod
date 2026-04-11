@@ -32,7 +32,8 @@ app=Flask(__name__,static_folder='static',static_url_path='')
 CORS(app)
 app.config['UPLOAD_FOLDER']=UPLOAD_FOLDER
 app.config['TEMP_FOLDER']=TEMP_FOLDER
-app.config['MAX_CONTENT_LENGTH']=100*1024*1024
+app.config['MAX_CONTENT_LENGTH']=200*1024*1024
+app.config['UPLOAD_TIMEOUT'] = 300
 ALLOWED_EXTENSIONS={'png','jpg','jpeg','gif','webp'}
 
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
