@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 async function initializeProductPage() {
-    const pathParts = window.location.pathname.split('/');
-    const productId = pathParts[pathParts.length - 1];
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
     
     if (!productId) {
         showError('Товар не найден');

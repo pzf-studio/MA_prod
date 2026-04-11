@@ -144,7 +144,7 @@ async function initializeProducts() {
             imageContent = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
         }
         
-        const productUrl = `/product/${product.id}`;
+        const productUrl = `piece.html?id=${product.id}`;
         
         // Цена
         let priceHtml = '';
