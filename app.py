@@ -1,55 +1,56 @@
-import os,json,logging,sys,zipfile,tempfile,shutil
-from datetime import datetime,timedelta
-from flask import Flask,request,jsonify,send_from_directory,send_file
+import os, json, logging, sys, zipfile, tempfile, shutil
+from datetime import datetime, timedelta
+from flask import Flask, request, jsonify, send_from_directory, send_file, redirect, url_for
 from flask_cors import CORS
-import hashlib,uuid
+import hashlib, uuid
 from werkzeug.utils import secure_filename
 from order_manager import order_manager
 import database as db
 import openpyxl
 
-BASE_DIR=os.path.dirname(os.path.abspath(__file__))
-print("="*60)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+print("=" * 60)
 print("MA FURNITURE - SQLITE STORAGE")
-print("="*60)
+print("=" * 60)
 print(f"Python version: {sys.version}")
 print(f"Current working directory: {os.getcwd()}")
 print(f"BASE_DIR: {BASE_DIR}")
 
-DATA_DIR=os.path.join(BASE_DIR,'data')
-STATIC_DIR=os.path.join(BASE_DIR,'static')
-UPLOAD_FOLDER=os.path.join(STATIC_DIR,'uploads/products')
-TEMP_FOLDER=os.path.join(STATIC_DIR,'uploads/temp')
-DB_PATH=os.path.join(DATA_DIR,'ma_furniture.db')
-PRODUCTS_DIR=os.path.join(DATA_DIR,'products')
-SECTIONS_FILE=os.path.join(DATA_DIR,'sections.json')
-BACKGROUND_FILE=os.path.join(DATA_DIR,'background.json')
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+UPLOAD_FOLDER = os.path.join(STATIC_DIR, 'uploads/products')
+TEMP_FOLDER = os.path.join(STATIC_DIR, 'uploads/temp')
+DB_PATH = os.path.join(DATA_DIR, 'ma_furniture.db')
+PRODUCTS_DIR = os.path.join(DATA_DIR, 'products')
+SECTIONS_FILE = os.path.join(DATA_DIR, 'sections.json')
+BACKGROUND_FILE = os.path.join(DATA_DIR, 'background.json')
 
-os.makedirs(DATA_DIR,exist_ok=True)
-os.makedirs(UPLOAD_FOLDER,exist_ok=True)
-os.makedirs(TEMP_FOLDER,exist_ok=True)
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(TEMP_FOLDER, exist_ok=True)
 
-app=Flask(__name__,static_folder='static',static_url_path='')
+app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app)
-app.config['UPLOAD_FOLDER']=UPLOAD_FOLDER
-app.config['TEMP_FOLDER']=TEMP_FOLDER
-app.config['MAX_CONTENT_LENGTH']=200*1024*1024
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['TEMP_FOLDER'] = TEMP_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024
 app.config['UPLOAD_TIMEOUT'] = 300
-ALLOWED_EXTENSIONS={'png','jpg','jpeg','gif','webp'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
-logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger=app.logger
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = app.logger
 
 db.init_db()
-db.migrate_from_json(PRODUCTS_DIR,SECTIONS_FILE,BACKGROUND_FILE,DATA_DIR)
+db.migrate_from_json(PRODUCTS_DIR, SECTIONS_FILE, BACKGROUND_FILE, DATA_DIR)
 
-def allowed_file(filename): return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+# Вспомогательные функции (без изменений)
+def allowed_file(filename): return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 def generate_filename(original_name):
-    timestamp=int(datetime.now().timestamp())
-    random_str=hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
-    ext=original_name.rsplit('.',1)[1].lower() if '.' in original_name else 'jpg'
+    timestamp = int(datetime.now().timestamp())
+    random_str = hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
+    ext = original_name.rsplit('.', 1)[1].lower() if '.' in original_name else 'jpg'
     return f"{timestamp}_{random_str}.{ext}"
-def get_uploads_path(): return os.path.join(STATIC_DIR,'uploads','products')
+def get_uploads_path(): return os.path.join(STATIC_DIR, 'uploads', 'products')
 
 def get_all_products():
     with db.get_db() as conn:
@@ -160,100 +161,161 @@ def get_recent_activity():
     activity.sort(key=lambda x: x.get('time',''),reverse=True)
     return activity
 
+# ==================== НОВЫЕ МАРШРУТЫ (ЧПУ) ====================
+
 @app.route('/')
 def index():
     try:
-        index_path=os.path.join(STATIC_DIR,'index.html')
-        if os.path.exists(index_path): return send_file(index_path)
-        return '<!DOCTYPE html><html><head><title>MA Furniture</title></head><body><h1>MA Furniture - Backend работает!</h1><p>База данных SQLite активирована.</p><a href="/shop">Магазин</a> | <a href="/admin">Админка</a> | <a href="/api/products">API товаров</a></body></html>'
-    except Exception as e: return f'Error: {str(e)}',500
-
-@app.route('/order-success')
-def order_success():
-    try:
-        success_path=os.path.join(STATIC_DIR,'order-success.html')
-        if os.path.exists(success_path): return send_file(success_path)
-        return '<!DOCTYPE html><html><head><title>Заказ успешно оформлен</title></head><body><h1>Заказ успешно оформлен!</h1><p>Спасибо за ваш заказ! Мы свяжемся с вами в ближайшее время.</p><a href="/shop">Вернуться в магазин</a></body></html>',200
-    except Exception as e: return str(e),500
-
-@app.route('/api/orders',methods=['POST'])
-def create_order():
-    try:
-        TELEGRAM_BOT_TOKEN=os.getenv("TELEGRAM_BOT_TOKEN","")
-        TELEGRAM_CHAT_ID=os.getenv("TELEGRAM_CHAT_ID","")
-        if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-            return jsonify({'success':False,'error':'Telegram бот не настроен. Обратитесь к администратору.'}),500
-        data=request.get_json()
-        required_fields=['customer_name','customer_phone','items']
-        for field in required_fields:
-            if field not in data or not data[field]:
-                return jsonify({'success':False,'error':f'Поле {field} обязательно'}),400
-        if not isinstance(data['items'],list) or len(data['items'])==0:
-            return jsonify({'success':False,'error':'Корзина пуста'}),400
-        result=order_manager.process_order(data)
-        if result['success']: return jsonify(result),201
-        else: return jsonify(result),500
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+        index_path = os.path.join(STATIC_DIR, 'index.html')
+        if os.path.exists(index_path):
+            return send_file(index_path)
+        return '<!DOCTYPE html>...'  # fallback
+    except Exception as e:
+        return f'Error: {str(e)}', 500
 
 @app.route('/shop')
 def shop():
     try:
-        shop_path=os.path.join(STATIC_DIR,'shop.html')
-        if os.path.exists(shop_path): return send_file(shop_path)
-        return "Shop page not found",404
-    except Exception as e: return str(e),500
+        shop_path = os.path.join(STATIC_DIR, 'shop.html')
+        if os.path.exists(shop_path):
+            return send_file(shop_path)
+        return "Shop page not found", 404
+    except Exception as e:
+        return str(e), 500
 
-@app.route('/piece')
-def piece():
+@app.route('/product/<int:product_id>')
+def product_page(product_id):
+    """Страница отдельного товара по ID"""
     try:
-        piece_path=os.path.join(STATIC_DIR,'piece.html')
-        if os.path.exists(piece_path): return send_file(piece_path)
-        return "Product page not found",404
-    except Exception as e: return str(e),500
+        piece_path = os.path.join(STATIC_DIR, 'piece.html')
+        if os.path.exists(piece_path):
+            return send_file(piece_path)
+        return "Product page not found", 404
+    except Exception as e:
+        return str(e), 500
 
+# Для обратной совместимости: /piece?id=...
+@app.route('/piece')
+def piece_legacy():
+    product_id = request.args.get('id')
+    if product_id:
+        return redirect(url_for('product_page', product_id=product_id), code=301)
+    # Если нет id, просто показываем страницу (хотя она без товара бесполезна)
+    piece_path = os.path.join(STATIC_DIR, 'piece.html')
+    if os.path.exists(piece_path):
+        return send_file(piece_path)
+    return "Product page not found", 404
+
+@app.route('/order-success')
+def order_success():
+    try:
+        success_path = os.path.join(STATIC_DIR, 'order-success.html')
+        if os.path.exists(success_path):
+            return send_file(success_path)
+        return '<!DOCTYPE html>...', 200
+    except Exception as e:
+        return str(e), 500
+
+# Админка
 @app.route('/admin')
 @app.route('/admin/')
-def admin_root():
+def admin_login():
     try:
-        login_path=os.path.join(STATIC_DIR,'admin/admin-login.html')
-        if os.path.exists(login_path): return send_file(login_path)
-        return "Admin login not found",404
-    except Exception as e: return str(e),500
+        login_path = os.path.join(STATIC_DIR, 'admin', 'admin-login.html')
+        if os.path.exists(login_path):
+            return send_file(login_path)
+        return "Admin login not found", 404
+    except Exception as e:
+        return str(e), 500
 
 @app.route('/admin/dashboard')
 @app.route('/admin/dashboard/')
 def admin_dashboard():
     try:
-        dashboard_path=os.path.join(STATIC_DIR,'admin/admin-dashboard.html')
-        if os.path.exists(dashboard_path): return send_file(dashboard_path)
-        return "Dashboard not found",404
-    except Exception as e: return str(e),500
+        dashboard_path = os.path.join(STATIC_DIR, 'admin', 'admin-dashboard.html')
+        if os.path.exists(dashboard_path):
+            return send_file(dashboard_path)
+        return "Dashboard not found", 404
+    except Exception as e:
+        return str(e), 500
 
-@app.route('/admin/backup')
-def admin_backup():
+@app.route('/admin/products')
+@app.route('/admin/products/')
+def admin_products():
     try:
-        backup_path=os.path.join(STATIC_DIR,'admin/backup-management.html')
-        if os.path.exists(backup_path): return send_file(backup_path)
-        return "Backup page not found",404
-    except Exception as e: return str(e),500
-
-@app.route('/admin/media')
-@app.route('/admin/media/')
-def admin_media():
-    try:
-        media_path=os.path.join(STATIC_DIR,'admin/media-management.html')
-        if os.path.exists(media_path): return send_file(media_path)
-        return "Media management page not found",404
-    except Exception as e: return str(e),500
+        products_path = os.path.join(STATIC_DIR, 'admin', 'products-management.html')
+        if os.path.exists(products_path):
+            return send_file(products_path)
+        return "Products management not found", 404
+    except Exception as e:
+        return str(e), 500
 
 @app.route('/admin/categories')
 @app.route('/admin/categories/')
 def admin_categories():
     try:
-        categories_path=os.path.join(STATIC_DIR,'admin/categories-management.html')
-        if os.path.exists(categories_path): return send_file(categories_path)
-        return "Categories management page not found",404
-    except Exception as e: return str(e),500
+        categories_path = os.path.join(STATIC_DIR, 'admin', 'categories-management.html')
+        if os.path.exists(categories_path):
+            return send_file(categories_path)
+        return "Categories management not found", 404
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/admin/media')
+@app.route('/admin/media/')
+def admin_media():
+    try:
+        media_path = os.path.join(STATIC_DIR, 'admin', 'media-management.html')
+        if os.path.exists(media_path):
+            return send_file(media_path)
+        return "Media management not found", 404
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/admin/backup')
+def admin_backup():
+    try:
+        backup_path = os.path.join(STATIC_DIR, 'admin', 'backup-management.html')
+        if os.path.exists(backup_path):
+            return send_file(backup_path)
+        return "Backup page not found", 404
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/admin/techdocks')
+def admin_techdocks():
+    try:
+        tech_path = os.path.join(STATIC_DIR, 'admin', 'techdocks.html')
+        if os.path.exists(tech_path):
+            return send_file(tech_path)
+        return "Tech docs not found", 404
+    except Exception as e:
+        return str(e), 500
+
+# Редиректы со старых .html URL на новые (301 Moved Permanently)
+@app.route('/index.html')
+def redirect_index():
+    return redirect('/', code=301)
+
+@app.route('/shop.html')
+def redirect_shop():
+    return redirect('/shop', code=301)
+
+@app.route('/piece.html')
+def redirect_piece():
+    # Если есть id, перенаправляем на /product/<id>
+    product_id = request.args.get('id')
+    if product_id:
+        return redirect(url_for('product_page', product_id=product_id), code=301)
+    return redirect('/piece', code=301)
+
+@app.route('/order-success.html')
+def redirect_order_success():
+    return redirect('/order-success', code=301)
+
+@app.route('/admin.html')
+def redirect_admin():
+    return redirect('/admin', code=301)
 
 # ========== НОВЫЕ ЭНДПОИНТЫ ДЛЯ ОНЛАЙН-ТРЕКЕРА ==========
 active_sessions={}
@@ -773,6 +835,14 @@ def add_color_variant(product_id):
         logger.error(f"Ошибка добавления цветового варианта: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/health')
+def health_check():
+    return jsonify({'status': 'ok', 'timestamp': datetime.now().isoformat()})
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.static_folder, 'images'), 'logo2.png', mimetype='image/png')
+
 # ========== ЭКСПОРТ БАЗЫ В EXCEL ==========
 @app.route('/api/admin/export/excel', methods=['GET'])
 def admin_export_excel():
@@ -889,21 +959,28 @@ def admin_maintenance_disable():
     except Exception as e: return jsonify({'success':False,'error':str(e)}),500
 
 @app.route('/static/<path:filename>')
-def serve_static(filename): return send_from_directory(STATIC_DIR,filename)
+def serve_static(filename):
+    return send_from_directory(STATIC_DIR, filename)
 
 @app.route('/uploads/products/<filename>')
-def serve_uploaded_file(filename): return send_from_directory(app.config['UPLOAD_FOLDER'],filename)
+def serve_uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+# 404 обработчик
 @app.errorhandler(404)
 def not_found_error(error):
     logger.warning(f"404 Not Found: {request.path}")
-    if request.path=='/favicon.ico': return '',204
-    if request.path.startswith('/api/'): return jsonify({'success':False,'error':'Ресурс не найден'}),404
+    if request.path == '/favicon.ico':
+        return '', 204
+    if request.path.startswith('/api/'):
+        return jsonify({'success': False, 'error': 'Ресурс не найден'}), 404
     try:
-        index_path=os.path.join(STATIC_DIR,'index.html')
-        if os.path.exists(index_path): return send_file(index_path)
-        return jsonify({'success':False,'error':'Ресурс не найден'}),404
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),404
+        index_path = os.path.join(STATIC_DIR, 'index.html')
+        if os.path.exists(index_path):
+            return send_file(index_path)
+        return jsonify({'success': False, 'error': 'Ресурс не найден'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 404
 
 if __name__=='__main__':
     print("\n"+"="*60)

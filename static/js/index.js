@@ -328,7 +328,7 @@ function renderFeaturedProducts(products) {
                         ${priceFormatted}
                     </div>
                     <div class="product-actions">
-                        <a href="piece.html?id=${product.id}" class="btn btn-outline">
+                        <a href="/product/${product.id}" class="btn btn-outline">
                             Подробнее
                         </a>
                         <button class="btn btn-primary add-to-cart" data-id="${product.id}">
