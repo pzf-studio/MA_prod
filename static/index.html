@@ -131,6 +131,25 @@
         .loading-products p {
             font-size: 1.1rem !important;
         }
+
+        /* Стили для карты в футере */
+        .map-widget {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .map-widget iframe {
+            width: 100%;
+            height: 300px;
+            border: 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        @media (max-width: 768px) {
+            .map-widget iframe {
+                height: 250px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -439,13 +458,12 @@
                     </ul>
                 </div>
                 
+                <!-- Блок "Категории" заменён на карту -->
                 <div class="footer-section">
-                    <h4>Категории</h4>
-                    <ul>
-                        <li><a href="/shop.html?category=pantograph">Пантографы</a></li>
-                        <li><a href="/shop.html?category=wardrobe">Гардеробные системы</a></li>
-                        <li><a href="/shop.html?category=premium">Премиум коллекция</a></li>
-                    </ul>
+                    <h4>Мы на карте</h4>
+                    <div class="map-widget">
+                        <script type="text/javascript" charset="utf-8" async src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Acd745e83759ddffbdc54fd3a72292fd783dd98594e4e825d23bc9e777855646c&amp;width=500&amp;height=400&amp;lang=ru_RU&amp;scroll=true"></script>
+                    </div>
                 </div>
                 
                 <div class="footer-section">
