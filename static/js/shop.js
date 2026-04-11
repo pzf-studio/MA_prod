@@ -273,15 +273,13 @@ async function initializeProducts() {
 
     async function initializeFilters() {
         const catalogFilters = document.getElementById('catalogFilters');
-        const footerSections = document.getElementById('footerSections');
         
-        if (!catalogFilters || !footerSections) return;
+        if (!catalogFilters) return;
         
         try {
             const sections = await loadSectionsFromAdmin();
             
             catalogFilters.innerHTML = '<button class="filter-btn active" data-filter="all">Все товары</button>';
-            footerSections.innerHTML = '';
             
             const allFilterBtn = catalogFilters.querySelector('[data-filter="all"]');
             allFilterBtn.addEventListener('click', () => {
@@ -308,20 +306,6 @@ async function initializeProducts() {
                 });
                 catalogFilters.appendChild(filterBtn);
                 
-                const footerLink = document.createElement('li');
-                const link = document.createElement('a');
-                link.href = `shop.html?section=${section.code}`;
-                link.textContent = section.name;
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const filterBtn = document.querySelector(`[data-filter="${section.code}"]`);
-                    if (filterBtn) {
-                        filterBtn.click();
-                        window.scrollTo({ top: document.getElementById('catalog').offsetTop - 100, behavior: 'smooth' });
-                    }
-                });
-                footerLink.appendChild(link);
-                footerSections.appendChild(footerLink);
             });
             
         } catch (error) {
