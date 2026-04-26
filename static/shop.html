@@ -514,22 +514,6 @@
             border-color: #d4af37;
         }
 
-        .filter-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-        }
-        .filter-btn img.section-icon {
-            width: 28px;
-            height: 28px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
-        .filter-btn i.fa-th-large {
-            font-size: 1.2em;
-        }
-
         /* Стили для карты в футере */
         .map-widget {
             width: 100%;
@@ -618,10 +602,7 @@
         <div class="container">
             <h2 class="section-title">Каталог товаров</h2>
             <div class="catalog-filters" id="catalogFilters">
-                <button class="filter-btn active" data-filter="all">
-                    <i class="fas fa-th-large"></i> Все товары
-                </button>
-                <!-- Остальные кнопки будут добавлены через JS -->
+                <button class="filter-btn active" data-filter="all">Все товары</button>
             </div>
             
             <div class="products-grid" id="productsGrid">

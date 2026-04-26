@@ -296,51 +296,41 @@ async function initializeProducts() {
 
     async function initializeFilters() {
         const catalogFilters = document.getElementById('catalogFilters');
+        
         if (!catalogFilters) return;
-
+        
         try {
-            const sections = await dataManager.getActiveSections();
-
-            // Сначала очищаем старые кнопки, оставляя только «Все товары»
-            const allBtn = catalogFilters.querySelector('[data-filter="all"]');
-            catalogFilters.innerHTML = '';
-            catalogFilters.appendChild(allBtn);   // кнопка "Все товары"
-
-            // Добавляем обработчик для «Все товары»
-            allBtn.addEventListener('click', () => {
+            const sections = await loadSectionsFromAdmin();
+            
+            catalogFilters.innerHTML = '<button class="filter-btn active" data-filter="all">Все товары</button>';
+            
+            const allFilterBtn = catalogFilters.querySelector('[data-filter="all"]');
+            allFilterBtn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                allBtn.classList.add('active');
+                allFilterBtn.classList.add('active');
+                
                 currentFilter = 'all';
                 currentPage = 1;
                 renderProducts();
             });
-
+            
             sections.forEach(section => {
                 const filterBtn = document.createElement('button');
                 filterBtn.className = 'filter-btn';
                 filterBtn.dataset.filter = section.code;
-
-                // Вставляем изображение, если есть
-                let iconHtml = '';
-                if (section.image_url) {
-                    iconHtml = `<img src="${section.image_url}" alt="${section.name}" class="section-icon">`;
-                } else {
-                    // иконка-заглушка
-                    iconHtml = '<i class="fas fa-folder"></i>';
-                }
-                filterBtn.innerHTML = `${iconHtml} ${section.name}`;
-
+                filterBtn.textContent = section.name;
                 filterBtn.addEventListener('click', () => {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     filterBtn.classList.add('active');
+                    
                     currentFilter = section.code;
                     currentPage = 1;
                     renderProducts();
                 });
-
                 catalogFilters.appendChild(filterBtn);
+                
             });
-
+            
         } catch (error) {
             console.error('Ошибка инициализации фильтров:', error);
         }
