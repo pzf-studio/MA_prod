@@ -22,22 +22,6 @@ def get_db():
     finally:
         conn.close()
 
-def ensure_columns(conn):
-    """Проверяет и добавляет отсутствующие колонки в таблицу products"""
-    # Получаем список существующих колонок
-    cursor = conn.execute("PRAGMA table_info(products)")
-    columns = [row[1] for row in cursor.fetchall()]
-    
-    # Добавляем is_price_on_request, если нет
-    if 'is_price_on_request' not in columns:
-        conn.execute('ALTER TABLE products ADD COLUMN is_price_on_request BOOLEAN DEFAULT 0')
-        logger.info("Добавлено поле is_price_on_request в таблицу products")
-    
-    # Добавляем availability, если нет
-    if 'availability' not in columns:
-        conn.execute('ALTER TABLE products ADD COLUMN availability INTEGER DEFAULT 0')
-        logger.info("Добавлено поле availability в таблицу products")
-
 def init_db():
     with get_db() as conn:
         conn.execute('''
@@ -61,7 +45,6 @@ def init_db():
                 updated_at TEXT NOT NULL
             )
         ''')
-        # Добавляем недостающие колонки после создания таблицы
         ensure_columns(conn)
 
         conn.execute('''
@@ -70,9 +53,11 @@ def init_db():
                 code TEXT UNIQUE NOT NULL,
                 name TEXT NOT NULL,
                 active BOOLEAN DEFAULT 1,
-                display_order INTEGER DEFAULT 0
+                display_order INTEGER DEFAULT 0,
+                image_url TEXT DEFAULT ''
             )
         ''')
+
         conn.execute('''
             CREATE TABLE IF NOT EXISTS backgrounds (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,22 +88,40 @@ def init_db():
         conn.execute('CREATE INDEX IF NOT EXISTS idx_products_section ON products(section)')
         conn.execute('CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)')
 
+def ensure_columns(conn):
+    cursor = conn.execute("PRAGMA table_info(products)")
+    columns = [row[1] for row in cursor.fetchall()]
+
+    if 'is_price_on_request' not in columns:
+        conn.execute('ALTER TABLE products ADD COLUMN is_price_on_request BOOLEAN DEFAULT 0')
+        logger.info("Добавлено поле is_price_on_request")
+
+    if 'availability' not in columns:
+        conn.execute('ALTER TABLE products ADD COLUMN availability INTEGER DEFAULT 0')
+        logger.info("Добавлено поле availability")
+
+    # После миграции добавим поле image_url в sections, если его ещё нет
+    # Для ALTER TABLE SQLite не проверяем через PRAGMA, а просто выполняем с try/except
+    try:
+        conn.execute("ALTER TABLE sections ADD COLUMN image_url TEXT DEFAULT ''")
+        logger.info("Добавлено поле image_url в таблицу sections")
+    except sqlite3.OperationalError:
+        pass  # поле уже существует
+
 def migrate_from_json(products_dir, sections_file, background_file, data_dir):
     import os
     import json
     from datetime import datetime
 
     with get_db() as conn:
-        # Убеждаемся, что колонки есть перед миграцией
         ensure_columns(conn)
         cur = conn.execute('SELECT COUNT(*) FROM products')
         if cur.fetchone()[0] > 0:
-            logger.info("База данных уже содержит товары, миграция из JSON не требуется")
+            logger.info("База уже содержит товары, миграция не требуется")
             return
 
-    logger.info("Начинаем миграцию данных из JSON в SQLite...")
+    logger.info("Начинаем миграцию из JSON...")
 
-    # Перенос товаров
     if os.path.exists(products_dir):
         for filename in os.listdir(products_dir):
             if filename.endswith('.json'):
@@ -152,30 +155,29 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
                         color_variants_json,
                         product.get('created_at', datetime.now().isoformat()),
                         product.get('updated_at', datetime.now().isoformat()),
-                        0,  # is_price_on_request по умолчанию 0
-                        0   # availability по умолчанию 0 (в наличии)
+                        0,  # is_price_on_request
+                        0   # availability
                     ))
         logger.info("Товары перенесены")
 
-    # Перенос разделов
     if os.path.exists(sections_file):
         with open(sections_file, 'r', encoding='utf-8') as f:
             sections = json.load(f)
         for section in sections:
             with get_db() as conn:
                 conn.execute('''
-                    INSERT OR REPLACE INTO sections (id, code, name, active, display_order)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT OR REPLACE INTO sections (id, code, name, active, display_order, image_url)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 ''', (
                     section.get('id'),
                     section.get('code'),
                     section.get('name'),
                     1 if section.get('active', True) else 0,
-                    section.get('display_order', 0)
+                    section.get('display_order', 0),
+                    section.get('image_url', '')
                 ))
         logger.info("Разделы перенесены")
 
-    # Перенос фона
     if os.path.exists(background_file):
         with open(background_file, 'r', encoding='utf-8') as f:
             bg = json.load(f)
@@ -193,34 +195,5 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
                 bg.get('updated_at', datetime.now().isoformat())
             ))
         logger.info("Фон перенесён")
-
-    # Перенос заказов
-    orders_dir = os.path.join(data_dir, 'orders')
-    if os.path.exists(orders_dir):
-        for filename in os.listdir(orders_dir):
-            if filename.endswith('.json'):
-                filepath = os.path.join(orders_dir, filename)
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    order = json.load(f)
-                items_json = json.dumps(order.get('items', []))
-                with get_db() as conn:
-                    conn.execute('''
-                        INSERT OR REPLACE INTO orders
-                        (order_id, customer_name, customer_phone, customer_email,
-                         customer_address, customer_comment, items, total, status, created_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (
-                        order.get('order_id'),
-                        order.get('customer_name'),
-                        order.get('customer_phone'),
-                        order.get('customer_email'),
-                        order.get('customer_address'),
-                        order.get('customer_comment'),
-                        items_json,
-                        sum(i['price'] * i['quantity'] for i in order.get('items', [])),
-                        order.get('status', 'new'),
-                        order.get('created_at', datetime.now().isoformat())
-                    ))
-        logger.info("Заказы перенесены")
 
     logger.info("Миграция завершена")
