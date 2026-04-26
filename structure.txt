@@ -1,10 +1,8 @@
 📁 MA_prod/
 ├── 📁 data
+│   ├── 📁 backup
 │   ├── 📁 orders
 │   ├── 📁 products
-│   │   ├── 📄 1.json
-│   │   ├── 📄 2.json
-│   │   └── 📄 3.json
 │   ├── 📄 background.json
 │   ├── 📄 ma_furniture.db
 │   └── 📄 sections.json
@@ -68,15 +66,15 @@
 │   ├── 📄 maintenance.html
 │   ├── 📄 order-success.html
 │   ├── 📄 piece.html
-│   └── 📄 shop.html
+│   ├── 📄 robots.txt
+│   ├── 📄 shop.html
+│   └── 📄 sitemap.xml
 ├── 📄 amvera.yml
 ├── 📄 app.py
-├── 📄 arch.py
-├── 📄 create_test_data.py
 ├── 📄 database.py
 ├── 📄 LICENSE
 ├── 📄 order_manager.py
-├── 📄 photo_2025-11-30_03-24-55.jpg
 ├── 📄 requirements.txt
+├── 📄 structure.py
 ├── 📄 structure.txt
 └── 📄 wsgi.py
