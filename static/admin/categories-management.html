@@ -178,6 +178,20 @@
             opacity: 0.5;
         }
         
+        .section-image-upload {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            background: #fafafa;
+        }
+        .section-image-upload:hover { border-color: #3498db; }
+        .section-image-upload i { font-size: 2rem; color: #3498db; }
+        .section-image-preview { margin-top: 15px; max-width: 200px; }
+        .section-image-preview img { width: 100%; border-radius: 6px; }
+
         /* Адаптивность */
         @media (max-width: 768px) {
             .form-row {
@@ -401,6 +415,20 @@
                         </select>
                     </div>
                     
+                    <div class="form-group">
+                        <label>Изображение раздела</label>
+                        <div class="section-image-upload" id="sectionImageUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Нажмите для загрузки</p>
+                            <input type="file" id="sectionImageFile" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="section-image-preview" id="sectionImagePreview" style="display: none;">
+                            <img src="" alt="Превью">
+                            <button type="button" class="btn btn-sm btn-danger" id="removeSectionImage">Удалить</button>
+                        </div>
+                        <input type="hidden" id="sectionImageUrl" name="image_url" value="">
+                    </div>
+
                     <input type="hidden" id="categoryId" name="categoryId">
                 </div>
                 
