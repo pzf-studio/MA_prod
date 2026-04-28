@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from order_manager import order_manager
 import database as db
 import openpyxl
+import app
 
 BASE_DIR=os.path.dirname(os.path.abspath(__file__))
 print("="*60)
@@ -24,6 +25,11 @@ DB_PATH=os.path.join(DATA_DIR,'ma_furniture.db')
 PRODUCTS_DIR=os.path.join(DATA_DIR,'products')
 SECTIONS_FILE=os.path.join(DATA_DIR,'sections.json')
 BACKGROUND_FILE=os.path.join(DATA_DIR,'background.json')
+UPLOAD_FOLDER_SECTIONS = os.path.join(STATIC_DIR, 'uploads/sections')
+
+
+os.makedirs(UPLOAD_FOLDER_SECTIONS, exist_ok=True)
+app.config['UPLOAD_FOLDER_SECTIONS'] = UPLOAD_FOLDER_SECTIONS
 
 os.makedirs(DATA_DIR,exist_ok=True)
 os.makedirs(UPLOAD_FOLDER,exist_ok=True)
@@ -110,15 +116,17 @@ def delete_product(product_id):
 
 def load_sections():
     with db.get_db() as conn:
-        rows=conn.execute('SELECT * FROM sections ORDER BY display_order').fetchall()
-        sections=[dict(row) for row in rows]
+        rows = conn.execute('SELECT * FROM sections ORDER BY display_order').fetchall()
+        sections = [dict(row) for row in rows]
         if not sections:
-            default_sections=[{"id":1,"code":"pantographs","name":"Пантографы","active":True,"display_order":1},
-                {"id":2,"code":"wardrobes","name":"Гардеробные системы","active":True,"display_order":2},
-                {"id":3,"code":"shoeracks","name":"Обувницы","active":True,"display_order":3}]
+            default_sections = [
+                {"id": 1, "code": "pantographs", "name": "Пантографы", "active": True, "display_order": 1, "image_url": ""},
+                {"id": 2, "code": "wardrobes",   "name": "Гардеробные системы", "active": True, "display_order": 2, "image_url": ""},
+                {"id": 3, "code": "shoeracks",   "name": "Обувницы", "active": True, "display_order": 3, "image_url": ""}
+            ]
             for s in default_sections:
-                conn.execute('INSERT INTO sections (id,code,name,active,display_order) VALUES (?,?,?,?,?)',
-                    (s['id'],s['code'],s['name'],1,s['display_order']))
+                conn.execute('INSERT INTO sections (id, code, name, active, display_order, image_url) VALUES (?,?,?,?,?,?)',
+                             (s['id'], s['code'], s['name'], 1, s['display_order'], s.get('image_url', '')))
             return default_sections
         return sections
 
@@ -126,8 +134,11 @@ def save_sections(sections):
     with db.get_db() as conn:
         conn.execute('DELETE FROM sections')
         for s in sections:
-            conn.execute('INSERT INTO sections (id,code,name,active,display_order) VALUES (?,?,?,?,?)',
-                (s.get('id'),s.get('code'),s.get('name'),1 if s.get('active') else 0,s.get('display_order',0)))
+            conn.execute('INSERT INTO sections (id, code, name, active, display_order, image_url) VALUES (?,?,?,?,?,?)',
+                         (s.get('id'), s.get('code'), s.get('name'),
+                          1 if s.get('active') else 0,
+                          s.get('display_order', 0),
+                          s.get('image_url', '')))
 
 def load_background():
     with db.get_db() as conn:
@@ -390,42 +401,91 @@ def admin_get_sections():
 @app.route('/api/admin/sections',methods=['POST'])
 def admin_create_section():
     try:
-        data=request.get_json()
-        required_fields=['name','code']
+        data = request.get_json()
+        required_fields = ['name', 'code']
         for field in required_fields:
             if field not in data or not str(data[field]).strip():
-                return jsonify({'success':False,'error':f'Поле {field} обязательно'}),400
-        sections=load_sections()
-        new_id=max([s.get('id',0) for s in sections],default=0)+1
-        if any(s.get('code')==data['code'] for s in sections):
-            return jsonify({'success':False,'error':'Раздел с таким кодом уже существует'}),400
-        new_section={'id':new_id,'name':data['name'].strip(),'code':data['code'].strip().lower(),
-            'active':data.get('active',True),'display_order':data.get('display_order',len(sections)+1)}
+                return jsonify({'success': False, 'error': f'Поле {field} обязательно'}), 400
+
+        sections = load_sections()
+        new_id = max([s.get('id', 0) for s in sections], default=0) + 1
+        if any(s.get('code') == data['code'] for s in sections):
+            return jsonify({'success': False, 'error': 'Раздел с таким кодом уже существует'}), 400
+
+        new_section = {
+            'id': new_id,
+            'name': data['name'].strip(),
+            'code': data['code'].strip().lower(),
+            'active': data.get('active', True),
+            'display_order': data.get('display_order', len(sections) + 1),
+            'image_url': data.get('image_url', '')       # новое поле
+        }
         sections.append(new_section)
         save_sections(sections)
-        return jsonify({'success':True,'section':new_section,'message':'Раздел успешно создан'})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+        return jsonify({'success': True, 'section': new_section, 'message': 'Раздел успешно создан'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/admin/sections/<int:section_id>',methods=['PUT'])
 def admin_update_section(section_id):
     try:
-        data=request.get_json()
-        sections=load_sections()
-        section_index=None
-        for i,section in enumerate(sections):
-            if section.get('id')==section_id: section_index=i; break
-        if section_index is None: return jsonify({'success':False,'error':'Раздел не найден'}),404
-        if 'name' in data: sections[section_index]['name']=data['name'].strip()
+        data = request.get_json()
+        sections = load_sections()
+        section_index = None
+        for i, section in enumerate(sections):
+            if section.get('id') == section_id:
+                section_index = i
+                break
+        if section_index is None:
+            return jsonify({'success': False, 'error': 'Раздел не найден'}), 404
+
+        if 'name' in data:
+            sections[section_index]['name'] = data['name'].strip()
         if 'code' in data:
-            new_code=data['code'].strip().lower()
-            if any(s.get('code')==new_code and s.get('id')!=section_id for s in sections):
-                return jsonify({'success':False,'error':'Раздел с таким кодом уже существует'}),400
-            sections[section_index]['code']=new_code
-        if 'active' in data: sections[section_index]['active']=bool(data['active'])
-        if 'display_order' in data: sections[section_index]['display_order']=int(data['display_order'])
+            new_code = data['code'].strip().lower()
+            if any(s.get('code') == new_code and s.get('id') != section_id for s in sections):
+                return jsonify({'success': False, 'error': 'Раздел с таким кодом уже существует'}), 400
+            sections[section_index]['code'] = new_code
+        if 'active' in data:
+            sections[section_index]['active'] = bool(data['active'])
+        if 'display_order' in data:
+            sections[section_index]['display_order'] = int(data['display_order'])
+        if 'image_url' in data:               # новое
+            sections[section_index]['image_url'] = data['image_url']
+
         save_sections(sections)
-        return jsonify({'success':True,'section':sections[section_index],'message':'Раздел успешно обновлен'})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+        return jsonify({'success': True, 'section': sections[section_index], 'message': 'Раздел успешно обновлен'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/upload/section', methods=['POST'])
+def upload_section_image():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'Файл не загружен'}), 400
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'Файл не выбран'}), 400
+        if not allowed_file(file.filename):
+            return jsonify({'success': False, 'error': 'Недопустимый формат файла'}), 400
+
+        original_name = secure_filename(file.filename)
+        filename = generate_filename(original_name)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER_SECTIONS'], filename)
+        file.save(file_path)
+
+        file_url = f"/static/uploads/sections/{filename}"
+        logger.info(f"Изображение раздела загружено: {filename}")
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'original_name': original_name,
+            'url': file_url,
+            'size': os.path.getsize(file_path)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/admin/sections/<int:section_id>',methods=['DELETE'])
 def admin_delete_section(section_id):

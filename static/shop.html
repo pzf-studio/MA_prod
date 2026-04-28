@@ -601,17 +601,15 @@
     <section class="catalog" id="catalog">
         <div class="container">
             <h2 class="section-title">Каталог товаров</h2>
-            <div class="catalog-filters" id="catalogFilters">
-                <button class="filter-btn active" data-filter="all">Все товары</button>
+
+            <!-- Сетка карточек категорий -->
+            <div class="category-cards-grid" id="categoryCardsGrid">
+                <!-- Заполняется динамически -->
             </div>
-            
-            <div class="products-grid" id="productsGrid">
-                <!-- Товары будут загружаться динамически -->
-            </div>
-            
-            <div class="pagination" id="pagination">
-                <!-- Пагинация будет генерироваться динамически -->
-            </div>
+
+            <!-- Сетка товаров (изначально скрыта) -->
+            <div class="products-grid" id="productsGrid" style="display: none;"></div>
+            <div class="pagination" id="pagination"></div>
         </div>
     </section>
 
