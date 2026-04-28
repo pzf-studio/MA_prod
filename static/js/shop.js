@@ -38,9 +38,8 @@ async function initializeProducts() {
     const productsGrid = document.getElementById('productsGrid');
     const pagination = document.getElementById('pagination');
     const itemsPerPage = 15;
-    let currentFilter = 'all';
     let currentPage = 1;
-    const itemsPerPage = 15;
+    let currentFilter = 'all';
 
     async function renderProducts() {
         try {
@@ -358,75 +357,6 @@ async function initializeProducts() {
     await initializeFilters();
     await renderProducts();
     handleUrlFilters();
-}
-
-async function initializeCategoryCards() {
-    const grid = document.getElementById('categoryCardsGrid');
-    if (!grid) return;
-
-    try {
-        const sections = await dataManager.getActiveSections();
-        grid.innerHTML = '';
-
-        // Карточка "Все товары"
-        const allCard = createCategoryCard({
-            id: 'all',
-            name: 'Все товары',
-            image_url: '',
-            code: 'all'
-        });
-        allCard.classList.add('active'); // по умолчанию активно
-        grid.appendChild(allCard);
-
-        sections.forEach(section => {
-            const card = createCategoryCard(section);
-            grid.appendChild(card);
-        });
-
-        attachCategoryCardEvents();
-    } catch (error) {
-        console.error('Ошибка загрузки разделов:', error);
-    }
-}
-
-function createCategoryCard(category) {
-    const card = document.createElement('div');
-    card.className = 'category-card';
-    card.dataset.filter = category.code || 'all';
-
-    let imageHtml = '';
-    if (category.image_url) {
-        imageHtml = `<img src="${category.image_url}" alt="${category.name}" loading="lazy">`;
-    } else {
-        const icon = category.code === 'all' ? 'th-large' : 'folder';
-        imageHtml = `<div class="category-image-placeholder"><i class="fas fa-${icon}"></i></div>`;
-    }
-
-    card.innerHTML = `
-        <div class="category-image">
-            ${imageHtml}
-        </div>
-        <div class="category-name">${category.name}</div>
-    `;
-    return card;
-}
-
-function attachCategoryCardEvents() {
-    document.querySelectorAll('.category-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-
-            const filter = card.dataset.filter;
-            currentFilter = filter;
-            currentPage = 1;
-
-            // Показываем сетку товаров и загружаем
-            const productsGrid = document.getElementById('productsGrid');
-            if (productsGrid) productsGrid.style.display = 'grid';
-            renderProducts();
-        });
-    });
 }
 
 function initializeMobileMenu() {

@@ -38,12 +38,6 @@ def ensure_columns(conn):
         conn.execute('ALTER TABLE products ADD COLUMN availability INTEGER DEFAULT 0')
         logger.info("Добавлено поле availability в таблицу products")
 
-    try:
-        conn.execute("ALTER TABLE sections ADD COLUMN image_url TEXT DEFAULT ''")
-        logger.info("Добавлено поле image_url в таблицу sections")
-    except sqlite3.OperationalError:
-        pass
-
 def init_db():
     with get_db() as conn:
         conn.execute('''
@@ -76,8 +70,7 @@ def init_db():
                 code TEXT UNIQUE NOT NULL,
                 name TEXT NOT NULL,
                 active BOOLEAN DEFAULT 1,
-                display_order INTEGER DEFAULT 0,
-                image_url TEXT DEFAULT ''
+                display_order INTEGER DEFAULT 0
             )
         ''')
         conn.execute('''
