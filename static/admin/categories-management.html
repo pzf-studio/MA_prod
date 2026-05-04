@@ -197,6 +197,27 @@
                 height: 25px;
             }
         }
+        .image-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9fa;
+            transition: var(--transition);
+        }
+        .image-upload-area:hover {
+            border-color: var(--secondary-color);
+            background: #e9f7fe;
+        }
+        .image-upload-area i { font-size: 2rem; color: var(--secondary-color); margin-bottom: 10px; }
+        .image-preview {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .image-preview img { max-width: 200px; max-height: 100px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -290,7 +311,6 @@
 
     <!-- Основной контент -->
     <main class="main-content">
-        <!-- Верхняя панель -->
         <header class="topbar">
             <div class="topbar-left">
                 <h1 class="page-title">Управление категориями</h1>
@@ -300,16 +320,13 @@
                     <span class="current">Категории</span>
                 </nav>
             </div>
-            
             <div class="topbar-right">
                 <button class="btn btn-primary" id="addCategoryBtn">
-                    <i class="fas fa-plus"></i>
-                    Добавить категорию
+                    <i class="fas fa-plus"></i> Добавить категорию
                 </button>
             </div>
         </header>
 
-        <!-- Основное содержимое -->
         <section class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -324,25 +341,19 @@
                                 <th style="width: 150px;">Действия</th>
                             </tr>
                         </thead>
-                        <tbody id="categoriesTableBody">
-                            <!-- Категории загружаются динамически -->
-                        </tbody>
+                        <tbody id="categoriesTableBody"></tbody>
                     </table>
                 </div>
-                
                 <div class="empty-state" id="emptyState" style="display: none; text-align: center; padding: 40px;">
                     <i class="fas fa-tags" style="font-size: 3rem; color: #ddd; margin-bottom: 15px;"></i>
                     <h3>Нет категорий</h3>
                     <p>Добавьте первую категорию для вашего магазина</p>
                     <button class="btn btn-primary" id="addFirstCategoryBtn" style="margin-top: 15px;">
-                        <i class="fas fa-plus"></i>
-                        Добавить категорию
+                        <i class="fas fa-plus"></i> Добавить категорию
                     </button>
                 </div>
             </div>
         </section>
-        
-        <!-- Футер -->
         <footer class="main-footer">
             <p>&copy; 2026 MA Furniture Admin Panel. Все права защищены.</p>
         </footer>
@@ -359,40 +370,33 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="categoryName">Название категории *</label>
-                        <input type="text" 
-                               id="categoryName" 
-                               name="categoryName" 
-                               class="form-control" 
-                               required 
-                               placeholder="Например: Пантографы">
+                        <input type="text" id="categoryName" name="categoryName" class="form-control" required placeholder="Пантографы">
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label for="categoryCode">Код категории *</label>
-                            <input type="text" 
-                                   id="categoryCode" 
-                                   name="categoryCode" 
-                                   class="form-control" 
-                                   required 
-                                   placeholder="Например: pantographs">
-                            <div class="code-hint">
-                                Используется в URL, только латинские буквы и дефисы
-                            </div>
+                            <input type="text" id="categoryCode" name="categoryCode" class="form-control" required placeholder="pantographs">
+                            <div class="code-hint">Латинские буквы, цифры и подчёркивания</div>
                         </div>
-                        
                         <div class="form-group">
-                            <label for="categoryOrder">Порядок отображения *</label>
-                            <input type="number" 
-                                   id="categoryOrder" 
-                                   name="categoryOrder" 
-                                   class="form-control" 
-                                   required 
-                                   min="1" 
-                                   value="1">
+                            <label for="categoryOrder">Порядок *</label>
+                            <input type="number" id="categoryOrder" name="categoryOrder" class="form-control" required min="1" value="1">
                         </div>
                     </div>
-                    
+                    <div class="form-group">
+                        <label for="categoryDescription">Описание</label>
+                        <textarea id="categoryDescription" name="categoryDescription" class="form-control" rows="3" placeholder="Краткое описание категории"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Изображение</label>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Нажмите или перетащите изображение</p>
+                            <input type="file" id="categoryImage" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="image-preview" id="imagePreview"></div>
+                        <input type="hidden" id="categoryImageUrl" name="categoryImageUrl">
+                    </div>
                     <div class="form-group">
                         <label for="categoryStatus">Статус</label>
                         <select id="categoryStatus" name="categoryStatus" class="form-control">
@@ -400,24 +404,19 @@
                             <option value="false">Неактивна</option>
                         </select>
                     </div>
-                    
                     <input type="hidden" id="categoryId" name="categoryId">
                 </div>
-                
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="modalCancel">
-                        Отмена
-                    </button>
+                    <button type="button" class="btn btn-secondary" id="modalCancel">Отмена</button>
                     <button type="submit" class="btn btn-primary" id="modalSubmit">
-                        <i class="fas fa-save"></i>
-                        Сохранить
+                        <i class="fas fa-save"></i> Сохранить
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Модальное окно подтверждения удаления -->
+    <!-- Модальное окно подтверждения удаления (без изменений) -->
     <div class="modal" id="deleteModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -427,18 +426,14 @@
             <div class="modal-body">
                 <p id="deleteMessage">Вы уверены, что хотите удалить эту категорию?</p>
                 <p class="text-muted" id="deleteWarning" style="display: none; color: var(--danger-color);">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    В этой категории есть товары. Удаление может повлиять на их отображение.
+                    <i class="fas fa-exclamation-triangle"></i> В этой категории есть товары. Удаление может повлиять на их отображение.
                 </p>
                 <input type="hidden" id="deleteCategoryId">
             </div>
             <div class="form-actions">
-                <button type="button" class="btn btn-secondary" id="deleteCancel">
-                    Отмена
-                </button>
+                <button type="button" class="btn btn-secondary" id="deleteCancel">Отмена</button>
                 <button type="button" class="btn btn-danger" id="deleteConfirm">
-                    <i class="fas fa-trash"></i>
-                    Удалить
+                    <i class="fas fa-trash"></i> Удалить
                 </button>
             </div>
         </div>

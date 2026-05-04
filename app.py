@@ -905,6 +905,84 @@ def not_found_error(error):
         return jsonify({'success':False,'error':'Ресурс не найден'}),404
     except Exception as e: return jsonify({'success':False,'error':str(e)}),404
 
+# ========== API ДЛЯ КАТЕГОРИЙ (ДОП. ДАННЫЕ) ==========
+CATEGORIES_EXTRA_FILE = os.path.join(DATA_DIR, 'categories_extra.json')
+
+def load_categories_extra():
+    """Загружает дополнительные данные категорий из JSON"""
+    if os.path.exists(CATEGORIES_EXTRA_FILE):
+        with open(CATEGORIES_EXTRA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+def save_categories_extra(extras):
+    with open(CATEGORIES_EXTRA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(extras, f, ensure_ascii=False, indent=2)
+
+@app.route('/api/categories/public', methods=['GET'])
+def public_categories():
+    """Публичный список категорий с минимальными ценами и доп. данными"""
+    try:
+        sections = load_sections()
+        categories_extra = {item['section_code']: item for item in load_categories_extra()}
+        products = get_all_products()
+        active_products = [p for p in products if p.get('status') == 'active']
+
+        result = []
+        for section in sections:
+            if not section.get('active', True):
+                continue
+            code = section['code']
+            # Фильтруем товары этой категории
+            cat_products = [p for p in active_products if p.get('section') == code]
+            # Цена от (минимальная среди активных, не нулевая)
+            prices = [p['price'] for p in cat_products if p.get('price', 0) > 0]
+            min_price = min(prices) if prices else 0
+            product_count = len(cat_products)
+
+            extra = categories_extra.get(code, {})
+            result.append({
+                'id': section['id'],
+                'code': code,
+                'name': section['name'],
+                'description': extra.get('description', ''),
+                'image_url': extra.get('image_url', ''),
+                'min_price': min_price,
+                'product_count': product_count,
+                'display_order': section.get('display_order', 0)
+            })
+
+        result.sort(key=lambda x: x['display_order'])
+        return jsonify({'success': True, 'categories': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/categories/extra/<string:section_code>', methods=['PUT'])
+def admin_update_category_extra(section_code):
+    """Обновление описания и изображения категории"""
+    try:
+        data = request.get_json()
+        extras = load_categories_extra()
+        # Ищем запись или создаём новую
+        found = None
+        for i, item in enumerate(extras):
+            if item['section_code'] == section_code:
+                found = i
+                break
+        if found is not None:
+            extras[found]['description'] = data.get('description', extras[found].get('description', ''))
+            extras[found]['image_url'] = data.get('image_url', extras[found].get('image_url', ''))
+        else:
+            extras.append({
+                'section_code': section_code,
+                'description': data.get('description', ''),
+                'image_url': data.get('image_url', '')
+            })
+        save_categories_extra(extras)
+        return jsonify({'success': True, 'message': 'Данные категории обновлены'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500    
+
 if __name__=='__main__':
     print("\n"+"="*60)
     print("Starting Flask development server...")
