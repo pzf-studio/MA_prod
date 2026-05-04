@@ -121,6 +121,7 @@ class AdminCategoriesManager {
             else throw new Error(data.error);
         } catch (error) { this.showNotification(`Ошибка: ${error.message}`, 'error'); }
     }
+
     async toggleStatus(categoryId) {
         try {
             const category = this.categories.find(c => c.id === categoryId);
@@ -140,6 +141,7 @@ class AdminCategoriesManager {
             } else throw new Error(data.error);
         } catch (error) { this.showNotification(`Ошибка: ${error.message}`, 'error'); }
     }
+
     async updateOrder(categoryId, newOrder) {
         try {
             const category = this.categories.find(c => c.id === categoryId);
@@ -159,6 +161,7 @@ class AdminCategoriesManager {
             } else throw new Error(data.error);
         } catch (error) { this.showNotification(`Ошибка: ${error.message}`, 'error'); }
     }
+
     async deleteCategory(categoryId) {
         try {
             const category = this.categories.find(c => c.id === categoryId);
@@ -181,6 +184,7 @@ class AdminCategoriesManager {
             } else throw new Error(data.error);
         } catch (error) { this.showNotification(`Ошибка: ${error.message}`, 'error'); }
     }
+
     async checkProductsInCategory(categoryCode) {
         try {
             const response = await fetch(`${this.API_BASE}/api/products?section=${categoryCode}`);
@@ -196,6 +200,7 @@ class AdminCategoriesManager {
             badge.textContent = activeCount;
         }
     }
+
     initEventListeners() {
         const addBtn = document.getElementById('addCategoryBtn');
         const addFirstBtn = document.getElementById('addFirstCategoryBtn');
@@ -238,6 +243,15 @@ class AdminCategoriesManager {
             imageInput.addEventListener('change', (e) => this.handleImageSelected(e));
         }
     }
+
+    generateCode(name) {
+        return name.toLowerCase().replace(/[^a-zа-яё0-9\s]/g, '').replace(/\s+/g, '_').replace(/[а-яё]/g, char => {
+            const map = {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ы':'y','э':'e','ю':'yu','я':'ya'};
+            return map[char] || char;
+        }).replace(/_+/g, '_').replace(/^_+|_+$/g, '');
+    }
+
+    // Обработка выбора изображения
     async handleImageSelected(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -245,7 +259,10 @@ class AdminCategoriesManager {
             this.showNotification('Пожалуйста, выберите изображение', 'error');
             return;
         }
-        // Загружаем через существующий endpoint
+        // Отображаем индикацию загрузки
+        const previewDiv = document.getElementById('imagePreview');
+        if (previewDiv) previewDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка...';
+        
         const formData = new FormData();
         formData.append('file', file);
         try {
@@ -258,18 +275,21 @@ class AdminCategoriesManager {
             if (data.success) {
                 document.getElementById('categoryImageUrl').value = data.url;
                 this.showImagePreview(data.url);
+                this.showNotification('Изображение загружено', 'success');
             } else {
                 this.showNotification(`Ошибка загрузки: ${data.error}`, 'error');
+                if (previewDiv) previewDiv.innerHTML = '';
             }
         } catch (err) {
             this.showNotification('Ошибка загрузки изображения', 'error');
+            if (previewDiv) previewDiv.innerHTML = '';
         }
     }
 
     showImagePreview(url) {
         const preview = document.getElementById('imagePreview');
         if (preview) {
-            preview.innerHTML = `<img src="${url}" alt="Превью">`;
+            preview.innerHTML = `<img src="${url}" alt="Превью" style="max-width: 200px; max-height: 100px; border-radius: 4px;">`;
         }
     }
 
@@ -306,12 +326,15 @@ class AdminCategoriesManager {
         document.getElementById('categoryOrder').value = category.display_order || 1;
         document.getElementById('categoryStatus').value = category.active !== false ? 'true' : 'false';
 
-        // Загружаем extra-данные для этой категории
         const extra = this.categoriesExtra[category.code] || {};
         document.getElementById('categoryDescription').value = extra.description || '';
         document.getElementById('categoryImageUrl').value = extra.image_url || '';
+        
+        // ✅ ИСПРАВЛЕНИЕ: показываем превью сохранённого изображения
         if (extra.image_url) {
             this.showImagePreview(extra.image_url);
+        } else {
+            document.getElementById('imagePreview').innerHTML = '';
         }
     }
 
@@ -375,73 +398,6 @@ class AdminCategoriesManager {
     closeDeleteModal() { document.getElementById('deleteModal')?.classList.remove('active'); }
     editCategory(categoryId) { this.openCategoryModal(categoryId); }
 
-    generateCode(name) {
-        return name.toLowerCase().replace(/[^a-zа-яё0-9\s]/g, '').replace(/\s+/g, '_').replace(/[а-яё]/g, char => {
-            const map = {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ы':'y','э':'e','ю':'yu','я':'ya'};
-            return map[char] || char;
-        }).replace(/_+/g, '_').replace(/^_+|_+$/g, '');
-    }
-    openCategoryModal(categoryId = null) {
-        const modal = document.getElementById('categoryModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const form = document.getElementById('categoryForm');
-        if (!modal || !modalTitle || !form) return;
-        form.reset();
-        document.getElementById('categoryId').value = '';
-        const codeInput = document.getElementById('categoryCode');
-        if (codeInput) codeInput.dataset.manual = '';
-        if (categoryId) {
-            modalTitle.textContent = 'Редактировать категорию';
-            this.loadCategoryData(categoryId);
-        } else {
-            modalTitle.textContent = 'Добавить категорию';
-            const maxOrder = Math.max(...this.categories.map(c => c.display_order || 0), 0);
-            document.getElementById('categoryOrder').value = maxOrder + 1;
-        }
-        modal.classList.add('active');
-    }
-    loadCategoryData(categoryId) {
-        const category = this.categories.find(c => c.id === categoryId);
-        if (!category) return;
-        document.getElementById('categoryId').value = category.id;
-        document.getElementById('categoryName').value = category.name || '';
-        document.getElementById('categoryCode').value = category.code || '';
-        document.getElementById('categoryOrder').value = category.display_order || 1;
-        document.getElementById('categoryStatus').value = category.active !== false ? 'true' : 'false';
-    }
-    async handleCategorySubmit(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const categoryData = {
-            name: formData.get('categoryName').trim(),
-            code: formData.get('categoryCode').trim().toLowerCase(),
-            display_order: parseInt(formData.get('categoryOrder')) || 1,
-            active: formData.get('categoryStatus') === 'true'
-        };
-        if (!categoryData.name) { this.showNotification('Введите название категории', 'error'); return; }
-        if (!categoryData.code) { this.showNotification('Введите код категории', 'error'); return; }
-        if (!/^[a-z0-9_]+$/.test(categoryData.code)) { this.showNotification('Код может содержать только латинские буквы, цифры и подчеркивания', 'error'); return; }
-        const categoryId = formData.get('categoryId');
-        const existingWithCode = this.categories.find(c => c.code === categoryData.code && c.id !== parseInt(categoryId || 0));
-        if (existingWithCode) { this.showNotification('Категория с таким кодом уже существует', 'error'); return; }
-        try {
-            const url = categoryId ? `${this.API_BASE}/api/admin/sections/${categoryId}` : `${this.API_BASE}/api/admin/sections`;
-            const method = categoryId ? 'PUT' : 'POST';
-            const response = await fetch(url, {
-                method, headers: { 'Authorization': `Bearer ${this.authToken}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(categoryData)
-            });
-            const data = await response.json();
-            if (data.success) {
-                await this.loadCategories();
-                this.closeModal();
-                this.showNotification(categoryId ? 'Категория обновлена' : 'Категория добавлена', 'success');
-            } else throw new Error(data.error);
-        } catch (error) { this.showNotification(`Ошибка: ${error.message}`, 'error'); }
-    }
-    closeModal() { document.getElementById('categoryModal')?.classList.remove('active'); }
-    closeDeleteModal() { document.getElementById('deleteModal')?.classList.remove('active'); }
-    editCategory(categoryId) { this.openCategoryModal(categoryId); }
     async confirmDelete(categoryId) {
         const modal = document.getElementById('deleteModal');
         const deleteCategoryId = document.getElementById('deleteCategoryId');
@@ -458,10 +414,12 @@ class AdminCategoriesManager {
             modal.classList.add('active');
         } else if (confirm('Вы уверены, что хотите удалить эту категорию?')) this.deleteCategory(categoryId);
     }
+
     confirmDeleteAction() {
         const categoryId = document.getElementById('deleteCategoryId')?.value;
         if (categoryId) { this.deleteCategory(parseInt(categoryId)); this.closeDeleteModal(); }
     }
+
     logout() {
         if (confirm('Вы уверены, что хотите выйти?')) {
             localStorage.removeItem('admin_token');
@@ -469,7 +427,9 @@ class AdminCategoriesManager {
             window.location.href = '/admin';
         }
     }
+
     showNotification(message, type) { window.showNotification(message, type); }
-    escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+    escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m] || m); }
 }
-document.addEventListener('DOMContentLoaded', function() { window.adminCategories = new AdminCategoriesManager(); });
+
+document.addEventListener('DOMContentLoaded', () => { window.adminCategories = new AdminCategoriesManager(); });
