@@ -1,0 +1,17 @@
+[
+  {
+    "section_code": "pantographs",
+    "description": "Электрические и механические пантографы премиум-класса",
+    "image_url": "/static/uploads/products/pantographs.jpg"
+  },
+  {
+    "section_code": "wardrobes",
+    "description": "Гардеробные системы для организации пространства",
+    "image_url": "/static/uploads/products/wardrobes.jpg"
+  },
+  {
+    "section_code": "shoeracks",
+    "description": "Эргономичные обувницы с подсветкой",
+    "image_url": "/static/uploads/products/shoeracks.jpg"
+  }
+]
