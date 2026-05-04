@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from order_manager import order_manager
 import database as db
 import openpyxl
+import random
 
 BASE_DIR=os.path.dirname(os.path.abspath(__file__))
 print("="*60)
@@ -921,7 +922,7 @@ def save_categories_extra(extras):
 
 @app.route('/api/categories/public', methods=['GET'])
 def public_categories():
-    """Публичный список категорий с минимальными ценами и доп. данными"""
+    """Публичный список категорий с минимальными ценами и автоматической картинкой"""
     try:
         sections = load_sections()
         categories_extra = {item['section_code']: item for item in load_categories_extra()}
@@ -933,20 +934,31 @@ def public_categories():
             if not section.get('active', True):
                 continue
             code = section['code']
-            # Фильтруем товары этой категории
+            # Товары этой категории
             cat_products = [p for p in active_products if p.get('section') == code]
-            # Цена от (минимальная среди активных, не нулевая)
+
+            # Цена "от"
             prices = [p['price'] for p in cat_products if p.get('price', 0) > 0]
             min_price = min(prices) if prices else 0
             product_count = len(cat_products)
 
             extra = categories_extra.get(code, {})
+
+            # Определяем image_url:
+            # 1. Если в extra есть своя картинка — используем её
+            # 2. Иначе берём случайное изображение из товаров категории
+            image_url = extra.get('image_url', '')
+            if not image_url and cat_products:
+                random_product = random.choice(cat_products)
+                if random_product.get('images') and len(random_product['images']) > 0:
+                    image_url = random_product['images'][0]
+
             result.append({
                 'id': section['id'],
                 'code': code,
                 'name': section['name'],
                 'description': extra.get('description', ''),
-                'image_url': extra.get('image_url', ''),
+                'image_url': image_url,
                 'min_price': min_price,
                 'product_count': product_count,
                 'display_order': section.get('display_order', 0)
