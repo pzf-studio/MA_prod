@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Контакты - MA Furniture | Свяжитесь с нами</title>
+    <meta name="description" content="Свяжитесь с MA Furniture: телефон, email, адрес шоурума в Москве, форма обратной связи. Мы поможем подобрать идеальную систему хранения.">
+    <link rel="icon" href="/static/images/logo2.png" type="image/png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/index.css">
+    
+    <style>
+        :root {
+            --gold: #d4af37;
+            --primary: #8B7355;
+            --dark: #2c2c2c;
+            --light-bg: #faf8f4;
+            --text-muted: #5a5a5a;
+        }
+        
+        body {
+            padding-top: 0;
+            background-color: white;
+        }
+        
+        /* Hero секция (уменьшенная, но стильная) */
+        .contact-hero {
+            position: relative;
+            min-height: 40vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: url('/static/images/hero.jpg') center/cover no-repeat;
+            background-attachment: fixed;
+            margin-top: 80px;
+        }
+        .contact-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1;
+        }
+        .contact-hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            animation: fadeInUp 1s ease;
+        }
+        .contact-hero-content h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .contact-hero-content .gold-line {
+            width: 80px;
+            height: 3px;
+            background: var(--gold);
+            margin: 20px auto;
+        }
+        .contact-hero-content p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Основные секции */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        .section-title {
+            font-size: 2.6rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            font-family: 'Playfair Display', serif;
+            font-weight: 500;
+        }
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-bottom: 3rem;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Две колонки: контакты и форма */
+        .contact-two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            margin: 60px 0;
+        }
+        @media (max-width: 992px) {
+            .contact-two-columns {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+        }
+        
+        /* Блок контактной информации */
+        .contact-info-block {
+            background: var(--light-bg);
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(139,115,85,0.2);
+        }
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .info-icon {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            font-size: 1.4rem;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+        }
+        .info-text h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 600;
+        }
+        .info-text p, .info-text a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+            line-height: 1.5;
+        }
+        .info-text a:hover {
+            color: var(--gold);
+        }
+        
+        /* Социальные сети */
+        .social-links-block {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .social-links-block h3 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .social-icons a {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .social-icons a:hover {
+            background: var(--gold);
+            color: white;
+            transform: translateY(-5px);
+        }
+        
+        /* Форма обратной связи */
+        .contact-form-block {
+            background: white;
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid #f0e7da;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        .form-group input, 
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid #e2dfda;
+            border-radius: 20px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .form-group input:focus, 
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--gold);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
+        }
+        .submit-btn {
+            background: var(--dark);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            width: 100%;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .submit-btn:hover {
+            background: var(--gold);
+            color: var(--dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        #formStatus {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        /* Карта */
+        .map-section {
+            margin: 60px 0;
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        /* Часы работы */
+        .work-hours {
+            background: var(--light-bg);
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            margin: 40px 0;
+        }
+        .work-hours h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        .work-hours p {
+            margin: 5px 0;
+            color: var(--text-muted);
+        }
+        
+        /* Анимация при прокрутке */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .contact-hero { background-attachment: scroll; min-height: 35vh; }
+            .contact-hero-content h1 { font-size: 2.2rem; }
+            .section-title { font-size: 2rem; }
+            .contact-info-block, .contact-form-block { padding: 30px 20px; }
+        }
+        
+        /* Стили для выпадающего меню (как на about.html) */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 1px solid var(--primary);
+            border-radius: 40px;
+            padding: 10px 24px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--dark);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .dropdown-toggle i {
+            color: var(--gold);
+        }
+        .dropdown-toggle:hover {
+            background: var(--light-bg);
+            border-color: var(--gold);
+            transform: translateY(-1px);
+        }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            min-width: 100%;
+            background: white;
+            border: 1px solid #e2dfda;
+            border-radius: 20px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s;
+            z-index: 1000;
+            margin-top: 12px;
+        }
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f5f0ea;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown-item i {
+            width: 22px;
+            color: var(--gold);
+        }
+        .dropdown-item:hover {
+            background: var(--light-bg);
+        }
+        @media (max-width: 768px) {
+            .dropdown-toggle { padding: 8px 18px; font-size: 0.85rem; }
+            .dropdown-menu { min-width: 240px; left: 50%; transform: translateX(-50%) translateY(-8px); }
+            .dropdown-menu.show { transform: translateX(-50%) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Заглушки для совместимости -->
+    <div id="featuredProducts" style="display:none;"></div>
+    <div id="heroBackground" style="display:none;"></div>
+
+    <!-- Шапка (идентичная другим страницам) -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="./index.html">
+                        <div class="logo-container">
+                            <img src="/static/images/logo2.png" alt="MA Furniture" class="logo-image">
+                            <div class="logo-text-container">
+                                <span class="logo-text">MA FURNITURE</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="./index.html">Главная</a></li>
+                        <li><a href="./shop.html">Каталог</a></li>
+                        <li><a href="./about.html">О нас</a></li>
+                        <li><a href="./index.html#faq">FAQ</a></li>
+                    </ul>
+                </nav>
+                <div class="header-actions">
+                    <div class="dropdown" id="contactDropdown">
+                        <button class="dropdown-toggle" id="dropdownToggleBtn">
+                            <i class="fas fa-phone-alt"></i>
+                            <span>Связаться с нами</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="tel:+79100053424" class="dropdown-item">
+                                <i class="fas fa-phone-alt"></i>
+                                <span>+7 (910) 005-34-24</span>
+                            </a>
+                            <a href="./contact.html" class="dropdown-item">
+                                <i class="fas fa-comments"></i>
+                                <span>Связаться с менеджером</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero секция -->
+    <section class="contact-hero">
+        <div class="contact-hero-content">
+            <h1>Свяжитесь с нами</h1>
+            <div class="gold-line"></div>
+            <p>Мы всегда рады помочь вам создать идеальное пространство для хранения</p>
+        </div>
+    </section>
+
+    <main>
+        <div class="container">
+            <!-- Две колонки: контакты и форма -->
+            <div class="contact-two-columns">
+                <!-- Левая колонка: контактная информация -->
+                <div class="contact-info-block reveal">
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="info-text">
+                            <h3>Адрес шоурума</h3>
+                            <p>г. Москва, ул. Тверская, д. 12<br>(м. Пушкинская)</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-phone-alt"></i></div>
+                        <div class="info-text">
+                            <h3>Телефон</h3>
+                            <p><a href="tel:+79100053424">+7 (910) 005-34-24</a></p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-envelope"></i></div>
+                        <div class="info-text">
+                            <h3>Email</h3>
+                            <p><a href="mailto:ma.furniture@mail.ru">ma.furniture@mail.ru</a></p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-clock"></i></div>
+                        <div class="info-text">
+                            <h3>Режим работы</h3>
+                            <p>Пн–Пт: 9:00 – 18:00<br>Сб–Вс: по записи</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Социальные сети -->
+                    <div class="social-links-block">
+                        <h3>Мы в соцсетях</h3>
+                        <div class="social-icons">
+                            <a href="https://t.me/MAFurniture_ru" target="_blank" aria-label="Telegram"><i class="fab fa-telegram-plane"></i></a>
+                            <a href="https://www.instagram.com/ma.furniture.ru" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                            <a href="https://wa.me/message/XVIWV6WLNDHVC1" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Правая колонка: форма обратной связи -->
+                <div class="contact-form-block reveal">
+                    <h2 class="section-title" style="font-size: 1.8rem; margin-bottom: 0.5rem;">Напишите нам</h2>
+                    <p class="section-subtitle" style="margin-bottom: 2rem;">Заполните форму, и мы свяжемся с вами в ближайшее время</p>
+                    
+                    <form id="feedbackForm">
+                        <div class="form-group">
+                            <label for="name">Ваше имя *</label>
+                            <input type="text" id="name" name="name" required placeholder="Иван Иванов">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required placeholder="ivan@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Телефон</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__">
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">Тема обращения</label>
+                            <select id="subject" name="subject">
+                                <option value="consultation">Консультация по товарам</option>
+                                <option value="order">Вопрос о заказе</option>
+                                <option value="partnership">Сотрудничество</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Сообщение *</label>
+                            <textarea id="message" name="message" rows="5" required placeholder="Опишите ваш вопрос..."></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-paper-plane"></i> Отправить сообщение
+                        </button>
+                        <div id="formStatus"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Блок с часами работы и дополнительной информацией -->
+            <div class="work-hours reveal">
+                <h3>Как нас найти?</h3>
+                <p>Наш шоурум расположен в центре Москвы, рядом с метро Пушкинская. Предварительная запись по телефону или через форму на сайте.</p>
+                <p><strong>Бесплатная консультация</strong> — поможем подобрать наполнение для гардеробной любой сложности.</p>
+            </div>
+
+            <!-- Карта -->
+            <div class="map-section reveal">
+                <script type="text/javascript" charset="utf-8" async src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Acd745e83759ddffbdc54fd3a72292fd783dd98594e4e825d23bc9e777855646c&amp;width=100%25&amp;height=400&amp;lang=ru_RU&amp;scroll=true"></script>
+            </div>
+        </div>
+    </main>
+
+    <!-- Футер (как на других страницах) -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>MA Furniture</h3>
+                    <p>Комплектация и наполнение гардеробных премиум и бизнес класса</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Навигация</h4>
+                    <ul class="footer-nav">
+                        <li><a href="./index.html">Главная</a></li>
+                        <li><a href="./about.html">О нас</a></li>
+                        <li><a href="./shop.html">Каталог</a></li>
+                        <li><a href="./index.html#faq">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Контакты</h4>
+                    <ul class="contact-list">
+                        <li><i class="fas fa-phone-alt"></i> <a href="tel:+79100053424">+7 (910) 005-34-24</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:ma.furniture@mail.ru">ma.furniture@mail.ru</a></li>
+                        <li><i class="fas fa-map-marker-alt"></i> Москва, Россия</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 MA Furniture. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="./js/data-manager.js"></script>
+    <script src="./js/index.js"></script>
+    <script>
+        (function() {
+            // Reveal анимация при скролле
+            const revealElements = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15 });
+            revealElements.forEach(el => observer.observe(el));
+
+            // Обработка формы обратной связи
+            const form = document.getElementById('feedbackForm');
+            const statusDiv = document.getElementById('formStatus');
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Собираем данные
+                const formData = {
+                    name: document.getElementById('name').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    subject: document.getElementById('subject').value,
+                    message: document.getElementById('message').value.trim()
+                };
+                
+                // Простая валидация
+                if (!formData.name || !formData.email || !formData.message) {
+                    statusDiv.style.color = '#b33';
+                    statusDiv.innerText = 'Пожалуйста, заполните обязательные поля (имя, email, сообщение).';
+                    return;
+                }
+                
+                if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+                    statusDiv.style.color = '#b33';
+                    statusDiv.innerText = 'Введите корректный email адрес.';
+                    return;
+                }
+                
+                statusDiv.style.color = '#2c6e2c';
+                statusDiv.innerText = 'Отправка...';
+                
+                try {
+                    // Отправка на бэкенд (предполагается эндпоинт /api/contact)
+                    const response = await fetch('/api/contact', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        statusDiv.innerText = 'Спасибо! Ваше сообщение отправлено. Мы свяжемся с вами в ближайшее время.';
+                        form.reset();
+                        setTimeout(() => statusDiv.innerText = '', 5000);
+                    } else {
+                        throw new Error(result.error || 'Ошибка сервера');
+                    }
+                } catch (error) {
+                    console.error('Ошибка отправки формы:', error);
+                    statusDiv.style.color = '#b33';
+                    statusDiv.innerText = 'Произошла ошибка. Пожалуйста, попробуйте позже или позвоните нам.';
+                }
+            });
+            
+            // DROPDOWN ЛОГИКА (как на about)
+            const dropdown = document.getElementById('contactDropdown');
+            const toggleBtn = document.getElementById('dropdownToggleBtn');
+            const menu = document.getElementById('dropdownMenu');
+
+            function closeDropdown() { menu.classList.remove('show'); }
+            function toggleDropdown(e) { e.stopPropagation(); menu.classList.toggle('show'); }
+            toggleBtn.addEventListener('click', toggleDropdown);
+            document.addEventListener('click', function(event) {
+                if (!dropdown.contains(event.target)) closeDropdown();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && menu.classList.contains('show')) closeDropdown();
+            });
+        })();
+    </script>
+</body>
+</html>
