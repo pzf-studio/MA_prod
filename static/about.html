@@ -689,6 +689,30 @@
         <div class="footer-bottom"><div class="container"><p>&copy; 2026 MA Furniture. Все права защищены.</p></div></div>
     </footer>
 
+    <script>
+    (function(){
+    if(window.console){
+    var noop=function(){};
+    ['log','debug','info','warn','error','trace','group','groupEnd','groupCollapsed','table','dir','time','timeEnd'].forEach(function(m){
+    if(console[m]) console[m]=noop;
+    });
+    }
+    document.addEventListener('contextmenu',function(e){
+    e.preventDefault();
+    return false;
+    });
+    document.addEventListener('keydown',function(e){
+    if(e.key==='F12'){e.preventDefault();return false;}
+    if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='I'||e.key==='i')){e.preventDefault();return false;}
+    if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='J'||e.key==='j')){e.preventDefault();return false;}
+    if((e.ctrlKey||e.metaKey)&&(e.key==='U'||e.key==='u')){e.preventDefault();return false;}
+    if((e.ctrlKey||e.metaKey)&&(e.key==='S'||e.key==='s')){e.preventDefault();return false;}
+    if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='C'||e.key==='c')){e.preventDefault();return false;}
+    });
+    window.addEventListener('beforeunload',function(){});
+    Object.defineProperty(window,'console',{get:function(){return null;},set:function(){}});
+    })();
+    </script>
     <script src="./js/data-manager.js"></script>
     <script src="./js/index.js"></script>
     <script>
