@@ -8,6 +8,8 @@ from order_manager import order_manager
 import database as db
 import openpyxl
 import random
+import functools
+import time
 
 BASE_DIR=os.path.dirname(os.path.abspath(__file__))
 print("="*60)
@@ -37,6 +39,8 @@ app.config['TEMP_FOLDER']=TEMP_FOLDER
 app.config['MAX_CONTENT_LENGTH']=200*1024*1024
 app.config['UPLOAD_TIMEOUT'] = 300
 ALLOWED_EXTENSIONS={'png','jpg','jpeg','gif','webp'}
+
+categories_cache = {'data': None, 'expires': 0}
 
 logging.basicConfig(level=logging.DEBUG,format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger=app.logger
@@ -657,27 +661,57 @@ def delete_file():
         return jsonify({'success':True,'message':'Файл удален'})
     except Exception as e: return jsonify({'success':False,'error':str(e)}),500
 
-@app.route('/api/products',methods=['GET'])
+@app.route('/api/products', methods=['GET'])
 def get_products():
     try:
-        category=request.args.get('category','all')
-        section=request.args.get('section','')
-        status=request.args.get('status','active')
-        search=request.args.get('search','')
-        all_products=get_all_products()
-        filtered_products=[]
-        for product in all_products:
-            if status and product.get('status')!=status: continue
-            if category!='all' and product.get('category')!=category: continue
-            if section and product.get('section')!=section: continue
+        category = request.args.get('category', 'all')
+        section = request.args.get('section', '')
+        status = request.args.get('status', 'active')
+        search = request.args.get('search', '')
+        limit = request.args.get('limit', type=int)
+        offset = request.args.get('offset', type=int)
+        
+        with db.get_db() as conn:
+            query = 'SELECT * FROM products WHERE 1=1'
+            params = []
+            if status:
+                query += ' AND status = ?'
+                params.append(status)
+            if category != 'all':
+                query += ' AND category = ?'
+                params.append(category)
+            if section:
+                query += ' AND section = ?'
+                params.append(section)
             if search:
-                search_lower=search.lower()
-                name=product.get('name','').lower()
-                desc=product.get('description','').lower()
-                if search_lower not in name and search_lower not in desc: continue
-            filtered_products.append(product)
-        return jsonify({'success':True,'products':filtered_products,'total':len(filtered_products)})
-    except Exception as e: return jsonify({'success':False,'error':str(e)}),500
+                query += ' AND (name LIKE ? OR description LIKE ?)'
+                params.append(f'%{search}%')
+                params.append(f'%{search}%')
+            
+            # Подсчёт общего количества
+            count_query = query.replace('SELECT *', 'SELECT COUNT(*)')
+            total = conn.execute(count_query, params).fetchone()[0]
+            
+            # Пагинация
+            if limit is not None:
+                query += ' LIMIT ?'
+                params.append(limit)
+                if offset is not None:
+                    query += ' OFFSET ?'
+                    params.append(offset)
+            
+            rows = conn.execute(query, params).fetchall()
+        
+        products = []
+        for row in rows:
+            prod = dict(row)
+            prod['images'] = json.loads(prod['images']) if prod['images'] else []
+            prod['color_variants'] = json.loads(prod['color_variants']) if prod['color_variants'] else []
+            products.append(prod)
+        
+        return jsonify({'success': True, 'products': products, 'total': total})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/products/<int:product_id>',methods=['GET'])
 def get_product(product_id):
@@ -922,7 +956,11 @@ def save_categories_extra(extras):
 
 @app.route('/api/categories/public', methods=['GET'])
 def public_categories():
-    """Публичный список категорий с минимальными ценами и автоматической картинкой"""
+    # Проверка кэша
+    now = time.time()
+    if categories_cache['data'] is not None and now < categories_cache['expires']:
+        return jsonify({'success': True, 'categories': categories_cache['data']})
+    
     try:
         sections = load_sections()
         categories_extra = {item['section_code']: item for item in load_categories_extra()}
@@ -934,9 +972,8 @@ def public_categories():
             if not section.get('active', True):
                 continue
             code = section['code']
-            # Товары этой категории
             cat_products = [p for p in active_products if p.get('section') == code]
-
+            
             # Цена "от"
             prices = [p['price'] for p in cat_products if p.get('price', 0) > 0]
             min_price = min(prices) if prices else 0
@@ -944,14 +981,17 @@ def public_categories():
 
             extra = categories_extra.get(code, {})
 
-            # Определяем image_url:
-            # 1. Если в extra есть своя картинка — используем её
-            # 2. Иначе берём случайное изображение из товаров категории
+            # Определяем image_url
             image_url = extra.get('image_url', '')
             if not image_url and cat_products:
-                random_product = random.choice(cat_products)
-                if random_product.get('images') and len(random_product['images']) > 0:
+                # Ищем товар, у которого есть хотя бы одно изображение
+                products_with_images = [p for p in cat_products if p.get('images') and len(p['images']) > 0]
+                if products_with_images:
+                    random_product = random.choice(products_with_images)
                     image_url = random_product['images'][0]
+                else:
+                    # Заглушка – если совсем нет изображений
+                    image_url = '/static/images/no-image-category.png'
 
             result.append({
                 'id': section['id'],
@@ -965,6 +1005,11 @@ def public_categories():
             })
 
         result.sort(key=lambda x: x['display_order'])
+        
+        # Сохраняем в кэш на 10 минут (600 секунд)
+        categories_cache['data'] = result
+        categories_cache['expires'] = now + 600
+        
         return jsonify({'success': True, 'categories': result})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
