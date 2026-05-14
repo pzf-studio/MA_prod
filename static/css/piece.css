@@ -1668,7 +1668,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     text-align: center;
     font-size: 1rem;
     background: var(--white);
-    -moz-appearance: textfield;
 }
 
 .quantity-input::-webkit-outer-spin-button,
