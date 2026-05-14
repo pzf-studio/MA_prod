@@ -4,6 +4,7 @@
 │   ├── 📁 orders
 │   ├── 📁 products
 │   ├── 📄 background.json
+│   ├── 📄 categories_extra.json
 │   ├── 📄 ma_furniture.db
 │   └── 📄 sections.json
 ├── 📁 static
@@ -61,6 +62,7 @@
 │   │   ├── 📁 temp
 │   │   ├── 📄 .gitkeep
 │   │   └── 📄 .htaccess
+│   ├── 📄 categories.html
 │   ├── 📄 favicon.ico
 │   ├── 📄 index.html
 │   ├── 📄 maintenance.html
