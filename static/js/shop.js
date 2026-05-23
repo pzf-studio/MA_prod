@@ -22,15 +22,13 @@ function initializeCart() {
     }
 }
 
-// Вспомогательная функция: форматирование цены для карточки с учётом "От"
 function formatCardPrice(product) {
     const price = product.price || 0;
     const oldPrice = product.old_price;
-    if (oldPrice != null && price > oldPrice) {
-        return `<span class="current-price">От ${dataManager.formatPrice(oldPrice)}</span>`;
+    if (oldPrice && oldPrice > price) {
+        return `<span class="product-min-price">от ${dataManager.formatPrice(oldPrice)}</span>`;
     }
-    const oldPriceHtml = oldPrice ? `<span class="old-price">${dataManager.formatPrice(oldPrice)}</span>` : '';
-    return `<span class="current-price">${dataManager.formatPrice(price)}</span> ${oldPriceHtml}`;
+    return `<span class="product-min-price">${dataManager.formatPrice(price)}</span>`;
 }
 
 async function initializeProducts() {
@@ -47,9 +45,6 @@ async function initializeProducts() {
             const activeProducts = await dataManager.getActiveProducts();
             console.log(`Получено товаров: ${activeProducts.length}`);
             
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            
             let filteredProducts = activeProducts;
             if (currentFilter !== 'all') {
                 filteredProducts = activeProducts.filter(product => 
@@ -57,6 +52,9 @@ async function initializeProducts() {
                 );
             }
             
+            const totalFiltered = filteredProducts.length;
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
             const productsToShow = filteredProducts.slice(startIndex, endIndex);
             
             if (productsGrid) {
@@ -74,7 +72,6 @@ async function initializeProducts() {
                     return;
                 }
                 
-                console.log(`Отображение ${productsToShow.length} товаров`);
                 productsToShow.forEach(product => {
                     const productCard = createProductCard(product);
                     productsGrid.appendChild(productCard);
@@ -82,21 +79,19 @@ async function initializeProducts() {
             }
             
             if (pagination) {
-                renderPagination(filteredProducts.length);
+                renderPagination(totalFiltered);
             }
             attachProductEventListeners();
             
         } catch (error) {
-            console.error('Критическая ошибка рендеринга товаров:', error);
+            console.error('Ошибка рендеринга товаров:', error);
             if (productsGrid) {
                 productsGrid.innerHTML = `
                     <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #666;">
                         <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                         <h3>Ошибка загрузки товаров</h3>
-                        <p>Попробуйте обновить страницу или проверьте подключение к интернету</p>
-                        <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 1rem;">
-                            Обновить страницу
-                        </button>
+                        <p>Попробуйте обновить страницу</p>
+                        <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 1rem;">Обновить</button>
                     </div>
                 `;
             }
@@ -108,62 +103,32 @@ async function initializeProducts() {
         card.className = 'product-card';
         card.dataset.section = product.section || 'all';
         
-        // Бейдж (хит, новинка и т.д.)
-        let badgeClass = '';
+        let badgeHtml = '';
         if (product.badge) {
+            let badgeClass = '';
             switch(product.badge.toLowerCase()) {
-                case 'хит продаж':
-                case 'хит':
-                    badgeClass = 'hit';
-                    break;
-                case 'новинка':
-                case 'new':
-                    badgeClass = 'new';
-                    break;
-                case 'акция':
-                case 'sale':
-                    badgeClass = 'sale';
-                    break;
-                case 'эксклюзив':
-                case 'exclusive':
-                    badgeClass = 'exclusive';
-                    break;
-                case 'премиум':
-                case 'premium':
-                    badgeClass = 'premium';
-                    break;
-                default:
-                    badgeClass = 'new';
+                case 'хит продаж': case 'хит': badgeClass = 'hit'; break;
+                case 'новинка': case 'new': badgeClass = 'new'; break;
+                case 'акция': case 'sale': badgeClass = 'sale'; break;
+                case 'эксклюзив': case 'exclusive': badgeClass = 'exclusive'; break;
+                case 'премиум': case 'premium': badgeClass = 'premium'; break;
+                default: badgeClass = 'new';
             }
+            badgeHtml = `<div class="product-badge ${badgeClass}">${product.badge}</div>`;
         }
-        const mainBadge = product.badge ? `<div class="product-badge ${badgeClass}">${product.badge}</div>` : '';
         
-        // Изображение
-        let imageContent = '';
+        let imageUrl = '';
         if (product.images && product.images.length > 0) {
-            imageContent = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+            imageUrl = product.images[0];
         }
+        const imageStyle = imageUrl ? `background-image: url('${imageUrl}');` : '';
+        const fallbackIcon = !imageUrl ? '<i class="fas fa-couch fallback-icon"></i>' : '';
         
-        const productUrl = `piece.html?id=${product.id}`;
-        
-        // Цена
         let priceHtml = '';
-        if (product.availability === 1) {
-            if (product.is_price_on_request === 1) {
-                priceHtml = `<div class="product-price">${formatCardPrice(product)}</div>`;
-            } else {
-                priceHtml = `<div class="product-price"><span class="price-on-request">Цена под заказ</span></div>`;
-            }
-        } else {
-            priceHtml = `<div class="product-price">${formatCardPrice(product)}</div>`;
-        }
-
-        // Определяем статус наличия и плашку
         let stockStatus = '';
         let stockBadgeClass = '';
         let addToCartDisabled = false;
-        let addToCartText = '<i class="fas fa-shopping-cart"></i> В корзину';
-
+        
         if (product.availability === 1) {
             stockStatus = 'Под заказ';
             stockBadgeClass = 'on-order';
@@ -175,53 +140,63 @@ async function initializeProducts() {
                 stockStatus = 'Нет в наличии';
                 stockBadgeClass = 'out-of-stock';
                 addToCartDisabled = true;
-                addToCartText = '<i class="fas fa-ban"></i> Нет в наличии';
             }
         }
-
-        // Плашка статуса (будет справа от кнопки)
-        const stockBadgeHtml = stockStatus ? 
-            `<span class="stock-badge ${stockBadgeClass}">${stockStatus}</span>` : '';
-
-        // Кнопка "В корзину"
-        const actionButton = `
-            <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}" ${addToCartDisabled ? 'disabled' : ''}>
-                ${addToCartText}
-            </button>
+        
+        if (product.availability === 1) {
+            priceHtml = `<div class="product-min-price">${formatCardPrice(product)}</div>`;
+        } else {
+            if (product.is_price_on_request === 1) {
+                priceHtml = `<div class="product-min-price">Цена под заказ</div>`;
+            } else {
+                priceHtml = `<div class="product-min-price">${formatCardPrice(product)}</div>`;
+            }
+        }
+        
+        const metaHtml = `
+            <div class="product-card-meta">
+                ${priceHtml}
+                <span class="product-stock-badge ${stockBadgeClass}">${stockStatus}</span>
+            </div>
         `;
         
+        const buttonText = addToCartDisabled ? '<i class="fas fa-ban"></i> Нет в наличии' : '<i class="fas fa-shopping-cart"></i> В корзину';
+        const buttonDisabled = addToCartDisabled ? 'disabled' : '';
+        
         card.innerHTML = `
-            <div class="product-image">
-                ${imageContent}
-                <div class="image-placeholder" style="${product.images && product.images.length > 0 ? 'display: none;' : 'display: flex;'}">
-                    <i class="fas fa-couch"></i>
-                </div>
-                ${mainBadge}
+            <div class="product-card-image" style="${imageStyle}">
+                ${badgeHtml}
+                ${fallbackIcon}
             </div>
-            <div class="product-info">
-                <h3 class="product-title">${product.name}</h3>
-                <div class="product-description">
-                    ${product.description?.substring(0, 150) || 'Качественный товар от MA Furniture'}...
-                </div>
-                ${priceHtml}
-                <div class="product-actions">
-                    ${actionButton}
-                    ${stockBadgeHtml}
-                </div>
+            <div class="product-card-body">
+                <h2 class="product-card-title">${escapeHtml(product.name)}</h2>
+                <p class="product-card-description">${escapeHtml(product.description?.substring(0, 120) || 'Качественная мебель от MA Furniture')}...</p>
+                ${metaHtml}
             </div>
-            <a href="${productUrl}" class="product-link-overlay"></a>
+            <button class="btn-view-category add-to-cart-btn" data-product-id="${product.id}" ${buttonDisabled}>
+                ${buttonText}
+            </button>
+            <a href="piece.html?id=${product.id}" class="product-link-overlay"></a>
         `;
         
         return card;
     }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
 
     function renderPagination(totalItems) {
-        const totalFilteredPages = Math.ceil(totalItems / itemsPerPage);
-        
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
         if (pagination) {
             pagination.innerHTML = '';
-            
-            if (totalFilteredPages <= 1) return;
+            if (totalPages <= 1) return;
             
             const prevBtn = document.createElement('button');
             prevBtn.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
@@ -234,7 +209,7 @@ async function initializeProducts() {
             });
             pagination.appendChild(prevBtn);
             
-            for (let i = 1; i <= totalFilteredPages; i++) {
+            for (let i = 1; i <= totalPages; i++) {
                 const pageBtn = document.createElement('button');
                 pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
                 pageBtn.textContent = i;
@@ -246,10 +221,10 @@ async function initializeProducts() {
             }
             
             const nextBtn = document.createElement('button');
-            nextBtn.className = `page-btn ${currentPage === totalFilteredPages ? 'disabled' : ''}`;
+            nextBtn.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
             nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
             nextBtn.addEventListener('click', () => {
-                if (currentPage < totalFilteredPages) {
+                if (currentPage < totalPages) {
                     currentPage++;
                     renderProducts();
                 }
@@ -263,7 +238,7 @@ async function initializeProducts() {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const productId = parseInt(e.target.closest('.add-to-cart-btn').dataset.productId);
+                const productId = parseInt(btn.dataset.productId);
                 const product = await dataManager.getProductById(productId);
                 if (product && window.cartSystem) {
                     window.cartSystem.addToCart(product);
@@ -273,21 +248,16 @@ async function initializeProducts() {
         
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.add-to-cart-btn')) {
-                    return;
-                }
+                if (e.target.closest('.add-to-cart-btn')) return;
                 const link = card.querySelector('.product-link-overlay');
-                if (link) {
-                    window.location.href = link.href;
-                }
+                if (link) window.location.href = link.href;
             });
         });
     }
 
     async function loadSectionsFromAdmin() {
         try {
-            const sections = await dataManager.getActiveSections();
-            return sections;
+            return await dataManager.getActiveSections();
         } catch (error) {
             console.error('Ошибка загрузки разделов:', error);
             return [];
@@ -296,19 +266,16 @@ async function initializeProducts() {
 
     async function initializeFilters() {
         const catalogFilters = document.getElementById('catalogFilters');
-        
         if (!catalogFilters) return;
         
         try {
             const sections = await loadSectionsFromAdmin();
-            
             catalogFilters.innerHTML = '<button class="filter-btn active" data-filter="all">Все товары</button>';
             
             const allFilterBtn = catalogFilters.querySelector('[data-filter="all"]');
             allFilterBtn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 allFilterBtn.classList.add('active');
-                
                 currentFilter = 'all';
                 currentPage = 1;
                 renderProducts();
@@ -322,15 +289,12 @@ async function initializeProducts() {
                 filterBtn.addEventListener('click', () => {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     filterBtn.classList.add('active');
-                    
                     currentFilter = section.code;
                     currentPage = 1;
                     renderProducts();
                 });
                 catalogFilters.appendChild(filterBtn);
-                
             });
-            
         } catch (error) {
             console.error('Ошибка инициализации фильтров:', error);
         }
@@ -339,18 +303,9 @@ async function initializeProducts() {
     function handleUrlFilters() {
         const urlParams = new URLSearchParams(window.location.search);
         const section = urlParams.get('section');
-        
         if (section) {
             const filterBtn = document.querySelector(`[data-filter="${section}"]`);
-            if (filterBtn) {
-                filterBtn.click();
-            }
-        } else {
-            const allFilterBtn = document.querySelector('[data-filter="all"]');
-            if (allFilterBtn) {
-                allFilterBtn.classList.add('active');
-                currentFilter = 'all';
-            }
+            if (filterBtn) filterBtn.click();
         }
     }
 
@@ -362,59 +317,31 @@ async function initializeProducts() {
 function initializeMobileMenu() {
     const menuToggle = document.getElementById('menuToggle');
     const mainNav = document.querySelector('.main-nav');
-    
     if (menuToggle && mainNav) {
         menuToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             mainNav.classList.toggle('active');
             menuToggle.classList.toggle('active');
-            
-            if (mainNav.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
-            }
+            document.body.style.overflow = mainNav.classList.contains('active') ? 'hidden' : '';
         });
-        
         document.querySelectorAll('.main-nav a').forEach(link => {
             link.addEventListener('click', () => {
-                if (mainNav) mainNav.classList.remove('active');
-                if (menuToggle) menuToggle.classList.remove('active');
+                mainNav.classList.remove('active');
+                menuToggle.classList.remove('active');
                 document.body.style.overflow = '';
             });
         });
-        
-        if (window.innerWidth <= 768) {
-            document.addEventListener('click', (e) => {
-                if (mainNav.classList.contains('active') && 
-                    !mainNav.contains(e.target) && 
-                    e.target !== menuToggle) {
-                    mainNav.classList.remove('active');
-                    menuToggle.classList.remove('active');
-                    document.body.style.overflow = '';
-                }
-            });
-        }
     }
 }
 
 function showNotification(message, type = 'success') {
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => notification.remove());
-    
+    const existing = document.querySelectorAll('.notification');
+    existing.forEach(n => n.remove());
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
-            ${message}
-        </div>
-    `;
-    
+    notification.innerHTML = `<div class="notification-content"><i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>${message}</div>`;
     document.body.appendChild(notification);
-    
     setTimeout(() => notification.classList.add('show'), 100);
-    
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => notification.remove(), 300);
@@ -423,29 +350,22 @@ function showNotification(message, type = 'success') {
 
 async function loadShopBackground() {
     try {
-        const response = await fetch(`${window.location.origin}/api/media/background`);
-        const data = await response.json();
-        
-        if (data.success && data.background && data.background.image_url && data.background.active) {
-            const heroBackground = document.getElementById('shopHeroBackground');
-            if (heroBackground) {
+        const res = await fetch('/api/media/background');
+        const data = await res.json();
+        if (data.success && data.background?.image_url && data.background.active) {
+            const hero = document.getElementById('shopHeroBackground');
+            if (hero) {
                 const img = new Image();
                 img.src = data.background.image_url;
-                img.onload = function() {
-                    heroBackground.style.backgroundImage = `url('${data.background.image_url}')`;
-                    heroBackground.style.backgroundSize = 'cover';
-                    heroBackground.style.backgroundPosition = 'center';
-                    heroBackground.style.backgroundRepeat = 'no-repeat';
+                img.onload = () => {
+                    hero.style.backgroundImage = `url('${data.background.image_url}')`;
+                    hero.style.backgroundSize = 'cover';
+                    hero.style.backgroundPosition = 'center';
                 };
             }
         }
-    } catch (error) {
-        console.error('Ошибка загрузки фона для shop:', error);
-    }
+    } catch(e) { console.error('Ошибка фона:', e); }
 }
 
-if (window.location.pathname.includes('shop.html')) {
-    loadShopBackground();
-}
-
+if (window.location.pathname.includes('shop.html')) loadShopBackground();
 window.showNotification = showNotification;
