@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="./css/index.css">
     
     <style>
+        /* (все стили contact.html остаются без изменений, кроме header) */
         :root {
             --gold: #d4af37;
             --primary: #8B7355;
@@ -25,7 +26,6 @@
             background-color: white;
         }
         
-        /* Hero секция (уменьшенная, но стильная) */
         .contact-hero {
             position: relative;
             min-height: 40vh;
@@ -75,7 +75,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Основные секции */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -97,7 +96,6 @@
             letter-spacing: 0.5px;
         }
         
-        /* Две колонки: контакты и форма */
         .contact-two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -111,7 +109,6 @@
             }
         }
         
-        /* Блок контактной информации */
         .contact-info-block {
             background: var(--light-bg);
             border-radius: 32px;
@@ -160,7 +157,6 @@
             color: var(--gold);
         }
         
-        /* Социальные сети */
         .social-links-block {
             margin-top: 30px;
             text-align: center;
@@ -194,7 +190,6 @@
             transform: translateY(-5px);
         }
         
-        /* Форма обратной связи */
         .contact-form-block {
             background: white;
             border-radius: 32px;
@@ -257,7 +252,6 @@
             font-size: 0.9rem;
         }
         
-        /* Карта */
         .map-section {
             margin: 60px 0;
             border-radius: 32px;
@@ -265,7 +259,6 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         
-        /* Часы работы */
         .work-hours {
             background: var(--light-bg);
             border-radius: 24px;
@@ -283,7 +276,6 @@
             color: var(--text-muted);
         }
         
-        /* Анимация при прокрутке */
         .reveal {
             opacity: 0;
             transform: translateY(25px);
@@ -301,7 +293,7 @@
             .contact-info-block, .contact-form-block { padding: 30px 20px; }
         }
         
-        /* Стили для выпадающего меню (как на about.html) */
+        /* стили для header (уже есть в index.css, но дублируем dropdown) */
         .dropdown {
             position: relative;
             display: inline-block;
@@ -384,7 +376,7 @@
     <div id="featuredProducts" style="display:none;"></div>
     <div id="heroBackground" style="display:none;"></div>
 
-    <!-- Шапка (идентичная другим страницам) -->
+    <!-- ========== НОВЫЙ HEADER (скопирован из about.html) ========== -->
     <header class="header">
         <div class="container">
             <div class="header-content">
@@ -428,8 +420,8 @@
             </div>
         </div>
     </header>
+    <!-- ========== КОНЕЦ HEADER ========== -->
 
-    <!-- Hero секция -->
     <section class="contact-hero">
         <div class="contact-hero-content">
             <h1>Свяжитесь с нами</h1>
@@ -440,9 +432,7 @@
 
     <main>
         <div class="container">
-            <!-- Две колонки: контакты и форма -->
             <div class="contact-two-columns">
-                <!-- Левая колонка: контактная информация -->
                 <div class="contact-info-block reveal">
                     <div class="info-item">
                         <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
@@ -473,7 +463,6 @@
                         </div>
                     </div>
                     
-                    <!-- Социальные сети -->
                     <div class="social-links-block">
                         <h3>Мы в соцсетях</h3>
                         <div class="social-icons">
@@ -484,7 +473,6 @@
                     </div>
                 </div>
 
-                <!-- Правая колонка: форма обратной связи -->
                 <div class="contact-form-block reveal">
                     <h2 class="section-title" style="font-size: 1.8rem; margin-bottom: 0.5rem;">Напишите нам</h2>
                     <p class="section-subtitle" style="margin-bottom: 2rem;">Заполните форму, и мы свяжемся с вами в ближайшее время</p>
@@ -523,21 +511,18 @@
                 </div>
             </div>
 
-            <!-- Блок с часами работы и дополнительной информацией -->
             <div class="work-hours reveal">
                 <h3>Как нас найти?</h3>
                 <p>Наш шоурум расположен в центре Москвы, рядом с метро Пушкинская. Предварительная запись по телефону или через форму на сайте.</p>
                 <p><strong>Бесплатная консультация</strong> — поможем подобрать наполнение для гардеробной любой сложности.</p>
             </div>
 
-            <!-- Карта -->
             <div class="map-section reveal">
                 <script type="text/javascript" charset="utf-8" async src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Acd745e83759ddffbdc54fd3a72292fd783dd98594e4e825d23bc9e777855646c&amp;width=100%25&amp;height=400&amp;lang=ru_RU&amp;scroll=true"></script>
             </div>
         </div>
     </main>
 
-    <!-- Футер (как на других страницах) -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-content">
@@ -598,7 +583,6 @@
     <script src="./js/index.js"></script>
     <script>
         (function() {
-            // Reveal анимация при скролле
             const revealElements = document.querySelectorAll('.reveal');
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -609,14 +593,11 @@
             }, { threshold: 0.15 });
             revealElements.forEach(el => observer.observe(el));
 
-            // Обработка формы обратной связи
             const form = document.getElementById('feedbackForm');
             const statusDiv = document.getElementById('formStatus');
 
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                
-                // Собираем данные
                 const formData = {
                     name: document.getElementById('name').value.trim(),
                     email: document.getElementById('email').value.trim(),
@@ -625,7 +606,6 @@
                     message: document.getElementById('message').value.trim()
                 };
                 
-                // Простая валидация
                 if (!formData.name || !formData.email || !formData.message) {
                     statusDiv.style.color = '#b33';
                     statusDiv.innerText = 'Пожалуйста, заполните обязательные поля (имя, email, сообщение).';
@@ -642,7 +622,6 @@
                 statusDiv.innerText = 'Отправка...';
                 
                 try {
-                    // Отправка на бэкенд (предполагается эндпоинт /api/contact)
                     const response = await fetch('/api/contact', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -665,20 +644,22 @@
                 }
             });
             
-            // DROPDOWN ЛОГИКА (как на about)
+            // DROPDOWN ЛОГИКА
             const dropdown = document.getElementById('contactDropdown');
             const toggleBtn = document.getElementById('dropdownToggleBtn');
             const menu = document.getElementById('dropdownMenu');
 
-            function closeDropdown() { menu.classList.remove('show'); }
-            function toggleDropdown(e) { e.stopPropagation(); menu.classList.toggle('show'); }
-            toggleBtn.addEventListener('click', toggleDropdown);
-            document.addEventListener('click', function(event) {
-                if (!dropdown.contains(event.target)) closeDropdown();
-            });
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && menu.classList.contains('show')) closeDropdown();
-            });
+            function closeDropdown() { if(menu) menu.classList.remove('show'); }
+            function toggleDropdown(e) { e.stopPropagation(); if(menu) menu.classList.toggle('show'); }
+            if(toggleBtn && menu) {
+                toggleBtn.addEventListener('click', toggleDropdown);
+                document.addEventListener('click', function(event) {
+                    if (!dropdown.contains(event.target)) closeDropdown();
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && menu.classList.contains('show')) closeDropdown();
+                });
+            }
         })();
     </script>
 </body>

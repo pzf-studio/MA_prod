@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="./css/index.css">
     <script src="./js/index.js" defer></script>
     <style>
-        /* Временные стили для отладки (оставлены как есть) */
+        /* === Временные стили, оставлены без изменений === */
         .featured-product-card {
             background: white !important;
             border-radius: 10px !important;
@@ -153,6 +153,7 @@
     </style>
 </head>
 <body>
+    <!-- ========== НОВЫЙ HEADER (скопирован из about.html) ========== -->
     <header class="header">
         <div class="container">
             <div class="header-content">
@@ -166,31 +167,44 @@
                         </div>
                     </a>
                 </div>
-                
                 <nav class="main-nav">
                     <ul>
                         <li><a href="./index.html">Главная</a></li>
                         <li><a href="./shop.html">Каталог</a></li>
-                        <li><a href="./about.html">О Нас</a></li>
+                        <li><a href="./about.html">О нас</a></li>
                         <li><a href="./index.html#faq">FAQ</a></li>
                     </ul>
                 </nav>
-                
                 <div class="header-actions">
-                    <!-- Заменено: кнопка Telegram на кнопку телефона -->
-                    <a href="tel:+79100053424" class="btn btn-outline btn-phone">
-                        <i class="fas fa-phone-alt"></i>
-                        <span>+7 (910) 005-34-24</span>
-                    </a>
-                    <!-- Бургер-кнопка удалена -->
+                    <div class="dropdown" id="contactDropdown">
+                        <button class="dropdown-toggle" id="dropdownToggleBtn">
+                            <i class="fas fa-phone-alt"></i>
+                            <span>Связаться с нами</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="tel:+79100053424" class="dropdown-item">
+                                <i class="fas fa-phone-alt"></i>
+                                <span>+7 (910) 005-34-24</span>
+                            </a>
+                            <a href="./contact.html" class="dropdown-item">
+                                <i class="fas fa-comments"></i>
+                                <span>Связаться с менеджером</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
-    
+    <!-- ========== КОНЕЦ HEADER ========== -->
+
+    <!-- Заглушки для index.js -->
+    <div id="featuredProducts" style="display:none;"></div>
+    <div id="heroBackground" style="display:none;"></div>
+
     <section class="hero-section" id="hero">
         <div class="hero-background" id="heroBackground">
-            <!-- Фон будет загружен динамически -->
             <div class="hero-overlay"></div>
         </div>
         <div class="container">
@@ -201,7 +215,7 @@
                 </h1>
                 <p class="hero-subtitle">____________________________________________________</p>
                 <div class="hero-buttons">
-                    <a href="/shop.html" class="btn btn-secondary">
+                    <a href="/categories.html" class="btn btn-secondary">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Перейти в магазин</span>
                     </a>
@@ -219,7 +233,6 @@
             <p class="section-subtitle">Случайная подборка товаров из нашего каталога</p>
             
             <div class="random-products-grid" id="featuredProducts">
-                <!-- Случайные товары будут загружены через JavaScript -->
                 <div class="loading-products" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #666;">
                     <i class="fas fa-spinner fa-spin" style="font-size: 2.5rem; margin-bottom: 20px; color: #8B7355;"></i>
                     <p style="font-size: 1.1rem;">Загрузка популярных товаров...</p>
@@ -239,7 +252,6 @@
         </div>
     </section>
 
-    <!-- Существующая секция предварительного просмотра магазина -->
     <section class="shop-preview" id="shop-preview">
         <div class="container">
             <h2 class="section-title">НАША ПРОДУКЦИЯ</h2>
@@ -346,7 +358,6 @@
         </section>
         
         <div class="divider"></div>
-
         <div class="divider"></div>
 
         <section class="catalog-cta">
@@ -428,10 +439,8 @@
     </div>
     
     <footer class="main-footer">
-        <!-- Основной контент футера в контейнере -->
         <div class="container">
             <div class="footer-content">
-                <!-- Блок с информацией о компании -->
                 <div class="footer-section">
                     <h3>MA Furniture</h3>
                     <p>Комплектация и наполнение гардеробных премиум и бизнес класса</p>
@@ -448,7 +457,6 @@
                     </div>
                 </div>
 
-                <!-- Улучшенная навигация – ссылки разделены на колонки/ряды -->
                 <div class="footer-section">
                     <h4>Навигация</h4>
                     <ul class="footer-nav">
@@ -459,7 +467,6 @@
                     </ul>
                 </div>
 
-                <!-- Контакты с иконками и удобным отображением -->
                 <div class="footer-section">
                     <h4>Контакты</h4>
                     <ul class="contact-list">
@@ -471,7 +478,6 @@
             </div>
         </div>
 
-        <!-- Карта на всю ширину, без контейнера -->
         <div class="footer-map-fullwidth">
             <iframe src="https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=203236359108" 
                     style="width:100%; height:300px; border:0; display:block;" 
@@ -480,13 +486,13 @@
             </iframe>
         </div>
 
-        <!-- Нижний колонтитул с копирайтом -->
         <div class="footer-bottom">
             <div class="container">
                 <p>&copy; 2026 MA Furniture. Все права защищены.</p>
             </div>
         </div>
     </footer>
+
     <script type="text/javascript">
         (function(m,e,t,r,i,k,a){
             m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
@@ -494,9 +500,9 @@
             for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
             k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
         })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=106260434', 'ym');
-
         ym(106260434, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
     </script>
+
     <script>
     (function(){
         if(window.console){
@@ -521,12 +527,9 @@
     })();
     </script>
     <noscript><div><img src="https://mc.yandex.ru/watch/106260434" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <!-- Подключаем data-manager.js -->
+
     <script src="/static/js/data-manager.js"></script>
-    
-    <!-- Отладочный скрипт для проверки загрузки -->
     <script>
-        // Проверяем загрузку основных скриптов
         document.addEventListener('DOMContentLoaded', function() {
             console.log('=== ПРОВЕРКА СКРИПТОВ ===');
             console.log('data-manager.js загружен?', typeof window.dataManager !== 'undefined');
@@ -534,7 +537,6 @@
             console.log('=== ПРОВЕРКА ЗАВЕРШЕНА ===');
         });
         
-        // Фолбэк если data-manager не загрузился
         setTimeout(function() {
             if (typeof window.dataManager === 'undefined') {
                 console.error('data-manager.js не загрузился!');
@@ -552,7 +554,23 @@
                 }
             }
         }, 3000);
+
+        // DROPDOWN логика (как в about.html)
+        const dropdown = document.getElementById('contactDropdown');
+        const toggleBtn = document.getElementById('dropdownToggleBtn');
+        const menu = document.getElementById('dropdownMenu');
+
+        function closeDropdown() { if(menu) menu.classList.remove('show'); }
+        function toggleDropdown(e) { e.stopPropagation(); if(menu) menu.classList.toggle('show'); }
+        if(toggleBtn && menu) {
+            toggleBtn.addEventListener('click', toggleDropdown);
+            document.addEventListener('click', function(event) {
+                if (!dropdown.contains(event.target)) closeDropdown();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && menu.classList.contains('show')) closeDropdown();
+            });
+        }
     </script>
-    
 </body>
 </html>
