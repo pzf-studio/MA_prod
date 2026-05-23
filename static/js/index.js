@@ -427,29 +427,28 @@ function showNotification(message, type = 'success') {
 
 async function loadBackgroundImage() {
     try {
-        console.log('Загрузка фона...');
         const response = await fetch(`${window.location.origin}/api/media/background`);
         const data = await response.json();
         
         if (data.success && data.background && data.background.image_url && data.background.active) {
-            // Для главной страницы
-            if (window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname.endsWith('/')) {
-                const heroBackground = document.getElementById('heroBackground');
-                if (heroBackground) {
-                    console.log('Устанавливаем фон для heroBackground');
-                    const img = new Image();
-                    img.src = data.background.image_url;
-                    img.onload = function() {
-                        heroBackground.style.backgroundImage = `url('${data.background.image_url}')`;
-                        heroBackground.style.backgroundSize = 'cover';
-                        heroBackground.style.backgroundPosition = 'center';
-                        heroBackground.style.backgroundRepeat = 'no-repeat';
-                        
-                        // Анимация появления фона
-                        heroBackground.classList.add('bg-fade-in');
-                    };
-                }
+            const heroBackground = document.getElementById('heroBackground');
+            if (heroBackground) {
+                const img = new Image();
+                img.src = data.background.image_url;
+                img.onload = function() {
+                    heroBackground.style.backgroundImage = `url('${data.background.image_url}')`;
+                    heroBackground.style.backgroundSize = 'cover';
+                    heroBackground.style.backgroundPosition = 'center';
+                    heroBackground.style.backgroundRepeat = 'no-repeat';
+                    // Добавляем класс для плавного появления (если нужен)
+                    heroBackground.classList.add('bg-fade-in');
+                };
+                img.onerror = function() {
+                    console.warn('Не удалось загрузить фоновое изображение, используется стандартный фон');
+                };
             }
+        } else {
+            console.log('Фоновое изображение не активно или отсутствует, используется стандартный фон');
         }
     } catch (error) {
         console.error('Ошибка загрузки фона:', error);
@@ -477,12 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);
 });
 
-// Вызываем функцию загрузки фона только для главной страницы
-if (window.location.pathname === '/' || 
-    window.location.pathname === '/index.html' || 
-    window.location.pathname.endsWith('/')) {
-    loadBackgroundImage();
-}
+loadBackgroundImage();
 
 // Экспорты
 window.showNotification = showNotification;
