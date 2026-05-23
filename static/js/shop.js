@@ -22,13 +22,15 @@ function initializeCart() {
     }
 }
 
+// Вспомогательная функция: форматирование цены для карточки с учётом "От"
 function formatCardPrice(product) {
     const price = product.price || 0;
     const oldPrice = product.old_price;
-    if (oldPrice && oldPrice > price) {
-        return `<span class="product-min-price">от ${dataManager.formatPrice(oldPrice)}</span>`;
+    if (oldPrice != null && price > oldPrice) {
+        return `<span class="current-price">От ${dataManager.formatPrice(oldPrice)}</span>`;
     }
-    return `<span class="product-min-price">${dataManager.formatPrice(price)}</span>`;
+    const oldPriceHtml = oldPrice ? `<span class="old-price">${dataManager.formatPrice(oldPrice)}</span>` : '';
+    return `<span class="current-price">${dataManager.formatPrice(price)}</span> ${oldPriceHtml}`;
 }
 
 async function initializeProducts() {
@@ -107,33 +109,61 @@ async function initializeProducts() {
         card.dataset.section = product.section || 'all';
         
         // Бейдж (хит, новинка и т.д.)
-        let badgeHtml = '';
+        let badgeHTML = '';
         if (product.badge) {
-            let badgeClass = '';
             switch(product.badge.toLowerCase()) {
-                case 'хит продаж': case 'хит': badgeClass = 'hit'; break;
-                case 'новинка': case 'new': badgeClass = 'new'; break;
-                case 'акция': case 'sale': badgeClass = 'sale'; break;
-                case 'эксклюзив': case 'exclusive': badgeClass = 'exclusive'; break;
-                case 'премиум': case 'premium': badgeClass = 'premium'; break;
-                default: badgeClass = 'new';
+                case 'хит продаж':
+                case 'хит':
+                    badgeClass = 'hit';
+                    break;
+                case 'новинка':
+                case 'new':
+                    badgeClass = 'new';
+                    break;
+                case 'акция':
+                case 'sale':
+                    badgeClass = 'sale';
+                    break;
+                case 'эксклюзив':
+                case 'exclusive':
+                    badgeClass = 'exclusive';
+                    break;
+                case 'премиум':
+                case 'premium':
+                    badgeClass = 'premium';
+                    break;
+                default:
+                    badgeClass = 'new';
             }
-            badgeHtml = `<div class="product-badge ${badgeClass}">${product.badge}</div>`;
         }
+        const mainBadge = product.badge ? `<div class="product-badge ${badgeClass}">${product.badge}</div>` : '';
         
         // Изображение как фон
         let imageUrl = '';
         if (product.images && product.images.length > 0) {
-            imageUrl = product.images[0];
+            imageContent = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
         }
-        const imageStyle = imageUrl ? `background-image: url('${imageUrl}');` : '';
-        const fallbackIcon = !imageUrl ? '<i class="fas fa-couch fallback-icon"></i>' : '';
         
-        // Статус наличия
+        const productUrl = `piece.html?id=${product.id}`;
+        
+        // Цена
+        let priceHtml = '';
+        if (product.availability === 1) {
+            if (product.is_price_on_request === 1) {
+                priceHtml = `<div class="product-price">${formatCardPrice(product)}</div>`;
+            } else {
+                priceHtml = `<div class="product-price"><span class="price-on-request">Цена под заказ</span></div>`;
+            }
+        } else {
+            priceHtml = `<div class="product-price">${formatCardPrice(product)}</div>`;
+        }
+
+        // Определяем статус наличия и плашку
         let stockStatus = '';
         let stockBadgeClass = '';
         let addToCartDisabled = false;
-        
+        let addToCartText = '<i class="fas fa-shopping-cart"></i> В корзину';
+
         if (product.availability === 1) {
             stockStatus = 'Под заказ';
             stockBadgeClass = 'on-order';
@@ -145,45 +175,41 @@ async function initializeProducts() {
                 stockStatus = 'Нет в наличии';
                 stockBadgeClass = 'out-of-stock';
                 addToCartDisabled = true;
+                addToCartText = '<i class="fas fa-ban"></i> Нет в наличии';
             }
         }
-        
-        // Цена
-        let priceHtml = '';
-        if (product.availability === 1) {
-            priceHtml = `<div class="product-min-price">${formatCardPrice(product)}</div>`;
-        } else {
-            if (product.is_price_on_request === 1) {
-                priceHtml = `<div class="product-min-price">Цена под заказ</div>`;
-            } else {
-                priceHtml = `<div class="product-min-price">${formatCardPrice(product)}</div>`;
-            }
-        }
-        
-        const metaHtml = `
-            <div class="product-card-meta">
-                ${priceHtml}
-                <span class="product-stock-badge ${stockBadgeClass}">${stockStatus}</span>
-            </div>
+
+        // Плашка статуса (будет справа от кнопки)
+        const stockBadgeHtml = stockStatus ? 
+            `<span class="stock-badge ${stockBadgeClass}">${stockStatus}</span>` : '';
+
+        // Кнопка "В корзину"
+        const actionButton = `
+            <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}" ${addToCartDisabled ? 'disabled' : ''}>
+                ${addToCartText}
+            </button>
         `;
         
-        const buttonText = addToCartDisabled ? '<i class="fas fa-ban"></i> Нет в наличии' : '<i class="fas fa-shopping-cart"></i> В корзину';
-        const buttonDisabled = addToCartDisabled ? 'disabled' : '';
-        
         card.innerHTML = `
-            <div class="product-card-image" style="${imageStyle}">
-                ${badgeHtml}
-                ${fallbackIcon}
+            <div class="product-image">
+                ${imageContent}
+                <div class="image-placeholder" style="${product.images && product.images.length > 0 ? 'display: none;' : 'display: flex;'}">
+                    <i class="fas fa-couch"></i>
+                </div>
+                ${mainBadge}
             </div>
-            <div class="product-card-body">
-                <h2 class="product-card-title">${escapeHtml(product.name)}</h2>
-                <p class="product-card-description">${escapeHtml(product.description?.substring(0, 120) || 'Качественная мебель от MA Furniture')}...</p>
-                ${metaHtml}
+            <div class="product-info">
+                <h3 class="product-title">${product.name}</h3>
+                <div class="product-description">
+                    ${product.description?.substring(0, 150) || 'Качественный товар от MA Furniture'}...
+                </div>
+                ${priceHtml}
+                <div class="product-actions">
+                    ${actionButton}
+                    ${stockBadgeHtml}
+                </div>
             </div>
-            <button class="btn-view-category add-to-cart-btn" data-product-id="${product.id}" ${buttonDisabled}>
-                ${buttonText}
-            </button>
-            <a href="piece.html?id=${product.id}" class="product-link-overlay"></a>
+            <a href="${productUrl}" class="product-link-overlay"></a>
         `;
         
         return card;
@@ -423,13 +449,3 @@ if (window.location.pathname.includes('shop.html')) {
 }
 
 window.showNotification = showNotification;
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
