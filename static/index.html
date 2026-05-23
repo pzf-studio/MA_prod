@@ -23,7 +23,87 @@
     <link rel="stylesheet" href="./css/index.css">
     <script src="./js/index.js" defer></script>
     <style>
-        /* === Временные стили, оставлены без изменений === */
+        /* ========== ДОБАВЛЕННЫЕ СТИЛИ ДЛЯ DROPDOWN ========== */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 1px solid var(--primary-color);
+            border-radius: 40px;
+            padding: 10px 24px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .dropdown-toggle i {
+            color: #d4af37;
+            font-size: 1rem;
+        }
+        .dropdown-toggle:hover {
+            background: #faf8f4;
+            border-color: #d4af37;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transform: translateY(-1px);
+        }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            min-width: 100%;
+            background: white;
+            border: 1px solid #e2dfda;
+            border-radius: 20px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+            z-index: 1000;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #2c2c2c;
+            text-decoration: none;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f5f0ea;
+            font-size: 0.95rem;
+        }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item i {
+            width: 22px;
+            color: #d4af37;
+            font-size: 1rem;
+        }
+        .dropdown-item:hover {
+            background: #faf8f4;
+            color: #8B7355;
+        }
+        @media (max-width: 768px) {
+            .dropdown-toggle { padding: 8px 18px; font-size: 0.85rem; gap: 8px; }
+            .dropdown-menu { min-width: 240px; right: auto; left: 50%; transform: translateX(-50%) translateY(-8px); }
+            .dropdown-menu.show { transform: translateX(-50%) translateY(0); }
+        }
+
+        /* ========== ОСТАЛЬНЫЕ СТИЛИ (оригинальные из index.html) ========== */
         .featured-product-card {
             background: white !important;
             border-radius: 10px !important;
@@ -182,14 +262,11 @@
     </header>
     <!-- ========== КОНЕЦ HEADER ========== -->
 
-    <!-- Заглушки для index.js -->
     <div id="featuredProducts" style="display:none;"></div>
     <div id="heroBackground" style="display:none;"></div>
 
     <section class="hero-section" id="hero">
-        <div class="hero-background" id="heroBackground">
-            <div class="hero-overlay"></div>
-        </div>
+        <div class="hero-background" id="heroBackground"><div class="hero-overlay"></div></div>
         <div class="container">
             <div class="hero-content">
                 <h1 class="hero-title">
@@ -273,10 +350,7 @@
                 </div>
             </div>
         </section>
-        
-        <div class="divider"></div>
-        <div class="divider"></div>
-
+        <div class="divider"></div><div class="divider"></div>
         <section class="catalog-cta">
             <div class="luxury-catalog-box">
                 <h3>ПОЛНЫЙ КАТАЛОГ СИСТЕМ ХРАНЕНИЯ</h3>
@@ -299,56 +373,13 @@
     <footer class="main-footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-section">
-                    <h3>MA Furniture</h3>
-                    <p>Комплектация и наполнение гардеробных премиум и бизнес класса</p>
-                    <div class="social-links">
-                        <a href="https://t.me/MAFurniture_ru" aria-label="Telegram">
-                            <i class="fab fa-telegram-plane"></i>
-                        </a>
-                        <a href="https://www.instagram.com/ma.furniture.ru?igsh=MWV1MDc3aDZmd2Rxaw==" aria-label="Instagram">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="https://wa.me/message/XVIWV6WLNDHVC1" aria-label="WhatsApp">
-                            <i class="fab fa-whatsapp"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Навигация</h4>
-                    <ul class="footer-nav">
-                        <li><a href="/">Главная</a></li>
-                        <li><a href="/about.html">О нас</a></li>
-                        <li><a href="/shop.html">Каталог</a></li>
-                        <li><a href="/index.html#faq">FAQ</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Контакты</h4>
-                    <ul class="contact-list">
-                        <li><i class="fas fa-phone-alt"></i> <a href="tel:+79100053424">+7 (910) 005-34-24</a></li>
-                        <li><i class="fas fa-envelope"></i> <a href="mailto:ma.furniture@mail.ru">ma.furniture@mail.ru</a></li>
-                        <li><i class="fas fa-map-marker-alt"></i> Москва, Россия</li>
-                    </ul>
-                </div>
+                <div class="footer-section"><h3>MA Furniture</h3><p>Комплектация и наполнение гардеробных премиум и бизнес класса</p><div class="social-links"><a href="https://t.me/MAFurniture_ru" aria-label="Telegram"><i class="fab fa-telegram-plane"></i></a><a href="https://www.instagram.com/ma.furniture.ru?igsh=MWV1MDc3aDZmd2Rxaw==" aria-label="Instagram"><i class="fab fa-instagram"></i></a><a href="https://wa.me/message/XVIWV6WLNDHVC1" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a></div></div>
+                <div class="footer-section"><h4>Навигация</h4><ul class="footer-nav"><li><a href="/">Главная</a></li><li><a href="/about.html">О нас</a></li><li><a href="/shop.html">Каталог</a></li><li><a href="/index.html#faq">FAQ</a></li></ul></div>
+                <div class="footer-section"><h4>Контакты</h4><ul class="contact-list"><li><i class="fas fa-phone-alt"></i> <a href="tel:+79100053424">+7 (910) 005-34-24</a></li><li><i class="fas fa-envelope"></i> <a href="mailto:ma.furniture@mail.ru">ma.furniture@mail.ru</a></li><li><i class="fas fa-map-marker-alt"></i> Москва, Россия</li></ul></div>
             </div>
         </div>
-
-        <div class="footer-map-fullwidth">
-            <iframe src="https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=203236359108" 
-                    style="width:100%; height:300px; border:0; display:block;" 
-                    title="Карта MA Furniture на Яндекс.Картах"
-                    loading="lazy">
-            </iframe>
-        </div>
-
-        <div class="footer-bottom">
-            <div class="container">
-                <p>&copy; 2026 MA Furniture. Все права защищены.</p>
-            </div>
-        </div>
+        <div class="footer-map-fullwidth"><iframe src="https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=203236359108" style="width:100%; height:300px; border:0; display:block;" title="Карта MA Furniture на Яндекс.Картах" loading="lazy"></iframe></div>
+        <div class="footer-bottom"><div class="container"><p>&copy; 2026 MA Furniture. Все права защищены.</p></div></div>
     </footer>
 
     <script type="text/javascript">
@@ -382,7 +413,6 @@
     })();
     </script>
     <noscript><div><img src="https://mc.yandex.ru/watch/106260434" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-
     <script src="/static/js/data-manager.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -391,7 +421,6 @@
             console.log('index.js функции доступны?', typeof initializeMainPage !== 'undefined');
             console.log('=== ПРОВЕРКА ЗАВЕРШЕНА ===');
         });
-        
         setTimeout(function() {
             if (typeof window.dataManager === 'undefined') {
                 console.error('data-manager.js не загрузился!');
@@ -406,17 +435,12 @@
         const dropdown = document.getElementById('contactDropdown');
         const toggleBtn = document.getElementById('dropdownToggleBtn');
         const menu = document.getElementById('dropdownMenu');
-
         function closeDropdown() { if(menu) menu.classList.remove('show'); }
         function toggleDropdown(e) { e.stopPropagation(); if(menu) menu.classList.toggle('show'); }
         if(toggleBtn && menu) {
             toggleBtn.addEventListener('click', toggleDropdown);
-            document.addEventListener('click', function(event) {
-                if (!dropdown.contains(event.target)) closeDropdown();
-            });
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && menu.classList.contains('show')) closeDropdown();
-            });
+            document.addEventListener('click', function(event) { if (!dropdown.contains(event.target)) closeDropdown(); });
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && menu.classList.contains('show')) closeDropdown(); });
         }
     </script>
 </body>
