@@ -26,7 +26,7 @@
             background-color: white;
         }
         
-        /* === СТИЛИ HERO (ТОЧНО КАК В INDEX.HTML) === */
+        /* === СТИЛИ HERO === */
         .hero-section {
             position: relative;
             height: 100vh;
@@ -37,7 +37,6 @@
             overflow: hidden;
             margin-top: 80px;
         }
-
         .hero-background {
             position: absolute;
             top: 0;
@@ -47,7 +46,6 @@
             background: url('./images/hero.jpg') center/cover no-repeat;
             z-index: -2;
         }
-
         .hero-overlay {
             position: absolute;
             top: 0;
@@ -57,7 +55,6 @@
             background: rgba(0, 0, 0, 0.1);
             z-index: -1;
         }
-
         .hero-content {
             text-align: center;
             max-width: 800px;
@@ -68,48 +65,42 @@
             background: rgba(255, 255, 255, 0.85);
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(0px);
         }
-
         .hero-title {
             font-family: 'Playfair Display', serif;
             font-size: 3.5rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
-            color: var(--text-dark);
+            color: var(--dark);
             line-height: 1.2;
             text-align: center;
         }
-
         .hero-title .brand-name {
             display: block;
             font-size: 3.8rem;
-            color: var(--text-dark);
+            color: var(--dark);
             margin-bottom: 0.5rem;
             font-weight: 800;
             line-height: 1.1;
         }
-
         .hero-title .brand-subtitle {
             display: block;
             font-size: 1.8rem;
-            color: var(--text-dark);
+            color: var(--dark);
             font-weight: 500;
             line-height: 1.4;
             margin-top: 1rem;
             padding-top: 1rem;
-            border-top: 2px solid var(--primary-color);
+            border-top: 2px solid var(--gold);
         }
-
         .hero-subtitle {
             font-size: 1.25rem;
             margin-bottom: 2.5rem;
-            color: var(--text-dark);
+            color: var(--dark);
             line-height: 1.6;
             font-weight: 500;
             text-align: center;
         }
-
         .hero-buttons {
             display: flex;
             gap: 20px;
@@ -117,34 +108,10 @@
             flex-wrap: wrap;
             align-items: center;
         }
-        .brand-name {
-            display: block;
-            font-size: 3.5rem;
-            letter-spacing: 2px;
-        }
-        .brand-subtitle {
-            display: block;
-            font-size: 1.8rem;
-            font-weight: 400;
-            margin-top: 0.5rem;
-        }
-        .hero-subtitle {
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            margin: 20px 0;
-            opacity: 0.9;
-        }
-        .hero-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 30px;
-        }
         .btn-secondary {
             background: transparent;
-            border: 2px solid white;
-            color: white;
+            border: 2px solid var(--gold);
+            color: var(--gold);
             padding: 12px 30px;
             border-radius: 40px;
             font-weight: 600;
@@ -155,8 +122,8 @@
             text-decoration: none;
         }
         .btn-secondary:hover {
-            background: white;
-            color: var(--dark);
+            background: var(--gold);
+            color: white;
             transform: translateY(-3px);
         }
         .scroll-indicator {
@@ -184,7 +151,7 @@
             50% { transform: translateX(-50%) translateY(10px); }
         }
         
-        /* Общие секции (без изменений) */
+        /* Общие секции */
         .about-section {
             padding: 80px 0;
             border-bottom: 1px solid #eee;
@@ -219,11 +186,6 @@
             line-height: 1.75;
             color: #3a3a3a;
         }
-        .text-block p {
-            margin-bottom: 1.4rem;
-        }
-        
-        /* Цитата */
         .quote-block {
             background: var(--light-bg);
             padding: 50px 30px;
@@ -235,8 +197,6 @@
             color: #2c2c2c;
             border-left: 5px solid var(--gold);
         }
-        
-        /* Статистика (лаконичная) */
         .stats-minimal {
             display: flex;
             justify-content: center;
@@ -259,8 +219,6 @@
             letter-spacing: 1px;
             color: #777;
         }
-        
-        /* Годовая линия истории */
         .timeline {
             max-width: 900px;
             margin: 50px auto;
@@ -283,8 +241,6 @@
             line-height: 1.6;
             color: #444;
         }
-        
-        /* Ценности (простые списки) */
         .values-list {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -312,8 +268,6 @@
             color: #5a5a5a;
             line-height: 1.5;
         }
-        
-        /* Юридическая информация */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -336,7 +290,6 @@
             font-size: 1rem;
             color: #333;
         }
-        
         .contact-simple {
             background: white;
             border-radius: 24px;
@@ -348,8 +301,6 @@
         .contact-row {
             margin: 15px 0;
         }
-        
-        /* Форма обратной связи */
         .feedback-form {
             max-width: 700px;
             margin: 40px auto 0;
@@ -388,8 +339,6 @@
             background: var(--gold);
             color: #222;
         }
-        
-        /* Анимация при прокрутке */
         .reveal {
             opacity: 0;
             transform: translateY(25px);
@@ -399,130 +348,18 @@
             opacity: 1;
             transform: translateY(0);
         }
-        
-        /* ======= DROPDOWN — ГЛАДКАЯ КНОПКА С ОТСТУПОМ ======= */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        .dropdown-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: white;
-            border: 1px solid var(--primary);
-            border-radius: 40px;
-            padding: 10px 24px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: var(--dark);
-            cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .dropdown-toggle i {
-            color: var(--gold);
-            font-size: 1rem;
-        }
-        .dropdown-toggle:hover {
-            background: var(--light-bg);
-            border-color: var(--gold);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            transform: translateY(-1px);
-        }
-        .dropdown-toggle:active {
-            transform: translateY(0);
-        }
-        .dropdown-menu {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            min-width: 100%;
-            background: white;
-            border: 1px solid #e2dfda;
-            border-radius: 20px;
-            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-8px);
-            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
-            z-index: 1000;
-            overflow: hidden;
-            margin-top: 12px;
-        }
-        .dropdown-menu.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: var(--dark);
-            text-decoration: none;
-            transition: background 0.2s;
-            border-bottom: 1px solid #f5f0ea;
-            font-size: 0.95rem;
-        }
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
-        .dropdown-item i {
-            width: 22px;
-            color: var(--gold);
-            font-size: 1rem;
-        }
-        .dropdown-item:hover {
-            background: var(--light-bg);
-            color: var(--primary);
-        }
         @media (max-width: 768px) {
-            .dropdown-toggle {
-                padding: 8px 18px;
-                font-size: 0.85rem;
-                gap: 8px;
-            }
-            .dropdown-menu {
-                min-width: 240px;
-                right: auto;
-                left: 50%;
-                transform: translateX(-50%) translateY(-8px);
-            }
-            .dropdown-menu.show {
-                transform: translateX(-50%) translateY(0);
-            }
-            .hero-title .brand-name {
-                font-size: 2.5rem;
-            }
-            .hero-title .brand-subtitle {
-                font-size: 1.2rem;
-            }
-            .section-title {
-                font-size: 2rem;
-            }
-            .timeline-item {
-                flex-direction: column;
-                gap: 8px;
-            }
-            .timeline-year {
-                margin-bottom: 5px;
-            }
-            .stats-minimal {
-                gap: 30px;
-            }
+            .hero-title .brand-name { font-size: 2.5rem; }
+            .hero-title .brand-subtitle { font-size: 1.2rem; }
+            .section-title { font-size: 2rem; }
+            .timeline-item { flex-direction: column; gap: 8px; }
+            .stats-minimal { gap: 30px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Заглушки для index.js -->
-    <div id="featuredProducts" style="display:none;"></div>
-    <div id="heroBackground" style="display:none;"></div>
-
-    <!-- Шапка (без изменений) -->
+    <!-- ========== ЕДИНЫЙ HEADER ========== -->
     <header class="header">
         <div class="container">
             <div class="header-content">
@@ -566,8 +403,12 @@
             </div>
         </div>
     </header>
+    <!-- ========== КОНЕЦ HEADER ========== -->
 
-    <!-- ========= НОВЫЙ HERO (ТОЧНО КАК НА ГЛАВНОЙ) ========= -->
+    <!-- Заглушки для index.js -->
+    <div id="featuredProducts" style="display:none;"></div>
+    <div id="heroBackground" style="display:none;"></div>
+
     <section class="hero-section" id="hero">
         <div class="hero-background" id="heroBgDynamic">
             <div class="hero-overlay"></div>
@@ -580,7 +421,6 @@
                 </h1>
                 <p class="hero-subtitle">____________________________________________________</p>
                 <div class="hero-buttons">
-                    <!-- ИЗМЕНЕНО: ссылка ведёт на categories.html вместо shop.html -->
                     <a href="/categories.html" class="btn btn-secondary">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Перейти в магазин</span>
@@ -594,7 +434,7 @@
     </section>
 
     <main>
-        <!-- 1. Кто мы (большой текст) -->
+        <!-- 1. Кто мы -->
         <section class="about-section">
             <div class="container">
                 <h2 class="section-title reveal">Кто мы</h2>
@@ -613,30 +453,13 @@
             <div class="container">
                 <h2 class="section-title reveal">Наш путь</h2>
                 <div class="timeline reveal">
-                    <div class="timeline-item">
-                        <div class="timeline-year">2017</div>
-                        <div class="timeline-desc">Основание компании как подразделения строительного холдинга. Первые проекты по комплектации элитных квартир в Москве. Старт партнёрства с итальянскими фабриками фурнитуры.</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">2019</div>
-                        <div class="timeline-desc">Открытие собственного склада и логистического центра. Расширение ассортимента: добавлены системы выдвижных пантографов, подсветка с датчиками движения.</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">2021</div>
-                        <div class="timeline-desc">Запуск направления «индивидуальный дизайн» — мы начинаем разрабатывать уникальные наполнения под заказ, с учётом пожеланий клиента по цветам, материалам и размерам.</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">2023</div>
-                        <div class="timeline-desc">Выход на федеральный уровень: сотрудничество с дизайн-студиями из Санкт-Петербурга, Казани, Екатеринбурга и Новосибирска. Внедрение системы 3D-визуализации для заказчиков.</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-year">2025</div>
-                        <div class="timeline-desc">Открытие шоурума в Москве, где можно не только увидеть, но и потрогать каждую деталь: экокожу, механизмы, профили. Сертификация всех материалов по стандартам EU.</div>
-                    </div>
+                    <div class="timeline-item"><div class="timeline-year">2017</div><div class="timeline-desc">Основание компании как подразделения строительного холдинга. Первые проекты по комплектации элитных квартир в Москве. Старт партнёрства с итальянскими фабриками фурнитуры.</div></div>
+                    <div class="timeline-item"><div class="timeline-year">2019</div><div class="timeline-desc">Открытие собственного склада и логистического центра. Расширение ассортимента: добавлены системы выдвижных пантографов, подсветка с датчиками движения.</div></div>
+                    <div class="timeline-item"><div class="timeline-year">2021</div><div class="timeline-desc">Запуск направления «индивидуальный дизайн» — мы начинаем разрабатывать уникальные наполнения под заказ, с учётом пожеланий клиента по цветам, материалам и размерам.</div></div>
+                    <div class="timeline-item"><div class="timeline-year">2023</div><div class="timeline-desc">Выход на федеральный уровень: сотрудничество с дизайн-студиями из Санкт-Петербурга, Казани, Екатеринбурга и Новосибирска. Внедрение системы 3D-визуализации для заказчиков.</div></div>
+                    <div class="timeline-item"><div class="timeline-year">2025</div><div class="timeline-desc">Открытие шоурума в Москве, где можно не только увидеть, но и потрогать каждую деталь: экокожу, механизмы, профили. Сертификация всех материалов по стандартам EU.</div></div>
                 </div>
-                <div class="text-block reveal">
-                    <p>Сегодня MA Furniture — это более 500 завершённых проектов, от уютных квартир-студий до загородных особняков. Мы не гонимся за количеством, мы ценим качество и доверие каждого клиента. Наша миссия — сделать так, чтобы каждый уголок вашего дома работал на вас, а не против вас.</p>
-                </div>
+                <div class="text-block reveal"><p>Сегодня MA Furniture — это более 500 завершённых проектов, от уютных квартир-студий до загородных особняков. Мы не гонимся за количеством, мы ценим качество и доверие каждого клиента. Наша миссия — сделать так, чтобы каждый уголок вашего дома работал на вас, а не против вас.</p></div>
             </div>
         </section>
 
@@ -650,7 +473,6 @@
                     <div class="value-item"><h3>Индивидуальный подход</h3><p>Каждый проект уникален. Мы не используем шаблонные решения — только то, что подходит именно под ваш рост, вещи и привычки.</p></div>
                     <div class="value-item"><h3>Эстетика и эргономика</h3><p>Красота не должна приносить неудобства. Мы находим баланс между дизайном и функциональностью, чтобы ваша гардеробная была произведением искусства и инструментом порядка.</p></div>
                 </div>
-                
                 <div class="stats-minimal reveal">
                     <div class="stat-mini"><div class="stat-mini-number" data-target="7">0</div><div class="stat-mini-label">лет на рынке</div></div>
                     <div class="stat-mini"><div class="stat-mini-number" data-target="520">0</div><div class="stat-mini-label">выполненных проектов</div></div>
@@ -663,10 +485,8 @@
         <section class="about-section" style="background: var(--light-bg);">
             <div class="container">
                 <h2 class="section-title reveal">Команда профессионалов</h2>
-                <div class="text-block reveal">
-                    <p>За каждой системой хранения стоят люди: инженеры, конструкторы, менеджеры и монтажники. Мы — команда энтузиастов, которые влюблены в своё дело. Наши дизайнеры имеют опыт работы с интерьерами премиум-класса, а технологи регулярно проходят стажировки на европейских фабриках. Средний стаж сотрудников в компании — 5 лет, что говорит о стабильности и высоком уровне экспертизы.</p>
-                    <p>Мы не передаём клиента на аутсорс — от первой консультации до финального монтажа с вами работают штатные специалисты MA Furniture. Это гарантирует, что вы получите именно то, что ожидаете, а в случае вопросов — быструю и квалифицированную поддержку.</p>
-                </div>
+                <div class="text-block reveal"><p>За каждой системой хранения стоят люди: инженеры, конструкторы, менеджеры и монтажники. Мы — команда энтузиастов, которые влюблены в своё дело. Наши дизайнеры имеют опыт работы с интерьерами премиум-класса, а технологи регулярно проходят стажировки на европейских фабриках. Средний стаж сотрудников в компании — 5 лет, что говорит о стабильности и высоком уровне экспертизы.</p>
+                <p>Мы не передаём клиента на аутсорс — от первой консультации до финального монтажа с вами работают штатные специалисты MA Furniture. Это гарантирует, что вы получите именно то, что ожидаете, а в случае вопросов — быструю и квалифицированную поддержку.</p></div>
             </div>
         </section>
 
@@ -693,17 +513,11 @@
                     <div class="contact-row"><strong>Телефон:</strong> <a href="tel:+79100053424">+7 (910) 005-34-24</a></div>
                     <div class="contact-row"><strong>Email:</strong> <a href="mailto:ma.furniture@mail.ru">ma.furniture@mail.ru</a></div>
                     <div class="contact-row"><strong>Адрес шоурума:</strong> г. Москва, ул. Тверская, д. 12 (м. Пушкинская)</div>
-                    <div class="contact-row"><strong>Соцсети:</strong> 
-                        <a href="https://t.me/MAFurniture_ru">Telegram</a> | 
-                        <a href="https://www.instagram.com/ma.furniture.ru">Instagram</a> | 
-                        <a href="https://wa.me/message/XVIWV6WLNDHVC1">WhatsApp</a>
-                    </div>
+                    <div class="contact-row"><strong>Соцсети:</strong> <a href="https://t.me/MAFurniture_ru">Telegram</a> | <a href="https://www.instagram.com/ma.furniture.ru">Instagram</a> | <a href="https://wa.me/message/XVIWV6WLNDHVC1">WhatsApp</a></div>
                 </div>
-
                 <div class="map-container reveal" style="border-radius: 28px; overflow: hidden; margin: 40px 0;">
                     <script type="text/javascript" charset="utf-8" async src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Acd745e83759ddffbdc54fd3a72292fd783dd98594e4e825d23bc9e777855646c&amp;width=100%25&amp;height=380&amp;lang=ru_RU&amp;scroll=true"></script>
                 </div>
-
                 <h3 class="section-subtitle reveal" style="margin-top: 40px;">Остались вопросы? Напишите нам</h3>
                 <div class="feedback-form reveal">
                     <form id="contactForm">
@@ -719,7 +533,6 @@
         </section>
     </main>
 
-    <!-- Футер -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-content">
@@ -739,10 +552,7 @@
                 if(console[m]) console[m] = noop;
             });
         }
-        document.addEventListener('contextmenu',function(e){
-            e.preventDefault();
-            return false;
-        });
+        document.addEventListener('contextmenu',function(e){ e.preventDefault(); return false; });
         document.addEventListener('keydown',function(e){
             if(e.key==='F12'){e.preventDefault();return false;}
             if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='I'||e.key==='i')){e.preventDefault();return false;}
@@ -781,7 +591,6 @@
                 animated = true;
             }
             
-            // Reveal анимация + триггер для счётчиков
             const revealElements = document.querySelectorAll('.reveal');
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -797,7 +606,6 @@
             const statsBlock = document.querySelector('.stats-minimal');
             if(statsBlock) observer.observe(statsBlock);
 
-            // Форма обратной связи
             const form = document.getElementById('contactForm');
             const statusDiv = document.getElementById('formStatus');
             form.addEventListener('submit', async (e) => {
@@ -824,25 +632,20 @@
             const toggleBtn = document.getElementById('dropdownToggleBtn');
             const menu = document.getElementById('dropdownMenu');
 
-            function closeDropdown() {
-                menu.classList.remove('show');
+            function closeDropdown() { if(menu) menu.classList.remove('show'); }
+            function toggleDropdown(e) { e.stopPropagation(); if(menu) menu.classList.toggle('show'); }
+            if(toggleBtn && menu) {
+                toggleBtn.addEventListener('click', toggleDropdown);
+                document.addEventListener('click', function(event) {
+                    if (!dropdown.contains(event.target)) closeDropdown();
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && menu.classList.contains('show')) closeDropdown();
+                });
             }
-            function toggleDropdown(e) {
-                e.stopPropagation();
-                menu.classList.toggle('show');
-            }
-            toggleBtn.addEventListener('click', toggleDropdown);
-            document.addEventListener('click', function(event) {
-                if (!dropdown.contains(event.target)) closeDropdown();
-            });
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && menu.classList.contains('show')) closeDropdown();
-            });
 
-            // Загрузка фона для hero (как на главной)
             async function loadAboutBackground() {
                 try {
-                    console.log('Загрузка фона для about...');
                     const response = await fetch(`${window.location.origin}/api/media/background`);
                     const data = await response.json();
                     if (data.success && data.background && data.background.image_url && data.background.active) {
@@ -855,11 +658,9 @@
                                 heroBg.style.backgroundSize = 'cover';
                                 heroBg.style.backgroundPosition = 'center';
                                 heroBg.style.backgroundRepeat = 'no-repeat';
-                                heroBg.classList.add('bg-fade-in');
                             };
                         }
                     } else {
-                        // fallback, если фон не загрузился
                         const heroBg = document.getElementById('heroBgDynamic');
                         if (heroBg) heroBg.style.backgroundImage = "url('/static/images/hero.jpg')";
                     }
@@ -871,7 +672,6 @@
             }
             loadAboutBackground();
 
-            // Плавная прокрутка для индикатора
             const scrollIndicator = document.querySelector('.scroll-indicator');
             if (scrollIndicator) {
                 scrollIndicator.addEventListener('click', () => {

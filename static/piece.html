@@ -20,7 +20,51 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/piece.css">
     <style>
-        /* ========== ДОБАВЛЕННЫЕ СТИЛИ ДЛЯ DROPDOWN ========== */
+        /* Дополнительные стили для единого хедера (если в piece.css нет) */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-image {
+            height: 50px;
+            width: auto;
+        }
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2c2c2c 0%, #8B7355 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .main-nav ul {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+        }
+        .main-nav a {
+            text-decoration: none;
+            color: #2c2c2c;
+            font-weight: 500;
+        }
+        .main-nav a:hover { color: #d4af37; }
         .dropdown {
             position: relative;
             display: inline-block;
@@ -30,26 +74,12 @@
             align-items: center;
             gap: 10px;
             background: white;
-            border: 1px solid var(--primary-color);
+            border: 1px solid #8B7355;
             border-radius: 40px;
             padding: 10px 24px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: var(--text-dark);
             cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
-        .dropdown-toggle i {
-            color: #d4af37;
-            font-size: 1rem;
-        }
-        .dropdown-toggle:hover {
-            background: #faf8f4;
-            border-color: #d4af37;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            transform: translateY(-1px);
-        }
+        .dropdown-toggle i { color: #d4af37; }
         .dropdown-menu {
             position: absolute;
             top: 100%;
@@ -1164,7 +1194,7 @@
                 <div class="logo">
                     <a href="./index.html">
                         <div class="logo-container">
-                            <img src="./images/logo2.png" alt="MA Furniture" class="logo-image">
+                            <img src="/static/images/logo2.png" alt="MA Furniture" class="logo-image">
                             <div class="logo-text-container">
                                 <span class="logo-text">MA FURNITURE</span>
                             </div>
