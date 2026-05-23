@@ -241,14 +241,12 @@
     </div>
 
     <script>
-        // Получаем параметры из URL
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('order_id');
         const orderDate = urlParams.get('date');
         const customerName = urlParams.get('name');
         const totalAmount = urlParams.get('total');
         
-        // Обновляем информацию о заказе
         document.getElementById('orderId').textContent = orderId || 'Не указан';
         
         if (orderDate) {
@@ -257,7 +255,6 @@
             document.getElementById('orderDate').textContent = new Date().toLocaleString('ru-RU');
         }
         
-        // Если есть дополнительные данные, показываем их
         if (customerName) {
             const detailsDiv = document.getElementById('orderDetails');
             detailsDiv.innerHTML += `
@@ -278,7 +275,6 @@
             `;
         }
         
-        // Очищаем корзину при загрузке страницы успеха
         localStorage.removeItem('ma_furniture_cart');
     </script>
     <script type="text/javascript">
@@ -288,7 +284,6 @@
             for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
             k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
         })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=106260434', 'ym');
-
         ym(106260434, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
     </script>
     <script>
