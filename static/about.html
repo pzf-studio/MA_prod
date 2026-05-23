@@ -29,8 +29,7 @@
         /* === СТИЛИ HERO === */
         .hero-section {
             position: relative;
-            height: 100vh;
-            min-height: 600px;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -43,8 +42,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('./images/hero.jpg') center/cover no-repeat;
-            z-index: -2;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: opacity 1s ease;
+            opacity: 0;
+        }
+        .hero-background.bg-fade-in {
+            opacity: 1;
         }
         .hero-overlay {
             position: absolute;
@@ -52,61 +57,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.1);
-            z-index: -1;
+            background: rgba(0,0,0,0.6);
+            z-index: 1;
         }
         .hero-content {
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 30px;
             position: relative;
-            z-index: 1;
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+            text-align: center;
+            color: white;
+            max-width: 800px;
+            padding: 20px;
+            animation: fadeInUp 1s ease;
         }
         .hero-title {
             font-family: 'Playfair Display', serif;
-            font-size: 3.5rem;
+            font-size: 4rem;
             font-weight: 700;
-            margin-bottom: 1.5rem;
-            color: var(--dark);
+            margin-bottom: 1rem;
             line-height: 1.2;
-            text-align: center;
-        }
-        .hero-title .brand-name {
-            display: block;
-            font-size: 3.8rem;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-            font-weight: 800;
-            line-height: 1.1;
-        }
-        .hero-title .brand-subtitle {
-            display: block;
-            font-size: 1.8rem;
-            color: var(--dark);
-            font-weight: 500;
-            line-height: 1.4;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 2px solid var(--gold);
-        }
-        .hero-subtitle {
-            font-size: 1.25rem;
-            margin-bottom: 2.5rem;
-            color: var(--dark);
-            line-height: 1.6;
-            font-weight: 500;
-            text-align: center;
-        }
-        .hero-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            align-items: center;
         }
         .btn-secondary {
             background: transparent;
