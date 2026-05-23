@@ -109,7 +109,7 @@ async function initializeProducts() {
         card.dataset.section = product.section || 'all';
         
         // Бейдж (хит, новинка и т.д.)
-        let badgeHTML = '';
+        let badgeClass = '';
         if (product.badge) {
             switch(product.badge.toLowerCase()) {
                 case 'хит продаж':
@@ -138,8 +138,8 @@ async function initializeProducts() {
         }
         const mainBadge = product.badge ? `<div class="product-badge ${badgeClass}">${product.badge}</div>` : '';
         
-        // Изображение как фон
-        let imageUrl = '';
+        // Изображение
+        let imageContent = '';
         if (product.images && product.images.length > 0) {
             imageContent = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
         }
