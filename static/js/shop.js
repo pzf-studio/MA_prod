@@ -107,111 +107,86 @@ async function initializeProducts() {
         const card = document.createElement('div');
         card.className = 'product-card';
         card.dataset.section = product.section || 'all';
-        
+
         // Бейдж (хит, новинка и т.д.)
-        let badgeClass = '';
+        let badgeHtml = '';
         if (product.badge) {
+            let badgeClass = '';
             switch(product.badge.toLowerCase()) {
-                case 'хит продаж':
-                case 'хит':
-                    badgeClass = 'hit';
-                    break;
-                case 'новинка':
-                case 'new':
-                    badgeClass = 'new';
-                    break;
-                case 'акция':
-                case 'sale':
-                    badgeClass = 'sale';
-                    break;
-                case 'эксклюзив':
-                case 'exclusive':
-                    badgeClass = 'exclusive';
-                    break;
-                case 'премиум':
-                case 'premium':
-                    badgeClass = 'premium';
-                    break;
-                default:
-                    badgeClass = 'new';
+                case 'хит продаж': case 'хит': badgeClass = 'hit'; break;
+                case 'новинка': case 'new': badgeClass = 'new'; break;
+                case 'акция': case 'sale': badgeClass = 'sale'; break;
+                case 'эксклюзив': case 'exclusive': badgeClass = 'exclusive'; break;
+                case 'премиум': case 'premium': badgeClass = 'premium'; break;
+                default: badgeClass = 'new';
             }
+            badgeHtml = `<div class="product-badge ${badgeClass}">${product.badge}</div>`;
         }
-        const mainBadge = product.badge ? `<div class="product-badge ${badgeClass}">${product.badge}</div>` : '';
-        
+
         // Изображение
-        let imageContent = '';
+        let imageHtml = '';
         if (product.images && product.images.length > 0) {
-            imageContent = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+            imageHtml = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
         }
-        
-        const productUrl = `piece.html?id=${product.id}`;
-        
+        const imagePlaceholder = `<div class="image-placeholder" style="${product.images && product.images.length > 0 ? 'display: none;' : 'display: flex;'}"><i class="fas fa-couch"></i></div>`;
+
         // Цена
         let priceHtml = '';
         if (product.availability === 1) {
             if (product.is_price_on_request === 1) {
-                priceHtml = `<div class="product-price">${formatCardPrice(product)}</div>`;
+                priceHtml = `<span class="product-price">${dataManager.formatPrice(product.price)}</span>`;
             } else {
-                priceHtml = `<div class="product-price"><span class="price-on-request">Цена под заказ</span></div>`;
+                priceHtml = `<span class="product-price price-on-request">Цена под заказ</span>`;
             }
         } else {
-            priceHtml = `<div class="product-price">${formatCardPrice(product)}</div>`;
+            let oldPriceHtml = product.old_price ? `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : '';
+            priceHtml = `<span class="product-price">${dataManager.formatPrice(product.price)} ${oldPriceHtml}</span>`;
         }
 
-        // Определяем статус наличия и плашку
-        let stockStatus = '';
-        let stockBadgeClass = '';
+        // Статус наличия
+        let stockText = '', stockClass = '';
         let addToCartDisabled = false;
-        let addToCartText = '<i class="fas fa-shopping-cart"></i> В корзину';
-
         if (product.availability === 1) {
-            stockStatus = 'Под заказ';
-            stockBadgeClass = 'on-order';
+            stockText = 'Под заказ';
+            stockClass = 'on-order';
         } else {
             if (product.stock > 0) {
-                stockStatus = 'В наличии';
-                stockBadgeClass = 'in-stock';
+                stockText = 'В наличии';
+                stockClass = 'in-stock';
             } else {
-                stockStatus = 'Нет в наличии';
-                stockBadgeClass = 'out-of-stock';
+                stockText = 'Нет в наличии';
+                stockClass = 'out-of-stock';
                 addToCartDisabled = true;
-                addToCartText = '<i class="fas fa-ban"></i> Нет в наличии';
             }
         }
+        const stockHtml = `<span class="stock-badge ${stockClass}">${stockText}</span>`;
 
-        // Плашка статуса (будет справа от кнопки)
-        const stockBadgeHtml = stockStatus ? 
-            `<span class="stock-badge ${stockBadgeClass}">${stockStatus}</span>` : '';
+        // Кнопка добавления в корзину
+        const buttonText = addToCartDisabled ? '<i class="fas fa-ban"></i> Нет в наличии' : '<i class="fas fa-shopping-cart"></i> В корзину';
 
-        // Кнопка "В корзину"
-        const actionButton = `
-            <button class="btn btn-primary add-to-cart-btn" data-product-id="${product.id}" ${addToCartDisabled ? 'disabled' : ''}>
-                ${addToCartText}
-            </button>
-        `;
-        
+        // URL страницы товара
+        const productUrl = `piece.html?id=${product.id}`;
+
         card.innerHTML = `
-            <div class="product-image">
-                ${imageContent}
-                <div class="image-placeholder" style="${product.images && product.images.length > 0 ? 'display: none;' : 'display: flex;'}">
-                    <i class="fas fa-couch"></i>
-                </div>
-                ${mainBadge}
+            <div class="product-card-image" style="background-image: url('${product.images && product.images.length > 0 ? product.images[0] : ''}'); background-size: cover; background-position: center;">
+                ${imageHtml}
+                ${imagePlaceholder}
+                ${badgeHtml}
             </div>
-            <div class="product-info">
-                <h3 class="product-title">${product.name}</h3>
-                <div class="product-description">
-                    ${product.description?.substring(0, 150) || 'Качественный товар от MA Furniture'}...
-                </div>
-                ${priceHtml}
-                <div class="product-actions">
-                    ${actionButton}
-                    ${stockBadgeHtml}
+            <div class="product-card-body">
+                <h2 class="product-card-title">${product.name}</h2>
+                <p class="product-card-description">${product.description?.substring(0, 120) || 'Качественный товар от MA Furniture'}${product.description?.length > 120 ? '...' : ''}</p>
+                <div class="product-card-meta">
+                    ${priceHtml}
+                    ${stockHtml}
                 </div>
             </div>
+            <button class="btn-add-to-cart" data-product-id="${product.id}" ${addToCartDisabled ? 'disabled' : ''}>
+                ${buttonText}
+            </button>
             <a href="${productUrl}" class="product-link-overlay"></a>
         `;
-        
+
         return card;
     }
 
@@ -259,11 +234,11 @@ async function initializeProducts() {
     }
 
     function attachProductEventListeners() {
-        document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        document.querySelectorAll('.btn-add-to-cart').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const productId = parseInt(e.target.closest('.add-to-cart-btn').dataset.productId);
+                const productId = parseInt(btn.dataset.productId);
                 const product = await dataManager.getProductById(productId);
                 if (product && window.cartSystem) {
                     window.cartSystem.addToCart(product);
@@ -271,15 +246,12 @@ async function initializeProducts() {
             });
         });
         
+        // Остальной код (клик по карточке) без изменений
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.add-to-cart-btn')) {
-                    return;
-                }
+                if (e.target.closest('.btn-add-to-cart')) return;
                 const link = card.querySelector('.product-link-overlay');
-                if (link) {
-                    window.location.href = link.href;
-                }
+                if (link) window.location.href = link.href;
             });
         });
     }
