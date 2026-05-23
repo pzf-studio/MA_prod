@@ -19,16 +19,113 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/piece.css">
+    <style>
+        /* Дополнительные стили для единого хедера (если в piece.css нет) */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-image {
+            height: 50px;
+            width: auto;
+        }
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2c2c2c 0%, #8B7355 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .main-nav ul {
+            display: flex;
+            list-style: none;
+            gap: 32px;
+        }
+        .main-nav a {
+            text-decoration: none;
+            color: #2c2c2c;
+            font-weight: 500;
+        }
+        .main-nav a:hover { color: #d4af37; }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 1px solid #8B7355;
+            border-radius: 40px;
+            padding: 10px 24px;
+            cursor: pointer;
+        }
+        .dropdown-toggle i { color: #d4af37; }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #e2dfda;
+            border-radius: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s;
+            z-index: 1000;
+            margin-top: 12px;
+        }
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            text-decoration: none;
+            color: #2c2c2c;
+        }
+        .dropdown-item i { color: #d4af37; }
+        .dropdown-item:hover { background: #faf8f4; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        body { padding-top: 80px; }
+    </style>
 </head>
 <body>
-    <!-- ========== НОВЫЙ HEADER (скопирован из about.html) ========== -->
+    <!-- ========== ЕДИНЫЙ HEADER ========== -->
     <header class="header">
         <div class="container">
             <div class="header-content">
                 <div class="logo">
                     <a href="./index.html">
                         <div class="logo-container">
-                            <img src="./images/logo2.png" alt="MA Furniture" class="logo-image">
+                            <img src="/static/images/logo2.png" alt="MA Furniture" class="logo-image">
                             <div class="logo-text-container">
                                 <span class="logo-text">MA FURNITURE</span>
                             </div>
@@ -87,9 +184,7 @@
                                     <i class="fas fa-couch"></i>
                                 </div>
                             </div>
-                            <div class="thumbnails" id="productThumbnails">
-                                <!-- Миниатюры будут загружены динамически -->
-                            </div>
+                            <div class="thumbnails" id="productThumbnails"></div>
                         </div>
                         
                         <div class="product-info">
@@ -153,7 +248,6 @@
                         <a href="https://wa.me/message/XVIWV6WLNDHVC1" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
-
                 <div class="footer-section">
                     <h4>Навигация</h4>
                     <ul class="footer-nav">
@@ -163,7 +257,6 @@
                         <li><a href="/index.html#faq">FAQ</a></li>
                     </ul>
                 </div>
-
                 <div class="footer-section">
                     <h4>Контакты</h4>
                     <ul class="contact-list">
@@ -174,11 +267,9 @@
                 </div>
             </div>
         </div>
-
         <div class="footer-map-fullwidth">
             <iframe src="https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=203236359108" style="width:100%; height:300px; border:0; display:block;" title="Карта MA Furniture на Яндекс.Картах" loading="lazy"></iframe>
         </div>
-
         <div class="footer-bottom">
             <div class="container"><p>&copy; 2026 MA Furniture. Все права защищены.</p></div>
         </div>
@@ -200,18 +291,10 @@
     </div>
 
     <div class="fullscreen-viewer" id="fullscreenViewer">
-        <button class="fullscreen-close" id="fullscreenClose">
-            <i class="fas fa-times"></i>
-        </button>
-        <button class="fullscreen-nav fullscreen-prev" id="fullscreenPrev">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <button class="fullscreen-nav fullscreen-next" id="fullscreenNext">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-        <div class="fullscreen-image-container">
-            <img id="fullscreenImage" src="" alt="">
-        </div>
+        <button class="fullscreen-close" id="fullscreenClose"><i class="fas fa-times"></i></button>
+        <button class="fullscreen-nav fullscreen-prev" id="fullscreenPrev"><i class="fas fa-chevron-left"></i></button>
+        <button class="fullscreen-nav fullscreen-next" id="fullscreenNext"><i class="fas fa-chevron-right"></i></button>
+        <div class="fullscreen-image-container"><img id="fullscreenImage" src="" alt=""></div>
         <div class="fullscreen-counter" id="fullscreenCounter">1 / 1</div>
     </div>
 
