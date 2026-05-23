@@ -2438,3 +2438,181 @@ body {
         gap: 0.5rem;
     }
 }
+
+/* ========== НОВЫЙ ДИЗАЙН КАРТОЧЕК ТОВАРОВ (в стиле categories.html) ========== */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 35px;
+    margin-top: 40px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+    transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    cursor: pointer;
+    border: 1px solid #f0e7da;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 35px rgba(0,0,0,0.1);
+    border-color: var(--gold, #d4af37);
+}
+
+.product-card-image {
+    height: 240px;
+    background-size: cover;
+    background-position: center;
+    background-color: #faf8f4;
+    position: relative;
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-card-image {
+    transform: scale(1.02);
+}
+
+.product-card-image .fallback-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    color: var(--gold, #d4af37);
+    opacity: 0.5;
+}
+
+.product-card-body {
+    padding: 24px 24px 20px;
+    flex: 1;
+}
+
+.product-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    color: var(--dark, #2c2c2c);
+    line-height: 1.3;
+}
+
+.product-card-description {
+    color: #5a5a5a;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.product-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.product-min-price {
+    font-weight: 700;
+    color: var(--gold, #d4af37);
+    background: rgba(212, 175, 55, 0.1);
+    padding: 5px 12px;
+    border-radius: 40px;
+    font-size: 0.9rem;
+}
+
+.product-stock-badge {
+    padding: 5px 12px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: #f8f9fa;
+}
+.product-stock-badge.in-stock { color: #27ae60; background: rgba(39,174,96,0.1); }
+.product-stock-badge.on-order { color: #d4af37; background: rgba(212,175,55,0.1); }
+.product-stock-badge.out-of-stock { color: #95a5a6; background: rgba(149,165,166,0.1); }
+
+.btn-view-category {
+    width: calc(100% - 48px);
+    margin: 0 24px 24px 24px;
+    background: transparent;
+    border: 2px solid var(--gold, #d4af37);
+    color: var(--gold, #d4af37);
+    padding: 12px;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.btn-view-category:hover:not(:disabled) {
+    background: var(--gold, #d4af37);
+    color: white;
+    transform: translateY(-2px);
+}
+.btn-view-category:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.product-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 2;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+}
+.product-badge.hit { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }
+.product-badge.new { background: linear-gradient(135deg, #27ae60, #219a52); color: white; }
+.product-badge.sale { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; }
+.product-badge.exclusive { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; }
+.product-badge.premium { background: linear-gradient(135deg, #d4af37, #b8941f); color: white; }
+
+.product-link-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    .product-card-title {
+        font-size: 1.3rem;
+    }
+    .btn-view-category {
+        width: calc(100% - 32px);
+        margin: 0 16px 16px 16px;
+    }
+}
+@media (max-width: 480px) {
+    .product-card-image {
+        height: 200px;
+    }
+    .product-card-body {
+        padding: 16px;
+    }
+}
