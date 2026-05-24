@@ -2692,3 +2692,78 @@ body {
         margin-bottom: 15px;
     }
 }
+
+.product-price,
+.stock-badge,
+.price-on-request {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 40px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    background: white;
+    border: 2px solid var(--gold, #d4af37);
+    color: var(--gold, #d4af37);
+    transition: all 0.2s ease;
+}
+
+/* Цена "под заказ" – тот же вид, что и бейдж наличия "Под заказ" */
+.price-on-request {
+    background: white;
+    border-color: var(--gold, #d4af37);
+    color: var(--gold, #d4af37);
+}
+
+/* Бейдж наличия "В наличии" – зелёная рамка */
+.stock-badge.in-stock {
+    border-color: #27ae60;
+    color: #27ae60;
+}
+
+/* Бейдж наличия "Нет в наличии" – серая рамка */
+.stock-badge.out-of-stock {
+    border-color: #95a5a6;
+    color: #95a5a6;
+}
+
+/* Фиксация бейджей над кнопкой – гарантия положения */
+.product-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card-meta {
+    margin-top: auto;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Адаптивность для маленьких экранов */
+@media (max-width: 480px) {
+    .product-price,
+    .stock-badge,
+    .price-on-request {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    .product-card-meta {
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+}
+
+/* Старая цена (зачёркнутая) */
+.product-price .old-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.8rem;
+    font-weight: normal;
+    margin-left: 8px;
+}

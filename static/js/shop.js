@@ -40,12 +40,13 @@ function getMinPrice(product) {
  * Поддерживает:
  * - Цена под заказ (is_price_on_request)
  * - Товар с вариантами → «от X ₽»
- * - Акционная цена, если old_price < price → «от old_price»
+ * - Акционная цена: если old_price < price → «от old_price ₽» + зачёркнутая новая цена
  */
 function formatCardPrice(product) {
     const isPriceOnRequest = product.is_price_on_request === 1;
     if (isPriceOnRequest) {
-        return `<span class="product-price price-on-request">Цена под заказ</span>`;
+        // Бейдж "Цена под заказ" – единый стиль с бейджем наличия
+        return `<span class="price-on-request">Цена под заказ</span>`;
     }
     
     const hasVariants = product.color_variants && product.color_variants.length > 0;
@@ -63,9 +64,12 @@ function formatCardPrice(product) {
     }
     
     const formatted = `${prefix}${dataManager.formatPrice(displayPrice)} ₽`;
+    
+    // Старая цена отображается зачёркнутой только в случае акции (old_price < price) и при отсутствии вариантов
     let oldPriceHtml = '';
     if (!hasVariants && product.old_price && product.old_price > product.price) {
-        oldPriceHtml = `<span class="old-price">${dataManager.formatPrice(product.old_price)} ₽</span>`;
+        // Показываем зачёркнутую новую цену (которая выше старой)
+        oldPriceHtml = `<span class="old-price">${dataManager.formatPrice(product.price)} ₽</span>`;
     }
     
     return `<span class="product-price">${formatted} ${oldPriceHtml}</span>`;
