@@ -1,0 +1,504 @@
+/* ======= ОСНОВНЫЕ СТИЛИ (сохранены все секции about, включая hero) ======= */
+:root {
+    --gold: #d4af37;
+    --primary: #8B7355;
+    --dark: #2c2c2c;
+    --light-bg: #faf8f4;
+    --text-muted: #5a5a5a;
+}
+
+body {
+    padding-top: 0;
+    background-color: white;
+}
+
+/* === СТИЛИ HERO (ТОЧНО КАК В INDEX.HTML) === */
+.hero-section {
+    position: relative;
+    height: 100vh;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-top: 80px;
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('./images/hero.jpg') center/cover no-repeat;
+    z-index: -2;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: -1;
+}
+
+.hero-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 30px;
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(0px);
+}
+
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--text-dark);
+    line-height: 1.2;
+    text-align: center;
+}
+
+.hero-title .brand-name {
+    display: block;
+    font-size: 3.8rem;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.hero-title .brand-subtitle {
+    display: block;
+    font-size: 1.8rem;
+    color: var(--text-dark);
+    font-weight: 500;
+    line-height: 1.4;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--primary-color);
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 2.5rem;
+    color: var(--text-dark);
+    line-height: 1.6;
+    font-weight: 500;
+    text-align: center;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.brand-name {
+    display: block;
+    font-size: 3.5rem;
+    letter-spacing: 2px;
+}
+.brand-subtitle {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin-top: 0.5rem;
+}
+.hero-subtitle {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    margin: 20px 0;
+    opacity: 0.9;
+}
+.hero-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+.btn-secondary {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 40px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+.btn-secondary:hover {
+    background: white;
+    color: var(--dark);
+    transform: translateY(-3px);
+}
+.scroll-indicator {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    cursor: pointer;
+    animation: bounce 2s infinite;
+}
+.scroll-arrow {
+    width: 30px;
+    height: 30px;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    transform: rotate(45deg);
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(10px); }
+}
+
+/* Общие секции */
+.about-section {
+    padding: 80px 0;
+    border-bottom: 1px solid #eee;
+}
+.about-section:last-child {
+    border-bottom: none;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+.section-title {
+    font-size: 2.6rem;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    color: var(--dark);
+    font-family: 'Playfair Display', serif;
+    font-weight: 500;
+}
+.section-subtitle {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--primary);
+    margin-bottom: 3rem;
+    letter-spacing: 0.5px;
+}
+.text-block {
+    max-width: 850px;
+    margin: 0 auto 2rem auto;
+    font-size: 1.08rem;
+    line-height: 1.75;
+    color: #3a3a3a;
+}
+.text-block p {
+    margin-bottom: 1.4rem;
+}
+
+/* Цитата */
+.quote-block {
+    background: var(--light-bg);
+    padding: 50px 30px;
+    text-align: center;
+    border-radius: 40px;
+    margin: 50px 0;
+    font-style: italic;
+    font-size: 1.4rem;
+    color: #2c2c2c;
+    border-left: 5px solid var(--gold);
+}
+
+/* Статистика (лаконичная) */
+.stats-minimal {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+    margin: 60px 0 30px;
+}
+.stat-mini {
+    text-align: center;
+}
+.stat-mini-number {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    font-family: 'Playfair Display', serif;
+}
+.stat-mini-label {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #777;
+}
+
+/* Годовая линия истории */
+.timeline {
+    max-width: 900px;
+    margin: 50px auto;
+}
+.timeline-item {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+    align-items: flex-start;
+}
+.timeline-year {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 100px;
+    font-family: 'Playfair Display', serif;
+}
+.timeline-desc {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #444;
+}
+
+/* Ценности (простые списки) */
+.values-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 35px;
+    margin: 50px 0;
+}
+.value-item {
+    background: white;
+    padding: 25px 20px;
+    border-radius: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+    border: 1px solid #f0e7da;
+    transition: 0.2s;
+}
+.value-item:hover {
+    border-color: var(--gold);
+}
+.value-item h3 {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+    color: var(--dark);
+    font-weight: 500;
+}
+.value-item p {
+    color: #5a5a5a;
+    line-height: 1.5;
+}
+
+/* Юридическая информация */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin: 40px 0;
+}
+.info-card {
+    background: var(--light-bg);
+    padding: 22px 25px;
+    border-radius: 16px;
+}
+.info-card .label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--primary);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+.info-card .value {
+    font-size: 1rem;
+    color: #333;
+}
+
+.contact-simple {
+    background: white;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+    margin-top: 30px;
+    text-align: center;
+}
+.contact-row {
+    margin: 15px 0;
+}
+
+/* Форма обратной связи */
+.feedback-form {
+    max-width: 700px;
+    margin: 40px auto 0;
+    background: #fff;
+    padding: 35px;
+    border-radius: 28px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #e2dfda;
+    border-radius: 16px;
+    font-size: 1rem;
+    transition: 0.2s;
+}
+.form-group input:focus, .form-group textarea:focus {
+    border-color: var(--gold);
+    outline: none;
+}
+.submit-btn {
+    background: var(--dark);
+    color: white;
+    border: none;
+    padding: 14px;
+    width: 100%;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.submit-btn:hover {
+    background: var(--gold);
+    color: #222;
+}
+
+/* Анимация при прокрутке */
+.reveal {
+    opacity: 0;
+    transform: translateY(25px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ======= DROPDOWN — ГЛАДКАЯ КНОПКА С ОТСТУПОМ ======= */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+.dropdown-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 1px solid var(--primary);
+    border-radius: 40px;
+    padding: 10px 24px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--dark);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.dropdown-toggle i {
+    color: var(--gold);
+    font-size: 1rem;
+}
+.dropdown-toggle:hover {
+    background: var(--light-bg);
+    border-color: var(--gold);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+.dropdown-toggle:active {
+    transform: translateY(0);
+}
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    min-width: 100%;
+    background: white;
+    border: 1px solid #e2dfda;
+    border-radius: 20px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    z-index: 1000;
+    overflow: hidden;
+    margin-top: 12px;
+}
+.dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--dark);
+    text-decoration: none;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f5f0ea;
+    font-size: 0.95rem;
+}
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+.dropdown-item i {
+    width: 22px;
+    color: var(--gold);
+    font-size: 1rem;
+}
+.dropdown-item:hover {
+    background: var(--light-bg);
+    color: var(--primary);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .dropdown-toggle {
+        padding: 8px 18px;
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+    .dropdown-menu {
+        min-width: 240px;
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+    }
+    .dropdown-menu.show {
+        transform: translateX(-50%) translateY(0);
+    }
+    .hero-title .brand-name {
+        font-size: 2.5rem;
+    }
+    .hero-title .brand-subtitle {
+        font-size: 1.2rem;
+    }
+    .section-title {
+        font-size: 2rem;
+    }
+    .timeline-item {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .timeline-year {
+        margin-bottom: 5px;
+    }
+    .stats-minimal {
+        gap: 30px;
+    }
+}
