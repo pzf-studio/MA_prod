@@ -22,15 +22,53 @@ function initializeCart() {
     }
 }
 
-// Вспомогательная функция: форматирование цены для карточки с учётом "От"
-function formatCardPrice(product) {
-    const price = product.price || 0;
-    const oldPrice = product.old_price;
-    if (oldPrice != null && price > oldPrice) {
-        return `<span class="current-price">От ${dataManager.formatPrice(oldPrice)}</span>`;
+/**
+ * Возвращает минимальную цену товара с учётом цветовых вариантов
+ */
+function getMinPrice(product) {
+    let prices = [product.price || 0];
+    if (product.color_variants && Array.isArray(product.color_variants)) {
+        product.color_variants.forEach(variant => {
+            if (variant.price && variant.price > 0) prices.push(variant.price);
+        });
     }
-    const oldPriceHtml = oldPrice ? `<span class="old-price">${dataManager.formatPrice(oldPrice)}</span>` : '';
-    return `<span class="current-price">${dataManager.formatPrice(price)}</span> ${oldPriceHtml}`;
+    return Math.min(...prices);
+}
+
+/**
+ * Форматирует отображение цены для карточки товара
+ * Поддерживает:
+ * - Цена под заказ (is_price_on_request)
+ * - Товар с вариантами → «от X ₽»
+ * - Акционная цена, если old_price < price → «от old_price»
+ */
+function formatCardPrice(product) {
+    const isPriceOnRequest = product.is_price_on_request === 1;
+    if (isPriceOnRequest) {
+        return `<span class="product-price price-on-request">Цена под заказ</span>`;
+    }
+    
+    const hasVariants = product.color_variants && product.color_variants.length > 0;
+    const isPromo = product.old_price != null && product.price > product.old_price;
+    
+    let displayPrice = product.price;
+    let prefix = '';
+    
+    if (hasVariants) {
+        displayPrice = getMinPrice(product);
+        prefix = 'от ';
+    } else if (isPromo) {
+        displayPrice = product.old_price;
+        prefix = 'от ';
+    }
+    
+    const formatted = `${prefix}${dataManager.formatPrice(displayPrice)} ₽`;
+    let oldPriceHtml = '';
+    if (!hasVariants && product.old_price && product.old_price > product.price) {
+        oldPriceHtml = `<span class="old-price">${dataManager.formatPrice(product.old_price)} ₽</span>`;
+    }
+    
+    return `<span class="product-price">${formatted} ${oldPriceHtml}</span>`;
 }
 
 async function initializeProducts() {
@@ -130,18 +168,8 @@ async function initializeProducts() {
         }
         const imagePlaceholder = `<div class="image-placeholder" style="${product.images && product.images.length > 0 ? 'display: none;' : 'display: flex;'}"><i class="fas fa-couch"></i></div>`;
 
-        // Цена
-        let priceHtml = '';
-        if (product.availability === 1) {
-            if (product.is_price_on_request === 1) {
-                priceHtml = `<span class="product-price">${dataManager.formatPrice(product.price)}</span>`;
-            } else {
-                priceHtml = `<span class="product-price price-on-request">Цена под заказ</span>`;
-            }
-        } else {
-            let oldPriceHtml = product.old_price ? `<span class="old-price">${dataManager.formatPrice(product.old_price)}</span>` : '';
-            priceHtml = `<span class="product-price">${dataManager.formatPrice(product.price)} ${oldPriceHtml}</span>`;
-        }
+        // Цена (обновлённая логика)
+        const priceHtml = formatCardPrice(product);
 
         // Статус наличия
         let stockText = '', stockClass = '';
@@ -149,10 +177,12 @@ async function initializeProducts() {
         if (product.availability === 1) {
             stockText = 'Под заказ';
             stockClass = 'on-order';
+            addToCartDisabled = false;
         } else {
             if (product.stock > 0) {
                 stockText = 'В наличии';
                 stockClass = 'in-stock';
+                addToCartDisabled = false;
             } else {
                 stockText = 'Нет в наличии';
                 stockClass = 'out-of-stock';
@@ -246,7 +276,6 @@ async function initializeProducts() {
             });
         });
         
-        // Остальной код (клик по карточке) без изменений
         document.querySelectorAll('.product-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.btn-add-to-cart')) return;
@@ -300,7 +329,6 @@ async function initializeProducts() {
                     renderProducts();
                 });
                 catalogFilters.appendChild(filterBtn);
-                
             });
             
         } catch (error) {
