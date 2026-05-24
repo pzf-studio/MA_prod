@@ -36,6 +36,9 @@
 │   │   ├── 📄 techdocks.html
 │   │   └── 📄 upload-handler.php
 │   ├── 📁 css
+│   │   ├── 📄 about.css
+│   │   ├── 📄 categories.css
+│   │   ├── 📄 contact.css
 │   │   ├── 📄 index.css
 │   │   ├── 📄 piece.css
 │   │   └── 📄 shop.css
@@ -49,10 +52,14 @@
 │   │   ├── 📄 IMG_2152.jpeg
 │   │   ├── 📄 IMG_2153.png
 │   │   ├── 📄 logo.png
-│   │   └── 📄 logo2.png
+│   │   ├── 📄 logo2.png
+│   │   └── 📄 no-image-category.png
 │   ├── 📁 js
+│   │   ├── 📄 about.js
 │   │   ├── 📄 cart.js
+│   │   ├── 📄 categories.js
 │   │   ├── 📄 color-picker.js
+│   │   ├── 📄 contact.js
 │   │   ├── 📄 data-manager.js
 │   │   ├── 📄 index.js
 │   │   ├── 📄 piece.js
