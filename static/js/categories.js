@@ -1,40 +1,42 @@
-// Простая заглушка для корзины (демонстрация стилей, без бэкенда)
-// Чтобы не ломать дизайн, реализован базовый каркас с возможностью добавления (можно расширить)
-// Основная задача — стили. Добавлены минимальные обработчики для демонстрации попапов.
-
+// ========== КОРЗИНА И МОДАЛКА (обёрнуты в проверку наличия элемента) ==========
 const cartIcon = document.getElementById('cartIcon');
-const cartOverlay = document.getElementById('cartOverlay');
-const closeCartBtn = document.getElementById('closeCartBtn');
-const continueBtn = document.getElementById('continueShoppingBtn');
-const checkoutBtn = document.getElementById('checkoutBtn');
-const checkoutModal = document.getElementById('checkoutModal');
-const closeCheckoutModal = document.getElementById('closeCheckoutModal');
 
-function openCart() {
-    cartOverlay.classList.add('active');
-}
-function closeCart() {
-    cartOverlay.classList.remove('active');
-}
-function openCheckout() {
-    closeCart();
-    checkoutModal.classList.add('active');
-}
-function closeCheckout() {
-    checkoutModal.classList.remove('active');
+if (cartIcon) {
+    const cartOverlay = document.getElementById('cartOverlay');
+    const closeCartBtn = document.getElementById('closeCartBtn');
+    const continueBtn = document.getElementById('continueShoppingBtn');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const checkoutModal = document.getElementById('checkoutModal');
+    const closeCheckoutModal = document.getElementById('closeCheckoutModal');
+
+    function openCart() {
+        cartOverlay.classList.add('active');
+    }
+    function closeCart() {
+        cartOverlay.classList.remove('active');
+    }
+    function openCheckout() {
+        closeCart();
+        checkoutModal.classList.add('active');
+    }
+    function closeCheckout() {
+        checkoutModal.classList.remove('active');
+    }
+
+    cartIcon.addEventListener('click', openCart);
+    closeCartBtn.addEventListener('click', closeCart);
+    continueBtn.addEventListener('click', closeCart);
+    checkoutBtn.addEventListener('click', openCheckout);
+    closeCheckoutModal.addEventListener('click', closeCheckout);
+    window.addEventListener('click', (e) => {
+        if (e.target === cartOverlay) closeCart();
+        if (e.target === checkoutModal) closeCheckout();
+    });
+} else {
+    console.warn('Иконка корзины не найдена, корзина отключена');
 }
 
-cartIcon.addEventListener('click', openCart);
-closeCartBtn.addEventListener('click', closeCart);
-continueBtn.addEventListener('click', closeCart);
-checkoutBtn.addEventListener('click', openCheckout);
-closeCheckoutModal.addEventListener('click', closeCheckout);
-window.addEventListener('click', (e) => {
-    if (e.target === cartOverlay) closeCart();
-    if (e.target === checkoutModal) closeCheckout();
-});
-
-// Загрузка категорий с сервера
+// ========== ЗАГРУЗКА КАТЕГОРИЙ ==========
 async function loadCategories() {
     try {
         const res = await fetch('/api/categories/public');
@@ -98,17 +100,32 @@ function renderCategories(categories) {
 
 loadCategories();
 
-// Для меню-бургера (простое переключение)
-const menuToggle = document.getElementById('menuToggle');
-const navMenu = document.querySelector('.main-nav');
-if(menuToggle) {
-    menuToggle.addEventListener('click', () => {
-        if(navMenu.style.display === 'flex') navMenu.style.display = 'none';
-        else navMenu.style.display = 'flex';
-    });
-}
+// ========== DROPDOWN ЛОГИКА ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdown = document.getElementById('contactDropdown');
+    const toggleBtn = document.getElementById('dropdownToggleBtn');
+    const menu = document.getElementById('dropdownMenu');
 
-// ========== Защита от копирования и просмотра кода ==========
+    if (dropdown && toggleBtn && menu) {
+        function closeDropdown() { menu.classList.remove('show'); }
+        function toggleDropdown(e) { 
+            e.stopPropagation(); 
+            menu.classList.toggle('show'); 
+        }
+        toggleBtn.addEventListener('click', toggleDropdown);
+        document.addEventListener('click', function(event) {
+            if (!dropdown.contains(event.target)) closeDropdown();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && menu.classList.contains('show')) closeDropdown();
+        });
+        console.log('Dropdown инициализирован');
+    } else {
+        console.warn('Элементы dropdown не найдены');
+    }
+});
+
+// ========== ЗАЩИТА ОТ КОПИРОВАНИЯ ==========
 (function(){
     if(window.console){
         var noop = function(){};
@@ -130,3 +147,14 @@ if(menuToggle) {
     });
     window.addEventListener('beforeunload',function(){});
 })();
+
+// ========== БУРГЕР-МЕНЮ (с защитой от ошибок) ==========
+const menuToggle = document.getElementById('menuToggle');
+if (menuToggle) {
+    menuToggle.addEventListener('click', () => {
+        const nav = document.querySelector('.main-nav');
+        if (nav) {
+            nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+        }
+    });
+}

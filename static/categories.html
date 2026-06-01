@@ -7,7 +7,7 @@
     <meta name="description" content="Категории товаров MA Furniture: пантографы, гардеробные системы, обувницы. Премиум качество.">
     <link rel="icon" href="/static/images/logo2.png" type="image/png">
 
-    <!-- Fonts & Icons (как в about.html) -->
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -16,48 +16,51 @@
 </head>
 <body>
 
-    <!-- ШАПКА (полностью в стиле about) -->
+    <!-- ========== ЕДИНЫЙ HEADER (как в index.html) ========== -->
     <header class="header">
         <div class="container">
             <div class="header-content">
                 <div class="logo">
                     <a href="./index.html">
                         <div class="logo-container">
-                            <img src="./images/logo2.png" alt="MA Furniture" class="logo-image">
+                            <img src="/static/images/logo2.png" alt="MA Furniture" class="logo-image">
                             <div class="logo-text-container">
                                 <span class="logo-text">MA FURNITURE</span>
                             </div>
                         </div>
                     </a>
                 </div>
-
                 <nav class="main-nav">
                     <ul>
                         <li><a href="./index.html">Главная</a></li>
-                        <li><a href="./shop.html">Каталог</a></li>
-                        <li><a href="./about.html">О компании</a></li>
+                        <li><a href="./categories.html">Каталог</a></li>
+                        <li><a href="./about.html">О нас</a></li>
                         <li><a href="./index.html#faq">FAQ</a></li>
                     </ul>
                 </nav>
-
                 <div class="header-actions">
-                    <div class="cart-icon" id="cartIcon">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="cart-count" id="cartCount">0</span>
+                    <div class="dropdown" id="contactDropdown">
+                        <button class="dropdown-toggle" id="dropdownToggleBtn">
+                            <i class="fas fa-phone-alt"></i>
+                            <span>Связаться с нами</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="tel:+79100053424" class="dropdown-item">
+                                <i class="fas fa-phone-alt"></i>
+                                <span>+7 (910) 005-34-24</span>
+                            </a>
+                            <a href="./contact.html" class="dropdown-item">
+                                <i class="fas fa-comments"></i>
+                                <span>Связаться с менеджером</span>
+                            </a>
+                        </div>
                     </div>
-                    <a href="tel:+79100053424" class="btn-phone">
-                        <i class="fas fa-phone-alt"></i>
-                        <span>+7 (910) 005-34-24</span>
-                    </a>
-                    <button class="menu-toggle" id="menuToggle">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
                 </div>
             </div>
         </div>
     </header>
+    <!-- ========== КОНЕЦ HEADER ========== -->
 
     <!-- ОСНОВНОЙ КОНТЕНТ СТРАНИЦЫ КАТЕГОРИЙ -->
     <section class="categories-page">
