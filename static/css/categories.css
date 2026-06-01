@@ -1,10 +1,20 @@
-/* ========== ОБЩИЕ СТИЛИ (полностью из about.html) ========== */
+/* ========== ОБЩИЕ СТИЛИ ========== */
 :root {
     --gold: #d4af37;
     --primary: #8B7355;
     --dark: #2c2c2c;
     --light-bg: #faf8f4;
     --text-muted: #5a5a5a;
+    --primary-color: #8B7355;
+    --primary-dark: #6d5c46;
+    --secondary-color: #333;
+    --text-dark: #333;
+    --text-light: #666;
+    --bg-light: #f8f8f8;
+    --border-color: #e0e0e0;
+    --white: #ffffff;
+    --shadow: 0 5px 15px rgba(0,0,0,0.1);
+    --transition: all 0.3s ease;
 }
 
 * {
@@ -27,166 +37,196 @@ body {
     padding: 0 24px;
 }
 
-/* ========== ШАПКА (как в about.html через index.css) ========== */
+/* ========== СТИЛИ HEADER (из index.css) ========== */
 .header {
+    background: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    background: white;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-    z-index: 100;
-    backdrop-filter: blur(0px);
+    right: 0;
+    z-index: 1000;
     transition: all 0.3s ease;
 }
 
 .header-content {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 15px 0;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 1rem 0;
 }
 
 .logo a {
     text-decoration: none;
+    color: var(--text-dark);
 }
 
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
 }
 
 .logo-image {
-    height: 50px;
-    width: auto;
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 4px;
 }
 
 .logo-text-container {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
 }
 
 .logo-text {
     font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
+    font-size: 1.8rem;
     font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--dark);
-    background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
+    letter-spacing: 2px;
+    display: block;
+    line-height: 1;
+    text-align: left;
 }
 
 .main-nav ul {
     display: flex;
     list-style: none;
-    gap: 32px;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
 }
 
 .main-nav a {
     text-decoration: none;
-    color: var(--dark);
+    color: var(--text-dark);
     font-weight: 500;
-    transition: color 0.3s;
-    font-size: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    padding: 0.5rem 0;
 }
 
 .main-nav a:hover {
-    color: var(--gold);
+    color: var(--primary-color);
+}
+
+.main-nav a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.main-nav a:hover::after {
+    width: 100%;
 }
 
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 1rem;
 }
 
-/* Кнопка телефона в стиле about (как btn-outline) */
-.btn-phone {
+/* ========== СТИЛИ DROPDOWN (из index.css) ========== */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+.dropdown-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: transparent;
-    border: 2px solid var(--gold);
-    color: var(--gold);
-    padding: 8px 20px;
+    gap: 10px;
+    background: white;
+    border: 1px solid var(--primary);
     border-radius: 40px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    font-size: 0.9rem;
-}
-
-.btn-phone:hover {
-    background: var(--gold);
-    color: white;
-    transform: translateY(-2px);
-}
-
-/* Иконка корзины в стиле about */
-.cart-icon {
-    position: relative;
-    background: transparent;
-    border: 2px solid var(--gold);
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--gold);
-    transition: all 0.3s ease;
-    font-size: 1.2rem;
-}
-
-.cart-icon:hover {
-    background: var(--gold);
-    color: white;
-    transform: scale(1.02);
-}
-
-.cart-count {
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: var(--gold);
+    padding: 10px 24px;
+    font-size: 0.95rem;
+    font-weight: 500;
     color: var(--dark);
-    font-size: 0.7rem;
-    font-weight: bold;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-family: sans-serif;
-}
-
-.cart-count.show {
-    display: flex;
-}
-
-.menu-toggle {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: none;
-    border: none;
     cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.dropdown-toggle i {
+    color: var(--gold);
+    font-size: 1rem;
+}
+.dropdown-toggle:hover {
+    background: #faf8f4;
+    border-color: var(--gold);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    min-width: 100%;
+    background: white;
+    border: 1px solid #e2dfda;
+    border-radius: 20px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    z-index: 1000;
+    overflow: hidden;
+    margin-top: 12px;
+}
+.dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: #2c2c2c;
+    text-decoration: none;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f5f0ea;
+    font-size: 0.95rem;
+}
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+.dropdown-item i {
+    width: 22px;
+    color: var(--gold);
+    font-size: 1rem;
+}
+.dropdown-item:hover {
+    background: #faf8f4;
+    color: #8B7355;
+}
+@media (max-width: 768px) {
+    .dropdown-toggle {
+        padding: 8px 18px;
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+    .dropdown-menu {
+        min-width: 240px;
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+    }
+    .dropdown-menu.show {
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
-.menu-toggle span {
-    width: 25px;
-    height: 2px;
-    background: var(--dark);
-    transition: 0.3s;
-}
-
-/* ========== ФУТЕР (как в about.html) ========== */
+/* ========== ФУТЕР (остался без изменений) ========== */
 .main-footer {
     background: var(--light-bg);
     padding: 60px 0 20px;
@@ -300,7 +340,6 @@ body {
     margin-bottom: 3rem;
 }
 
-/* Сетка категорий (унифицированный дизайн) */
 .categories-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -417,7 +456,7 @@ body {
     transform: translateY(-2px);
 }
 
-/* ========== СТИЛИ КОРЗИНЫ (адаптированы под about) ========== */
+/* ========== СТИЛИ КОРЗИНЫ ========== */
 .cart-overlay {
     position: fixed;
     top: 0;
@@ -739,13 +778,22 @@ body {
     transition: 0.3s;
 }
 
-/* Адаптивность */
+/* ========== АНИМАЦИЯ ========== */
+.reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ========== АДАПТИВНОСТЬ ========== */
 @media (max-width: 768px) {
     .main-nav {
         display: none;
-    }
-    .menu-toggle {
-        display: flex;
     }
     .cart-sidebar {
         width: 100%;
@@ -765,16 +813,4 @@ body {
     .social-links {
         justify-content: center;
     }
-}
-
-/* Анимация появления */
-.reveal {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
 }
