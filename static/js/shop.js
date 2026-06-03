@@ -37,42 +37,46 @@ function getMinPrice(product) {
 
 /**
  * Форматирует отображение цены для карточки товара
- * Поддерживает:
- * - Цена под заказ (is_price_on_request)
- * - Товар с вариантами → «от X ₽»
- * - Акционная цена: если old_price < price → «от old_price ₽» + зачёркнутая новая цена
+ * Логика:
+ * 1. Цена под заказ → бейдж "Цена под заказ"
+ * 2. Есть цветовые варианты → "от минимальной цены вариантов"
+ * 3. Нет вариантов:
+ *    - old_price > price (акция) → показываем текущую цену, старую зачёркнутой
+ *    - price > old_price (цена выросла) → "от old_price"
+ *    - old_price отсутствует → просто цена
  */
 function formatCardPrice(product) {
     const isPriceOnRequest = product.is_price_on_request === 1;
     if (isPriceOnRequest) {
-        // Бейдж "Цена под заказ" – единый стиль с бейджем наличия
         return `<span class="price-on-request">Цена под заказ</span>`;
     }
     
     const hasVariants = product.color_variants && product.color_variants.length > 0;
-    const isPromo = product.old_price != null && product.price > product.old_price;
     
-    let displayPrice = product.price;
-    let prefix = '';
-    
+    // Если есть варианты – показываем "от минимальной цены"
     if (hasVariants) {
-        displayPrice = getMinPrice(product);
-        prefix = 'от ';
-    } else if (isPromo) {
-        displayPrice = product.old_price;
-        prefix = 'от ';
+        const minPrice = getMinPrice(product);
+        return `<span class="product-price">от ${dataManager.formatPrice(minPrice)} ₽</span>`;
     }
     
-    const formatted = `${prefix}${dataManager.formatPrice(displayPrice)} ₽`;
+    // Без вариантов
+    const hasOldPrice = product.old_price != null && product.old_price > 0;
     
-    // Старая цена отображается зачёркнутой только в случае акции (old_price < price) и при отсутствии вариантов
-    let oldPriceHtml = '';
-    if (!hasVariants && product.old_price && product.old_price > product.price) {
-        // Показываем зачёркнутую новую цену (которая выше старой)
-        oldPriceHtml = `<span class="old-price">${dataManager.formatPrice(product.price)} ₽</span>`;
+    // Акция: старая цена выше текущей
+    if (hasOldPrice && product.old_price > product.price) {
+        return `<span class="product-price">
+                    ${dataManager.formatPrice(product.price)} ₽
+                    <span class="old-price">${dataManager.formatPrice(product.old_price)} ₽</span>
+                </span>`;
     }
     
-    return `<span class="product-price">${formatted} ${oldPriceHtml}</span>`;
+    // Цена выросла (текущая больше старой) – показываем "от старой цены"
+    if (hasOldPrice && product.price > product.old_price) {
+        return `<span class="product-price">от ${dataManager.formatPrice(product.old_price)} ₽</span>`;
+    }
+    
+    // Обычная цена без старой
+    return `<span class="product-price">${dataManager.formatPrice(product.price)} ₽</span>`;
 }
 
 async function initializeProducts() {
