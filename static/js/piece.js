@@ -29,22 +29,50 @@ async function initializeProductPage() {
     }
 }
 
-// Вспомогательная функция: форматирование цены с учётом условия "От"
-function formatDisplayPrice(productOrVariant) {
+/**
+ * Форматирование отображения цены на странице товара (piece.html)
+ * Логика:
+ * 1. Если is_price_on_request == 1 → "Цена под заказ"
+ * 2. Иначе если price == 0 и (old_price == 0 или null/undefined) → "Под заказ"
+ * 3. Иначе:
+ *    - old_price > price → показываем price (скидка) + зачёркнутый old_price
+ *    - price > old_price (и old_price > 0) → "От old_price"
+ *    - иначе → просто price
+ */
+function formatPiecePrice(productOrVariant) {
     const price = productOrVariant.price !== undefined ? productOrVariant.price : 0;
-    const oldPrice = productOrVariant.old_price;
-    // Если есть старая цена и текущая цена больше старой -> "От old_price"
-    if (oldPrice != null && price > oldPrice) {
+    const oldPrice = productOrVariant.old_price != null ? productOrVariant.old_price : null;
+    const isPriceOnRequest = productOrVariant.is_price_on_request === 1;
+
+    // 1. Цена под заказ по флагу
+    if (isPriceOnRequest) {
+        return `<span class="price-on-request">Цена под заказ</span>`;
+    }
+
+    // 2. Цена 0 и старая цена отсутствует или 0 → "Под заказ"
+    if (price === 0 && (oldPrice === null || oldPrice === 0)) {
+        return `<span class="price-on-request">Под заказ</span>`;
+    }
+
+    // 3. Обычная цена
+    // Если есть старая цена и она больше текущей → акция
+    if (oldPrice !== null && oldPrice > price) {
+        return `<span class="current-price">${dataManager.formatPrice(price)}</span> <span class="old-price">${dataManager.formatPrice(oldPrice)}</span>`;
+    }
+
+    // Если текущая цена больше старой (и старая > 0) → "От old_price"
+    if (oldPrice !== null && price > oldPrice && oldPrice > 0) {
         return `<span class="current-price">От ${dataManager.formatPrice(oldPrice)}</span>`;
     }
-    // Иначе обычное отображение
-    const oldPriceHtml = oldPrice ? `<span class="old-price">${dataManager.formatPrice(oldPrice)}</span>` : '';
-    return `<span class="current-price">${dataManager.formatPrice(price)}</span> ${oldPriceHtml}`;
+
+    // Просто цена (oldPrice может быть null или 0)
+    return `<span class="current-price">${dataManager.formatPrice(price)}</span>`;
 }
 
 function renderProduct(product) {
     document.title = `${product.name} - MA Furniture`;
     
+    // Основное изображение
     const mainImage = document.getElementById('productMainImage');
     if (mainImage) {
         if (product.images && product.images.length > 0) {
@@ -58,6 +86,7 @@ function renderProduct(product) {
         }
     }
     
+    // Миниатюры
     const thumbnails = document.getElementById('productThumbnails');
     if (thumbnails && product.images && product.images.length > 1) {
         thumbnails.innerHTML = '';
@@ -78,46 +107,42 @@ function renderProduct(product) {
         });
     }
     
+    // Название
     const nameElement = document.getElementById('productName');
     if (nameElement) nameElement.textContent = product.name;
     
+    // Бейдж
+    const badgeElement = document.getElementById('productBadge');
+    if (badgeElement && product.badge) {
+        badgeElement.textContent = product.badge;
+        badgeElement.className = `product-badge ${getBadgeClass(product.badge)}`;
+        badgeElement.style.display = 'block';
+    } else if (badgeElement) {
+        badgeElement.style.display = 'none';
+    }
+    
+    // Цена и наличие
     const priceElement = document.getElementById('productPrice');
     const stockElement = document.getElementById('productStock');
     const addToCartBtn = document.getElementById('addToCartBtn');
     
-    const isOnOrder = (product.availability === 1);
-    const showPrice = (product.is_price_on_request === 1);
+    // Отображаем цену согласно новой логике
+    if (priceElement) {
+        priceElement.innerHTML = formatPiecePrice(product);
+    }
     
+    // Наличие
+    const isOnOrder = (product.availability === 1);
     if (isOnOrder) {
         if (stockElement) {
             stockElement.textContent = 'Под заказ';
             stockElement.className = 'order-badge';
         }
-        if (showPrice) {
-            if (priceElement) {
-                priceElement.innerHTML = formatDisplayPrice(product);
-            }
-        } else {
-            if (priceElement) {
-                priceElement.innerHTML = `<span class="price-on-request">Цена под заказ</span>`;
-            }
-        }
         if (addToCartBtn) {
             addToCartBtn.disabled = false;
             addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
-            addToCartBtn.onclick = () => {
-                if (window.cartSystem) {
-                    window.cartSystem.addToCart(product);
-                } else {
-                    showNotification('Корзина недоступна', 'error');
-                }
-            };
         }
     } else {
-        // Товар в наличии
-        if (priceElement) {
-            priceElement.innerHTML = formatDisplayPrice(product);
-        }
         if (stockElement) {
             if (product.stock > 10) {
                 stockElement.textContent = 'В наличии';
@@ -128,40 +153,47 @@ function renderProduct(product) {
             } else {
                 stockElement.textContent = 'Нет в наличии';
                 stockElement.className = 'out-of-stock';
-                if (addToCartBtn) addToCartBtn.disabled = true;
             }
         }
         if (addToCartBtn) {
-            addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
-            addToCartBtn.onclick = () => {
-                if (window.cartSystem) {
-                    window.cartSystem.addToCart(product);
-                } else {
-                    showNotification('Корзина недоступна', 'error');
-                }
-            };
             addToCartBtn.disabled = (product.stock <= 0);
+            addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
         }
     }
     
-    const badgeElement = document.getElementById('productBadge');
-    if (badgeElement && product.badge) {
-        badgeElement.textContent = product.badge;
-        badgeElement.className = `badge ${getBadgeClass(product.badge)}`;
-        badgeElement.style.display = 'block';
-    }
+    // Обработчик кнопки "В корзину" (базовый, без учёта цветов)
+    addToCartBtn.onclick = function() {
+        const cartProduct = {
+            id: product.id,
+            name: product.name,
+            price: (product.price === 0 && !product.is_price_on_request) ? 0 : product.price,
+            old_price: product.old_price || null,
+            image: product.images?.[0] || '',
+            quantity: 1,
+            is_price_on_request: product.is_price_on_request === 1 || (product.price === 0 && product.old_price === null),
+            availability: product.availability
+        };
+        if (window.cartSystem) {
+            window.cartSystem.addToCart(cartProduct);
+        } else {
+            showNotification('Корзина недоступна', 'error');
+        }
+    };
     
+    // Описание
     const descriptionElement = document.getElementById('productDescription');
     if (descriptionElement) {
         descriptionElement.innerHTML = product.description?.replace(/\n/g, '<br>') || 'Описание отсутствует';
     }
     
+    // Характеристики
     const specsElement = document.getElementById('productSpecifications');
     if (specsElement && product.specifications) {
         const specs = product.specifications.split('\n').filter(s => s.trim());
         specsElement.innerHTML = specs.map(spec => `<li>${spec}</li>`).join('');
     }
     
+    // Цветовые варианты
     loadProductColors(product.id);
 }
 
@@ -198,171 +230,105 @@ function initCircularColorPicker(variants, baseProductName) {
 }
 
 function selectColorVariant(variant) {
-    const infoContainer = document.getElementById('selectedColorInfo');
-    if (infoContainer) {
-        infoContainer.innerHTML = `
-            <div class="selected-color-details">
-                <strong>Выбран цвет:</strong> ${variant.color_name}
-                ${!variant.is_original ? `<br><small>Код: ${variant.variant_id}</small>` : ''}
-            </div>
-        `;
-    }
-    updateProductImages(variant.images || []);
-    
-    const product = window.currentProduct;
-    if (product) {
-        const priceElement = document.getElementById('productPrice');
-        const stockElement = document.getElementById('productStock');
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        
-        const currentPrice = variant.price !== undefined ? variant.price : product.price;
-        const currentOldPrice = variant.old_price !== undefined ? variant.old_price : product.old_price;
-        const currentStock = variant.stock !== undefined ? variant.stock : product.stock;
-        
-        const isOnOrder = (product.availability === 1);
-        const showPrice = (product.is_price_on_request === 1);
-        
-        // Создаём временный объект для форматирования цены варианта
-        const variantForDisplay = {
-            price: currentPrice,
-            old_price: currentOldPrice
-        };
-        
-        if (isOnOrder) {
-            if (stockElement) {
-                stockElement.textContent = 'Под заказ';
-                stockElement.className = 'order-badge';
-            }
-            if (showPrice) {
-                if (priceElement) {
-                    priceElement.innerHTML = formatDisplayPrice(variantForDisplay);
-                }
-            } else {
-                if (priceElement) {
-                    priceElement.innerHTML = `<span class="price-on-request">Цена под заказ</span>`;
-                }
-            }
-            if (addToCartBtn) addToCartBtn.disabled = false;
-        } else {
-            if (priceElement) {
-                priceElement.innerHTML = formatDisplayPrice(variantForDisplay);
-            }
-            if (stockElement) {
-                if (currentStock > 10) {
-                    stockElement.textContent = 'В наличии';
-                    stockElement.className = 'in-stock';
-                } else if (currentStock > 0) {
-                    stockElement.textContent = `Осталось ${currentStock} шт.`;
-                    stockElement.className = 'low-stock';
-                } else {
-                    stockElement.textContent = 'Нет в наличии';
-                    stockElement.className = 'out-of-stock';
-                }
-            }
-            if (addToCartBtn) {
-                addToCartBtn.disabled = (currentStock <= 0);
-            }
-        }
-        updateAddToCartButton(variant);
-    }
-}
-
-function updateProductImages(images) {
-    const mainImage = document.getElementById('productMainImage');
-    const thumbnails = document.getElementById('productThumbnails');
-    if (!mainImage || !thumbnails) return;
-    
-    if (images && images.length > 0) {
-        mainImage.src = images[0];
-        mainImage.style.display = 'block';
-        mainImage.nextElementSibling.style.display = 'none';
-    } else {
-        mainImage.style.display = 'none';
-        mainImage.nextElementSibling.style.display = 'flex';
-    }
-    
-    thumbnails.innerHTML = '';
-    if (images && images.length > 1) {
-        images.forEach((image, index) => {
-            const thumb = document.createElement('div');
-            thumb.className = `thumbnail ${index === 0 ? 'active' : ''}`;
-            thumb.innerHTML = `<img src="${image}" alt="Миниатюра ${index + 1}">`;
-            thumb.addEventListener('click', () => {
-                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-                thumb.classList.add('active');
-                mainImage.src = image;
-                mainImage.style.display = 'block';
-                mainImage.nextElementSibling.style.display = 'none';
-            });
-            thumbnails.appendChild(thumb);
-        });
-    }
-}
-
-function updateAddToCartButton(variant) {
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    if (!addToCartBtn) return;
-    
     const product = window.currentProduct;
     if (!product) return;
     
-    const currentStock = variant.stock !== undefined ? variant.stock : product.stock;
-    const currentPrice = variant.price !== undefined ? variant.price : product.price;
-    const currentOldPrice = variant.old_price !== undefined ? variant.old_price : product.old_price;
+    // Обновляем изображения, если есть
+    if (variant.images && variant.images.length > 0) {
+        const mainImage = document.getElementById('productMainImage');
+        const thumbnails = document.getElementById('productThumbnails');
+        if (mainImage) {
+            mainImage.src = variant.images[0];
+            mainImage.style.display = 'block';
+            mainImage.nextElementSibling.style.display = 'none';
+        }
+        if (thumbnails) {
+            thumbnails.innerHTML = '';
+            variant.images.forEach((image, index) => {
+                const thumb = document.createElement('div');
+                thumb.className = `thumbnail ${index === 0 ? 'active' : ''}`;
+                thumb.innerHTML = `<img src="${image}" alt="Миниатюра ${index + 1}">`;
+                thumb.addEventListener('click', () => {
+                    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                    thumb.classList.add('active');
+                    if (mainImage) {
+                        mainImage.src = image;
+                        mainImage.style.display = 'block';
+                        mainImage.nextElementSibling.style.display = 'none';
+                    }
+                });
+                thumbnails.appendChild(thumb);
+            });
+        }
+    }
+    
+    // Обновляем цену для варианта
+    const priceElement = document.getElementById('productPrice');
+    if (priceElement) {
+        // Создаём объект варианта с полями price, old_price, is_price_on_request
+        const variantPriceObj = {
+            price: variant.price !== undefined ? variant.price : product.price,
+            old_price: variant.old_price !== undefined ? variant.old_price : product.old_price,
+            is_price_on_request: product.is_price_on_request
+        };
+        priceElement.innerHTML = formatPiecePrice(variantPriceObj);
+    }
+    
+    // Обновляем наличие для варианта
+    const stockElement = document.getElementById('productStock');
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const variantStock = variant.stock !== undefined ? variant.stock : product.stock;
     const isOnOrder = (product.availability === 1);
     
     if (isOnOrder) {
-        addToCartBtn.disabled = false;
-        addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
-        addToCartBtn.onclick = () => {
-            const cartProduct = {
-                id: variant.variant_id,
-                name: variant.is_original ? product.name : `${product.name}${variant.suffix || ''}`,
-                price: currentPrice,
-                old_price: currentOldPrice,
-                image: variant.images?.[0] || product.images?.[0] || '',
-                quantity: 1,
-                original_product_id: product.id,
-                color_name: variant.color_name,
-                variant_id: variant.variant_id,
-                is_price_on_request: product.is_price_on_request,
-                availability: product.availability
-            };
-            if (window.cartSystem) {
-                window.cartSystem.addToCart(cartProduct);
-            } else {
-                showNotification('Корзина недоступна', 'error');
-            }
-        };
-    } else {
-        if (currentStock <= 0) {
-            addToCartBtn.disabled = true;
-            addToCartBtn.innerHTML = '<i class="fas fa-ban"></i> Нет в наличии';
-        } else {
+        if (stockElement) {
+            stockElement.textContent = 'Под заказ';
+            stockElement.className = 'order-badge';
+        }
+        if (addToCartBtn) {
             addToCartBtn.disabled = false;
             addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
         }
-        addToCartBtn.onclick = () => {
-            const cartProduct = {
-                id: variant.variant_id,
-                name: variant.is_original ? product.name : `${product.name}${variant.suffix || ''}`,
-                price: currentPrice,
-                old_price: currentOldPrice,
-                image: variant.images?.[0] || product.images?.[0] || '',
-                quantity: 1,
-                original_product_id: product.id,
-                color_name: variant.color_name,
-                variant_id: variant.variant_id,
-                is_price_on_request: product.is_price_on_request,
-                availability: product.availability
-            };
-            if (window.cartSystem) {
-                window.cartSystem.addToCart(cartProduct);
+    } else {
+        if (stockElement) {
+            if (variantStock > 10) {
+                stockElement.textContent = 'В наличии';
+                stockElement.className = 'in-stock';
+            } else if (variantStock > 0) {
+                stockElement.textContent = `Осталось ${variantStock} шт.`;
+                stockElement.className = 'low-stock';
             } else {
-                showNotification('Корзина недоступна', 'error');
+                stockElement.textContent = 'Нет в наличии';
+                stockElement.className = 'out-of-stock';
             }
-        };
+        }
+        if (addToCartBtn) {
+            addToCartBtn.disabled = (variantStock <= 0);
+            addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Добавить в корзину';
+        }
     }
+    
+    // Обновляем кнопку "В корзину" с данными варианта
+    addToCartBtn.onclick = function() {
+        const cartProduct = {
+            id: variant.variant_id || product.id,
+            name: variant.is_original ? product.name : `${product.name}${variant.suffix || ''}`,
+            price: variant.price !== undefined ? variant.price : product.price,
+            old_price: variant.old_price !== undefined ? variant.old_price : product.old_price,
+            image: variant.images?.[0] || product.images?.[0] || '',
+            quantity: 1,
+            original_product_id: product.id,
+            color_name: variant.color_name,
+            variant_id: variant.variant_id,
+            is_price_on_request: product.is_price_on_request === 1 || (variant.price === 0 && variant.old_price === null),
+            availability: product.availability
+        };
+        if (window.cartSystem) {
+            window.cartSystem.addToCart(cartProduct);
+        } else {
+            showNotification('Корзина недоступна', 'error');
+        }
+    };
 }
 
 function getBadgeClass(badge) {
@@ -427,29 +393,7 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-const colorStyles = document.createElement('style');
-colorStyles.textContent = `
-    .color-options { margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; }
-    .color-options h4 { margin: 0 0 15px 0; color: #333; font-size: 1.1rem; }
-    .color-list { display: flex; flex-direction: column; gap: 10px; }
-    .color-option { display: flex; align-items: center; padding: 12px 15px; background: white; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; }
-    .color-option:hover { border-color: #3498db; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    .color-option.selected { border-color: #2c3e50; background: #f8f9fa; }
-    .color-sample { width: 40px; height: 40px; border-radius: 6px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-right: 15px; flex-shrink: 0; }
-    .color-info { flex: 1; }
-    .color-name { font-weight: 600; color: #333; display: block; margin-bottom: 4px; }
-    .original-badge { display: inline-block; background: #3498db; color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
-    .color-code { font-size: 0.85rem; color: #666; font-family: monospace; }
-    .color-price { font-weight: 600; color: #2c3e50; font-size: 1rem; }
-    .selected-color-info { margin-top: 15px; padding: 12px; background: white; border-radius: 6px; border: 1px solid #dee2e6; }
-    .selected-color-details { color: #333; font-size: 0.9rem; }
-    .selected-color-details small { color: #666; font-size: 0.8rem; }
-    @media (max-width: 768px) { .color-option { flex-direction: column; text-align: center; padding: 15px; } .color-sample { margin-right: 0; margin-bottom: 10px; } .color-price { margin-top: 10px; } }
-    .order-badge { display: inline-block; background: #f39c12; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
-    .price-on-request { display: inline-block; padding: 8px 16px; background: #fef5e7; color: #d4af37; font-weight: 600; border-radius: 25px; font-size: 1rem; border: 1px solid #d4af37; }
-`;
-document.head.appendChild(colorStyles);
-
+// Полноэкранный просмотр изображений (оставлен без изменений)
 class FullscreenViewer {
     constructor() {
         this.viewer = document.getElementById('fullscreenViewer');
@@ -520,10 +464,13 @@ class FullscreenViewer {
     }
 }
 
-function initFullscreenViewer() {
-    window.fullscreenViewer = new FullscreenViewer();
-    addFullscreenToggle();
-}
+// Инициализация полноэкранного просмотра
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        window.fullscreenViewer = new FullscreenViewer();
+        addFullscreenToggle();
+    }, 500);
+});
 
 function addFullscreenToggle() {
     const mainImageContainer = document.querySelector('.main-image-container');
@@ -542,15 +489,6 @@ function addFullscreenToggle() {
         mainImage.style.cursor = 'zoom-in';
         mainImage.addEventListener('click', () => openMainImageFullscreen());
     }
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('.thumbnail img')) {
-            const thumbnail = e.target.closest('.thumbnail');
-            if (thumbnail) {
-                const index = Array.from(thumbnail.parentElement.children).indexOf(thumbnail);
-                openProductImagesFullscreen(index);
-            }
-        }
-    });
 }
 
 function openMainImageFullscreen() {
@@ -561,12 +499,6 @@ function openMainImageFullscreen() {
     const images = getCurrentProductImages();
     const startIndex = images.indexOf(currentImage);
     window.fullscreenViewer.open(images, startIndex >= 0 ? startIndex : 0);
-}
-
-function openProductImagesFullscreen(startIndex = 0) {
-    const images = getCurrentProductImages();
-    if (images.length === 0) return;
-    window.fullscreenViewer.open(images, startIndex);
 }
 
 function getCurrentProductImages() {
@@ -580,27 +512,3 @@ function getCurrentProductImages() {
     }
     return product.images || [];
 }
-
-function updateFullscreenViewer(variant) {
-    window.currentColorVariants = window.currentColorVariants || [];
-    if (variant && variant.images) {
-        const variantIndex = window.currentColorVariants.findIndex(v => v.variant_id === variant.variant_id);
-        if (variantIndex >= 0) window.currentColorVariants[variantIndex] = variant;
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => { initFullscreenViewer(); }, 500);
-});
-
-const originalSelectColorVariant = selectColorVariant;
-selectColorVariant = function(variant) {
-    originalSelectColorVariant(variant);
-    updateFullscreenViewer(variant);
-};
-
-const originalUpdateAddToCartButton = updateAddToCartButton;
-updateAddToCartButton = function(variant) {
-    originalUpdateAddToCartButton(variant);
-    updateFullscreenViewer(variant);
-};
