@@ -1,4 +1,3 @@
-// ========== КОРЗИНА И МОДАЛКА (обёрнуты в проверку наличия элемента) ==========
 const cartIcon = document.getElementById('cartIcon');
 
 if (cartIcon) {
@@ -36,7 +35,6 @@ if (cartIcon) {
     console.warn('Иконка корзины не найдена, корзина отключена');
 }
 
-// ========== ЗАГРУЗКА КАТЕГОРИЙ ==========
 async function loadCategories() {
     try {
         const res = await fetch('/api/categories/public');
@@ -68,13 +66,24 @@ function renderCategories(categories) {
         card.className = 'category-card';
         card.onclick = () => { window.location.href = `/shop.html?section=${encodeURIComponent(cat.code)}`; };
         
-        const imageStyle = cat.image_url ? `background-image: url('${cat.image_url}')` : '';
+        const imageDiv = document.createElement('div');
+        imageDiv.className = 'category-card-image';
+        if (cat.image_url) {
+            const img = new Image();
+            img.src = cat.image_url;
+            img.onload = function() {
+                imageDiv.style.backgroundImage = `url('${cat.image_url}')`;
+            };
+            img.onerror = function() {
+                imageDiv.style.backgroundImage = `url('/static/images/no-image-category.png')`;
+            };
+        } else {
+            imageDiv.style.backgroundImage = `url('/static/images/no-image-category.png')`;
+        }
         const fallbackIcon = cat.image_url ? '' : '<i class="fas fa-boxes fallback-icon"></i>';
+        imageDiv.innerHTML = fallbackIcon;
         
         card.innerHTML = `
-            <div class="category-card-image" style="${imageStyle}">
-                ${fallbackIcon}
-            </div>
             <div class="category-card-body">
                 <h2 class="category-card-title">${cat.name}</h2>
                 <p class="category-card-description">${cat.description || 'Системы хранения премиум качества'}</p>
@@ -85,10 +94,10 @@ function renderCategories(categories) {
             </div>
             <button class="btn-view-category">Смотреть все</button>
         `;
+        card.prepend(imageDiv);
         grid.appendChild(card);
     });
     
-    // Анимация reveal
     const reveals = document.querySelectorAll('.reveal');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -100,7 +109,6 @@ function renderCategories(categories) {
 
 loadCategories();
 
-// ========== DROPDOWN ЛОГИКА ==========
 document.addEventListener('DOMContentLoaded', function() {
     const dropdown = document.getElementById('contactDropdown');
     const toggleBtn = document.getElementById('dropdownToggleBtn');
@@ -125,7 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// ========== ЗАЩИТА ОТ КОПИРОВАНИЯ ==========
 (function(){
     if(window.console){
         var noop = function(){};
@@ -148,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('beforeunload',function(){});
 })();
 
-// ========== БУРГЕР-МЕНЮ (с защитой от ошибок) ==========
 const menuToggle = document.getElementById('menuToggle');
 if (menuToggle) {
     menuToggle.addEventListener('click', () => {
