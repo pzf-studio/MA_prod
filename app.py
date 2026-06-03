@@ -117,14 +117,6 @@ def load_sections():
     with db.get_db() as conn:
         rows=conn.execute('SELECT * FROM sections ORDER BY display_order').fetchall()
         sections=[dict(row) for row in rows]
-        if not sections:
-            default_sections=[{"id":1,"code":"pantographs","name":"Пантографы","active":True,"display_order":1},
-                {"id":2,"code":"wardrobes","name":"Гардеробные системы","active":True,"display_order":2},
-                {"id":3,"code":"shoeracks","name":"Обувницы","active":True,"display_order":3}]
-            for s in default_sections:
-                conn.execute('INSERT INTO sections (id,code,name,active,display_order) VALUES (?,?,?,?,?)',
-                    (s['id'],s['code'],s['name'],1,s['display_order']))
-            return default_sections
         return sections
 
 def save_sections(sections):
@@ -260,7 +252,6 @@ def admin_categories():
         return "Categories management page not found",404
     except Exception as e: return str(e),500
 
-# ========== НОВЫЕ ЭНДПОИНТЫ ДЛЯ ОНЛАЙН-ТРЕКЕРА ==========
 active_sessions={}
 @app.route('/api/admin/online/count',methods=['GET'])
 def admin_online_count():
@@ -274,7 +265,6 @@ def admin_online_count():
         return jsonify({'success':True,'count':len(active_sessions)})
     except Exception as e: return jsonify({'success':False,'error':str(e)}),500
 
-# ========== РАСШИРЕННЫЕ ЭНДПОИНТЫ БЭКАПОВ ==========
 @app.route('/api/admin/backup/download',methods=['GET'])
 def admin_backup_download():
     try:
@@ -384,7 +374,6 @@ def admin_backup_delete():
         else: return jsonify({'success':False,'error':'Файл не найден'}),404
     except Exception as e: return jsonify({'success':False,'error':str(e)}),500
 
-# ========== ОСТАЛЬНЫЕ API ==========
 @app.route('/api/admin/sections',methods=['GET'])
 def admin_get_sections():
     try:
@@ -688,11 +677,9 @@ def get_products():
                 params.append(f'%{search}%')
                 params.append(f'%{search}%')
             
-            # Подсчёт общего количества
             count_query = query.replace('SELECT *', 'SELECT COUNT(*)')
             total = conn.execute(count_query, params).fetchone()[0]
             
-            # Пагинация
             if limit is not None:
                 query += ' LIMIT ?'
                 params.append(limit)
@@ -753,31 +740,24 @@ def get_product_colors(product_id):
 @app.route('/api/admin/products/<int:product_id>/color-variant', methods=['POST'])
 def add_color_variant(product_id):
     try:
-        # Получаем товар из БД
         product = get_product_by_id(product_id)
         if not product:
             return jsonify({'success': False, 'error': 'Товар не найден'}), 404
 
         data = request.get_json()
-
-        # Проверяем обязательные поля
         if 'color_name' not in data or 'color_hex' not in data:
             return jsonify({'success': False, 'error': 'Не указаны название или цвет'}), 400
 
-        # Убеждаемся, что поле color_variants существует и является списком
         if 'color_variants' not in product or not isinstance(product['color_variants'], list):
             product['color_variants'] = []
 
-        # Проверка лимита (максимум 5 вариантов, включая оригинал)
         if len(product['color_variants']) >= 5:
             return jsonify({'success': False, 'error': 'Максимум 5 цветовых вариантов'}), 400
 
-        # Генерация нового variant_id
         base_code = product.get('code', f"ID{product_id}")
         new_index = len([v for v in product['color_variants'] if not v.get('is_original', False)]) + 1
         variant_id = f"{base_code}/{new_index}"
 
-        # Формируем новый вариант
         new_variant = {
             'variant_id': variant_id,
             'color_name': data['color_name'],
@@ -791,13 +771,9 @@ def add_color_variant(product_id):
             'order': len(product['color_variants']) + 1
         }
 
-        # Добавляем вариант в массив
         product['color_variants'].append(new_variant)
-
-        # Сохраняем обновлённый товар в БД (используем существующую функцию save_product)
         save_product(product)
 
-        # Возвращаем успешный ответ
         return jsonify({
             'success': True,
             'variant': new_variant,
@@ -808,10 +784,8 @@ def add_color_variant(product_id):
         logger.error(f"Ошибка добавления цветового варианта: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ========== ЭКСПОРТ БАЗЫ В EXCEL ==========
 @app.route('/api/admin/export/excel', methods=['GET'])
 def admin_export_excel():
-    """Экспорт всей базы данных в файл Excel (.xlsx)"""
     try:
         from openpyxl import Workbook
         from openpyxl.utils import get_column_letter
@@ -823,51 +797,42 @@ def admin_export_excel():
         return jsonify({'success': False, 'error': 'Требуется авторизация'}), 401
 
     wb = Workbook()
-    # Удаляем стандартный пустой лист, если есть
     if 'Sheet' in wb.sheetnames:
         std_sheet = wb['Sheet']
         wb.remove(std_sheet)
 
     with db.get_db() as conn:
-        # Получаем список всех таблиц (кроме системных)
         tables = conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
         ).fetchall()
 
         for table in tables:
             table_name = table['name']
-            # Создаём лист с именем таблицы (обрезаем до 31 символа – ограничение Excel)
             sheet_name = table_name[:31]
             ws = wb.create_sheet(title=sheet_name)
 
-            # Получаем данные таблицы
             rows = conn.execute(f"SELECT * FROM {table_name}").fetchall()
             if not rows:
                 continue
 
-            # Заголовки – названия колонок
             columns = rows[0].keys()
             for col_idx, col_name in enumerate(columns, 1):
                 ws.cell(row=1, column=col_idx, value=col_name)
 
-            # Данные
             for row_idx, row in enumerate(rows, 2):
                 for col_idx, col_name in enumerate(columns, 1):
                     value = row[col_name]
-                    # JSON-поля оставляем как строку (можно и распарсить, но для экспорта сойдёт)
                     ws.cell(row=row_idx, column=col_idx, value=value)
 
-            # Автоширина столбцов (приблизительно)
             for col_idx, col_name in enumerate(columns, 1):
                 max_length = len(str(col_name))
-                for row in rows[:100]:  # ограничим для скорости
+                for row in rows[:100]:
                     cell_value = str(row[col_name])
                     if len(cell_value) > max_length:
                         max_length = len(cell_value)
                 adjusted_width = min(max_length + 2, 50)
                 ws.column_dimensions[get_column_letter(col_idx)].width = adjusted_width
 
-    # Сохраняем во временный файл
     import tempfile
     import os
     fd, tmp_path = tempfile.mkstemp(suffix='.xlsx')
@@ -882,7 +847,6 @@ def admin_export_excel():
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
-# ========== РЕЖИМ ОБСЛУЖИВАНИЯ ==========
 MAINTENANCE_FLAG=os.path.join(DATA_DIR,'.maintenance')
 def is_maintenance_mode(): return os.path.exists(MAINTENANCE_FLAG)
 
@@ -940,11 +904,9 @@ def not_found_error(error):
         return jsonify({'success':False,'error':'Ресурс не найден'}),404
     except Exception as e: return jsonify({'success':False,'error':str(e)}),404
 
-# ========== API ДЛЯ КАТЕГОРИЙ (ДОП. ДАННЫЕ) ==========
 CATEGORIES_EXTRA_FILE = os.path.join(DATA_DIR, 'categories_extra.json')
 
 def load_categories_extra():
-    """Загружает дополнительные данные категорий из JSON"""
     if os.path.exists(CATEGORIES_EXTRA_FILE):
         with open(CATEGORIES_EXTRA_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -956,7 +918,6 @@ def save_categories_extra(extras):
 
 @app.route('/api/categories/public', methods=['GET'])
 def public_categories():
-    # Проверка кэша
     now = time.time()
     if categories_cache['data'] is not None and now < categories_cache['expires']:
         return jsonify({'success': True, 'categories': categories_cache['data']})
@@ -974,24 +935,22 @@ def public_categories():
             code = section['code']
             cat_products = [p for p in active_products if p.get('section') == code]
             
-            # Цена "от"
             prices = [p['price'] for p in cat_products if p.get('price', 0) > 0]
             min_price = min(prices) if prices else 0
             product_count = len(cat_products)
 
             extra = categories_extra.get(code, {})
 
-            # Определяем image_url
             image_url = extra.get('image_url', '')
             if not image_url and cat_products:
-                # Ищем товар, у которого есть хотя бы одно изображение
                 products_with_images = [p for p in cat_products if p.get('images') and len(p['images']) > 0]
                 if products_with_images:
                     random_product = random.choice(products_with_images)
                     image_url = random_product['images'][0]
                 else:
-                    # Заглушка – если совсем нет изображений
                     image_url = '/static/images/no-image-category.png'
+            elif not image_url:
+                image_url = '/static/images/no-image-category.png'
 
             result.append({
                 'id': section['id'],
@@ -1006,7 +965,6 @@ def public_categories():
 
         result.sort(key=lambda x: x['display_order'])
         
-        # Сохраняем в кэш на 10 минут (600 секунд)
         categories_cache['data'] = result
         categories_cache['expires'] = now + 600
         
@@ -1016,11 +974,9 @@ def public_categories():
 
 @app.route('/api/admin/categories/extra/<string:section_code>', methods=['PUT'])
 def admin_update_category_extra(section_code):
-    """Обновление описания и изображения категории"""
     try:
         data = request.get_json()
         extras = load_categories_extra()
-        # Ищем запись или создаём новую
         found = None
         for i, item in enumerate(extras):
             if item['section_code'] == section_code:

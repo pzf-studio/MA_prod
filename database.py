@@ -23,17 +23,13 @@ def get_db():
         conn.close()
 
 def ensure_columns(conn):
-    """Проверяет и добавляет отсутствующие колонки в таблицу products"""
-    # Получаем список существующих колонок
     cursor = conn.execute("PRAGMA table_info(products)")
     columns = [row[1] for row in cursor.fetchall()]
     
-    # Добавляем is_price_on_request, если нет
     if 'is_price_on_request' not in columns:
         conn.execute('ALTER TABLE products ADD COLUMN is_price_on_request BOOLEAN DEFAULT 0')
         logger.info("Добавлено поле is_price_on_request в таблицу products")
     
-    # Добавляем availability, если нет
     if 'availability' not in columns:
         conn.execute('ALTER TABLE products ADD COLUMN availability INTEGER DEFAULT 0')
         logger.info("Добавлено поле availability в таблицу products")
@@ -61,7 +57,6 @@ def init_db():
                 updated_at TEXT NOT NULL
             )
         ''')
-        # Добавляем недостающие колонки после создания таблицы
         ensure_columns(conn)
 
         conn.execute('''
@@ -109,7 +104,6 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
     from datetime import datetime
 
     with get_db() as conn:
-        # Убеждаемся, что колонки есть перед миграцией
         ensure_columns(conn)
         cur = conn.execute('SELECT COUNT(*) FROM products')
         if cur.fetchone()[0] > 0:
@@ -118,7 +112,6 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
 
     logger.info("Начинаем миграцию данных из JSON в SQLite...")
 
-    # Перенос товаров
     if os.path.exists(products_dir):
         for filename in os.listdir(products_dir):
             if filename.endswith('.json'):
@@ -152,12 +145,11 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
                         color_variants_json,
                         product.get('created_at', datetime.now().isoformat()),
                         product.get('updated_at', datetime.now().isoformat()),
-                        0,  # is_price_on_request по умолчанию 0
-                        0   # availability по умолчанию 0 (в наличии)
+                        0,
+                        0
                     ))
         logger.info("Товары перенесены")
 
-    # Перенос разделов
     if os.path.exists(sections_file):
         with open(sections_file, 'r', encoding='utf-8') as f:
             sections = json.load(f)
@@ -175,7 +167,6 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
                 ))
         logger.info("Разделы перенесены")
 
-    # Перенос фона
     if os.path.exists(background_file):
         with open(background_file, 'r', encoding='utf-8') as f:
             bg = json.load(f)
@@ -194,7 +185,6 @@ def migrate_from_json(products_dir, sections_file, background_file, data_dir):
             ))
         logger.info("Фон перенесён")
 
-    # Перенос заказов
     orders_dir = os.path.join(data_dir, 'orders')
     if os.path.exists(orders_dir):
         for filename in os.listdir(orders_dir):
