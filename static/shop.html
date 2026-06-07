@@ -24,7 +24,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/shop.css">
     <style>
-        /* Стили для корзины и модального окна оформления заказа */
         .cart-overlay {
             position: fixed;
             top: 0;
@@ -256,7 +255,6 @@
             background: white;
         }
         
-        /* Модальное окно оформления заказа */
         .checkout-modal {
             position: fixed;
             top: 0;
@@ -375,7 +373,6 @@
             font-size: 1.1rem;
         }
         
-        /* Иконка корзины */
         .cart-icon {
             position: relative;
             background: none;
@@ -426,7 +423,6 @@
             60% {transform: translateY(-3px);}
         }
         
-        /* Адаптивность */
         @media (max-width: 768px) {
             .cart-sidebar {
                 width: 100%;
@@ -494,7 +490,6 @@
             color: #2c3e50;
             font-weight: bold;
         }
-        /* Кнопка телефона в шапке */
         .btn-phone {
             border-color: #d4af37;
             color: #d4af37;
@@ -505,7 +500,6 @@
             border-color: #d4af37;
         }
 
-        /* Стили для карты в футере */
         .map-widget {
             width: 100%;
             max-width: 500px;
@@ -527,7 +521,6 @@
 </head>
 <body>
 
-    <!-- ========== ЕДИНЫЙ HEADER (как в index.html) + КОРЗИНА ========== -->
     <header class="header">
         <div class="container">
             <div class="header-content">
@@ -550,13 +543,11 @@
                     </ul>
                 </nav>
                 <div class="header-actions">
-                    <!-- Иконка корзины (сохраняем для работы корзины) -->
                     <div class="cart-icon minimal outline" id="cartIcon">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-count" id="cartCount">0</span>
                     </div>
                     
-                    <!-- Dropdown "Связаться с нами" -->
                     <div class="dropdown" id="contactDropdown">
                         <button class="dropdown-toggle" id="dropdownToggleBtn">
                             <i class="fas fa-phone-alt"></i>
@@ -578,9 +569,7 @@
             </div>
         </div>
     </header>
-    <!-- ========== КОНЕЦ HEADER ========== -->
 
-    <!-- Hero Section -->
     <section class="hero-section" id="hero">
         <div class="hero-background" id="shopHeroBackground">
             <div class="hero-overlay"></div>
@@ -607,20 +596,16 @@
             </div>
             
             <div class="products-grid" id="productsGrid">
-                <!-- Товары будут загружаться динамически -->
             </div>
             
             <div class="pagination" id="pagination">
-                <!-- Пагинация будет генерироваться динамически -->
             </div>
         </div>
     </section>
 
     <footer class="main-footer">
-        <!-- Основной контент футера в контейнере -->
         <div class="container">
             <div class="footer-content">
-                <!-- Блок с информацией о компании -->
                 <div class="footer-section">
                     <h3>MA Furniture</h3>
                     <p>Комплектация и наполнение гардеробных премиум и бизнес класса</p>
@@ -637,7 +622,6 @@
                     </div>
                 </div>
 
-                <!-- Улучшенная навигация – ссылки разделены на колонки/ряды -->
                 <div class="footer-section">
                     <h4>Навигация</h4>
                     <ul class="footer-nav">
@@ -648,7 +632,6 @@
                     </ul>
                 </div>
 
-                <!-- Контакты с иконками и удобным отображением -->
                 <div class="footer-section">
                     <h4>Контакты</h4>
                     <ul class="contact-list">
@@ -660,7 +643,6 @@
             </div>
         </div>
 
-        <!-- Карта на всю ширину, без контейнера -->
         <div class="footer-map-fullwidth">
             <iframe src="https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=203236359108" 
                     style="width:100%; height:300px; border:0; display:block;" 
@@ -669,7 +651,6 @@
             </iframe>
         </div>
 
-        <!-- Нижний колонтитул с копирайтом -->
         <div class="footer-bottom">
             <div class="container">
                 <p>&copy; 2026 MA Furniture. Все права защищены.</p>
@@ -677,7 +658,6 @@
         </div>
     </footer>
 
-    <!-- Новая корзина -->
     <div class="cart-overlay" id="cartOverlay">
         <div class="cart-sidebar">
             <div class="cart-header">

@@ -22,9 +22,6 @@ function initializeCart() {
     }
 }
 
-/**
- * Возвращает минимальную цену товара с учётом цветовых вариантов
- */
 function getMinPrice(product) {
     let prices = [product.price || 0];
     if (product.color_variants && Array.isArray(product.color_variants)) {
@@ -35,16 +32,6 @@ function getMinPrice(product) {
     return Math.min(...prices);
 }
 
-/**
- * Форматирует отображение цены для карточки товара
- * Логика:
- * 1. Цена под заказ → бейдж "Цена под заказ"
- * 2. Есть цветовые варианты → "от минимальной цены вариантов"
- * 3. Нет вариантов:
- *    - old_price > price (акция) → показываем текущую цену, старую зачёркнутой
- *    - price > old_price (цена выросла) → "от old_price"
- *    - old_price отсутствует → просто цена
- */
 function formatCardPrice(product) {
     const isPriceOnRequest = product.is_price_on_request === 1;
     if (isPriceOnRequest) {
@@ -53,16 +40,13 @@ function formatCardPrice(product) {
     
     const hasVariants = product.color_variants && product.color_variants.length > 0;
     
-    // Если есть варианты – показываем "от минимальной цены"
     if (hasVariants) {
         const minPrice = getMinPrice(product);
         return `<span class="product-price">от ${dataManager.formatPrice(minPrice)} ₽</span>`;
     }
     
-    // Без вариантов
     const hasOldPrice = product.old_price != null && product.old_price > 0;
     
-    // Акция: старая цена выше текущей
     if (hasOldPrice && product.old_price > product.price) {
         return `<span class="product-price">
                     ${dataManager.formatPrice(product.price)} ₽
@@ -70,12 +54,10 @@ function formatCardPrice(product) {
                 </span>`;
     }
     
-    // Цена выросла (текущая больше старой) – показываем "от старой цены"
     if (hasOldPrice && product.price > product.old_price) {
         return `<span class="product-price">от ${dataManager.formatPrice(product.old_price)} ₽</span>`;
     }
     
-    // Обычная цена без старой
     return `<span class="product-price">${dataManager.formatPrice(product.price)} ₽</span>`;
 }
 
@@ -154,7 +136,6 @@ async function initializeProducts() {
         card.className = 'product-card';
         card.dataset.section = product.section || 'all';
 
-        // Бейдж (хит, новинка и т.д.)
         let badgeHtml = '';
         if (product.badge) {
             let badgeClass = '';
@@ -169,17 +150,14 @@ async function initializeProducts() {
             badgeHtml = `<div class="product-badge ${badgeClass}">${product.badge}</div>`;
         }
 
-        // Изображение
         let imageHtml = '';
         if (product.images && product.images.length > 0) {
             imageHtml = `<img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
         }
         const imagePlaceholder = `<div class="image-placeholder" style="${product.images && product.images.length > 0 ? 'display: none;' : 'display: flex;'}"><i class="fas fa-couch"></i></div>`;
 
-        // Цена (обновлённая логика)
         const priceHtml = formatCardPrice(product);
 
-        // Статус наличия
         let stockText = '', stockClass = '';
         let addToCartDisabled = false;
         if (product.availability === 1) {
@@ -199,10 +177,8 @@ async function initializeProducts() {
         }
         const stockHtml = `<span class="stock-badge ${stockClass}">${stockText}</span>`;
 
-        // Кнопка добавления в корзину
         const buttonText = addToCartDisabled ? '<i class="fas fa-ban"></i> Нет в наличии' : '<i class="fas fa-shopping-cart"></i> В корзину';
 
-        // URL страницы товара
         const productUrl = `piece.html?id=${product.id}`;
 
         card.innerHTML = `

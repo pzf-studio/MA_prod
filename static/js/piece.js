@@ -29,50 +29,33 @@ async function initializeProductPage() {
     }
 }
 
-/**
- * Форматирование отображения цены на странице товара (piece.html)
- * Логика:
- * 1. Если is_price_on_request == 1 → "Цена под заказ"
- * 2. Иначе если price == 0 и (old_price == 0 или null/undefined) → "Под заказ"
- * 3. Иначе:
- *    - old_price > price → показываем price (скидка) + зачёркнутый old_price
- *    - price > old_price (и old_price > 0) → "От old_price"
- *    - иначе → просто price
- */
 function formatPiecePrice(productOrVariant) {
     const price = productOrVariant.price !== undefined ? productOrVariant.price : 0;
     const oldPrice = productOrVariant.old_price != null ? productOrVariant.old_price : null;
     const isPriceOnRequest = productOrVariant.is_price_on_request === 1;
 
-    // 1. Цена под заказ по флагу
     if (isPriceOnRequest) {
         return `<span class="price-on-request">Цена под заказ</span>`;
     }
 
-    // 2. Цена 0 и старая цена отсутствует или 0 → "Под заказ"
     if (price === 0 && (oldPrice === null || oldPrice === 0)) {
         return `<span class="price-on-request">Под заказ</span>`;
     }
 
-    // 3. Обычная цена
-    // Если есть старая цена и она больше текущей → акция
     if (oldPrice !== null && oldPrice > price) {
         return `<span class="current-price">${dataManager.formatPrice(price)}</span> <span class="old-price">${dataManager.formatPrice(oldPrice)}</span>`;
     }
 
-    // Если текущая цена больше старой (и старая > 0) → "От old_price"
     if (oldPrice !== null && price > oldPrice && oldPrice > 0) {
         return `<span class="current-price">От ${dataManager.formatPrice(oldPrice)}</span>`;
     }
 
-    // Просто цена (oldPrice может быть null или 0)
     return `<span class="current-price">${dataManager.formatPrice(price)}</span>`;
 }
 
 function renderProduct(product) {
     document.title = `${product.name} - MA Furniture`;
     
-    // Основное изображение
     const mainImage = document.getElementById('productMainImage');
     if (mainImage) {
         if (product.images && product.images.length > 0) {
@@ -86,7 +69,6 @@ function renderProduct(product) {
         }
     }
     
-    // Миниатюры
     const thumbnails = document.getElementById('productThumbnails');
     if (thumbnails && product.images && product.images.length > 1) {
         thumbnails.innerHTML = '';
@@ -107,11 +89,9 @@ function renderProduct(product) {
         });
     }
     
-    // Название
     const nameElement = document.getElementById('productName');
     if (nameElement) nameElement.textContent = product.name;
     
-    // Бейдж
     const badgeElement = document.getElementById('productBadge');
     if (badgeElement && product.badge) {
         badgeElement.textContent = product.badge;
@@ -121,17 +101,14 @@ function renderProduct(product) {
         badgeElement.style.display = 'none';
     }
     
-    // Цена и наличие
     const priceElement = document.getElementById('productPrice');
     const stockElement = document.getElementById('productStock');
     const addToCartBtn = document.getElementById('addToCartBtn');
     
-    // Отображаем цену согласно новой логике
     if (priceElement) {
         priceElement.innerHTML = formatPiecePrice(product);
     }
     
-    // Наличие
     const isOnOrder = (product.availability === 1);
     if (isOnOrder) {
         if (stockElement) {
@@ -161,7 +138,6 @@ function renderProduct(product) {
         }
     }
     
-    // Обработчик кнопки "В корзину" (базовый, без учёта цветов)
     addToCartBtn.onclick = function() {
         const cartProduct = {
             id: product.id,
@@ -180,20 +156,17 @@ function renderProduct(product) {
         }
     };
     
-    // Описание
     const descriptionElement = document.getElementById('productDescription');
     if (descriptionElement) {
         descriptionElement.innerHTML = product.description?.replace(/\n/g, '<br>') || 'Описание отсутствует';
     }
     
-    // Характеристики
     const specsElement = document.getElementById('productSpecifications');
     if (specsElement && product.specifications) {
         const specs = product.specifications.split('\n').filter(s => s.trim());
         specsElement.innerHTML = specs.map(spec => `<li>${spec}</li>`).join('');
     }
     
-    // Цветовые варианты
     loadProductColors(product.id);
 }
 
@@ -233,7 +206,6 @@ function selectColorVariant(variant) {
     const product = window.currentProduct;
     if (!product) return;
     
-    // Обновляем изображения, если есть
     if (variant.images && variant.images.length > 0) {
         const mainImage = document.getElementById('productMainImage');
         const thumbnails = document.getElementById('productThumbnails');
@@ -262,10 +234,8 @@ function selectColorVariant(variant) {
         }
     }
     
-    // Обновляем цену для варианта
     const priceElement = document.getElementById('productPrice');
     if (priceElement) {
-        // Создаём объект варианта с полями price, old_price, is_price_on_request
         const variantPriceObj = {
             price: variant.price !== undefined ? variant.price : product.price,
             old_price: variant.old_price !== undefined ? variant.old_price : product.old_price,
@@ -274,7 +244,6 @@ function selectColorVariant(variant) {
         priceElement.innerHTML = formatPiecePrice(variantPriceObj);
     }
     
-    // Обновляем наличие для варианта
     const stockElement = document.getElementById('productStock');
     const addToCartBtn = document.getElementById('addToCartBtn');
     const variantStock = variant.stock !== undefined ? variant.stock : product.stock;
@@ -308,7 +277,6 @@ function selectColorVariant(variant) {
         }
     }
     
-    // Обновляем кнопку "В корзину" с данными варианта
     addToCartBtn.onclick = function() {
         const cartProduct = {
             id: variant.variant_id || product.id,
@@ -393,7 +361,6 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Полноэкранный просмотр изображений (оставлен без изменений)
 class FullscreenViewer {
     constructor() {
         this.viewer = document.getElementById('fullscreenViewer');
@@ -464,7 +431,6 @@ class FullscreenViewer {
     }
 }
 
-// Инициализация полноэкранного просмотра
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         window.fullscreenViewer = new FullscreenViewer();

@@ -229,7 +229,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* Сайдбар */
 .sidebar-content h2 {
     font-size: 2rem;
     margin-bottom: 30px;
@@ -294,7 +293,6 @@ body {
     opacity: 0.8;
 }
 
-/* Анимации */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -314,7 +312,6 @@ body {
     animation-delay: 0.2s;
 }
 
-/* Адаптивность */
 @media (max-width: 1024px) {
     .login-container {
         flex-direction: column;

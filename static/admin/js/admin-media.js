@@ -1,4 +1,3 @@
-// Админ-панель: управление медиа (главным фоном)
 class AdminMediaManager {
     constructor() {
         this.API_BASE = window.location.origin;
@@ -43,7 +42,6 @@ class AdminMediaManager {
                 this.renderBackgroundPreview();
                 this.populateForm();
             } else if (data.error && data.error.includes('не найден')) {
-                // Фон еще не создан
                 this.currentBackground = null;
                 this.renderBackgroundPreview();
             } else {
@@ -81,7 +79,6 @@ class AdminMediaManager {
         if (!previewContainer || !infoContainer || !lastUpdated) return;
         
         if (this.currentBackground && this.currentBackground.image_url) {
-            // Показываем текущий фон
             previewContainer.innerHTML = `
                 <div class="current-background">
                     <img src="${this.currentBackground.image_url}" 
@@ -109,7 +106,6 @@ class AdminMediaManager {
                 lastUpdated.textContent = this.formatDate(this.currentBackground.updated_at);
             }
         } else {
-            // Нет фона
             previewContainer.innerHTML = `
                 <div class="no-background">
                     <div style="text-align: center;">
@@ -136,12 +132,10 @@ class AdminMediaManager {
             document.getElementById('backgroundDescription').value = this.currentBackground.description || '';
             document.getElementById('backgroundStatus').value = this.currentBackground.active ? 'true' : 'false';
         } else {
-            // Сброс формы
             document.getElementById('backgroundForm').reset();
             document.getElementById('backgroundId').value = '';
         }
         
-        // Сбрасываем превью
         const preview = document.getElementById('imagePreview');
         if (preview) {
             preview.style.display = 'none';
@@ -152,7 +146,6 @@ class AdminMediaManager {
     }
     
     initEventListeners() {
-        // Загрузка изображения
         const imageUploadArea = document.getElementById('imageUploadArea');
         const backgroundImage = document.getElementById('backgroundImage');
         
@@ -160,7 +153,6 @@ class AdminMediaManager {
             imageUploadArea.addEventListener('click', () => backgroundImage.click());
             backgroundImage.addEventListener('change', (e) => this.handleImageSelect(e));
             
-            // Drag & Drop
             imageUploadArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 imageUploadArea.style.borderColor = 'var(--secondary-color)';
@@ -184,13 +176,11 @@ class AdminMediaManager {
             });
         }
         
-        // Форма
         const backgroundForm = document.getElementById('backgroundForm');
         if (backgroundForm) {
             backgroundForm.addEventListener('submit', (e) => this.handleBackgroundSubmit(e));
         }
         
-        // Кнопка сброса
         const resetBtn = document.getElementById('resetForm');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
@@ -199,7 +189,6 @@ class AdminMediaManager {
             });
         }
         
-        // Выход
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
@@ -208,7 +197,6 @@ class AdminMediaManager {
             });
         }
         
-        // Модальное окно
         const modalClose = document.querySelector('#confirmModal .modal-close');
         const confirmCancel = document.getElementById('confirmCancel');
         if (modalClose) modalClose.addEventListener('click', () => this.closeConfirmModal());
@@ -219,22 +207,18 @@ class AdminMediaManager {
         const file = e.target.files[0];
         if (!file) return;
         
-        // Проверка типа файла
         if (!file.type.startsWith('image/')) {
             this.showNotification('Пожалуйста, выберите изображение', 'error');
             return;
         }
         
-        // Проверка размера
         if (file.size > 10 * 1024 * 1024) {
             this.showNotification('Файл слишком большой (максимум 10MB)', 'error');
             return;
         }
         
-        // Показываем имя файла
         document.getElementById('selectedFileName').textContent = file.name;
         
-        // Создаем превью
         const reader = new FileReader();
         reader.onload = (e) => {
             const preview = document.getElementById('imagePreview');
@@ -266,14 +250,12 @@ class AdminMediaManager {
         
         const backgroundId = formData.get('id');
         
-        // Проверяем, есть ли новое изображение
         const imageInput = document.getElementById('backgroundImage');
         const imageFile = imageInput.files[0];
         
         try {
             let imageUrl = this.currentBackground?.image_url;
             
-            // Если есть новое изображение, загружаем его
             if (imageFile) {
                 const uploadResult = await this.uploadImage(imageFile);
                 if (!uploadResult.success) {
@@ -282,16 +264,13 @@ class AdminMediaManager {
                 imageUrl = uploadResult.url;
             }
             
-            // Добавляем URL изображения к данным
             if (imageUrl) {
                 backgroundData.image_url = imageUrl;
             } else if (!backgroundId) {
-                // Для нового фона изображение обязательно
                 this.showNotification('Выберите изображение для фона', 'error');
                 return;
             }
             
-            // Отправляем данные на сервер
             const url = backgroundId ? 
                 `${this.API_BASE}/api/admin/media/background/${backgroundId}` : 
                 `${this.API_BASE}/api/admin/media/background`;
@@ -310,9 +289,8 @@ class AdminMediaManager {
             const data = await response.json();
             
             if (data.success) {
-                await this.loadBackground(); // Перезагружаем данные
+                await this.loadBackground();
                 
-                // Сбрасываем форму
                 this.populateForm();
                 imageInput.value = '';
                 
@@ -321,7 +299,6 @@ class AdminMediaManager {
                     'success'
                 );
                 
-                // Показываем предупреждение о кэше
                 this.showNotification(
                     'Изменения могут отображаться не сразу из-за кэширования браузера. Для немедленного обновления очистите кэш браузера.',
                     'info',
@@ -392,7 +369,6 @@ class AdminMediaManager {
     }
     
     showNotification(message, type = 'success', duration = 3000) {
-        // Удаляем старые уведомления
         const existingNotifications = document.querySelectorAll('.notification');
         existingNotifications.forEach(notification => notification.remove());
         
@@ -445,7 +421,6 @@ class AdminMediaManager {
     }
 }
 
-// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     window.adminMedia = new AdminMediaManager();
 });

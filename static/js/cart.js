@@ -54,7 +54,6 @@ class CartSystem {
         const productId = String(product.id);
         const existingItem = this.cart.find(item => String(item.id) === productId);
         
-        // Определяем цену, которая будет использоваться для отображения и расчётов
         let effectivePrice = product.price;
         if (product.old_price != null && product.price > product.old_price) {
             effectivePrice = product.old_price;
@@ -66,8 +65,8 @@ class CartSystem {
             this.cart.push({
                 id: productId,
                 name: product.name,
-                price: effectivePrice,           // сохраняем эффективную цену
-                original_price: product.price,    // сохраняем исходную для справки (опционально)
+                price: effectivePrice,
+                original_price: product.price,
                 old_price: product.old_price,
                 image: product.images?.[0] || product.image || '',
                 quantity: 1,
@@ -139,9 +138,7 @@ class CartSystem {
         }
     }
     
-    // Форматирование отображения цены в корзине
     formatCartItemPrice(item) {
-        // Если у товара была старая цена и она меньше исходной, показываем "От"
         if (item.old_price != null && item.original_price > item.old_price) {
             return `От ${dataManager.formatPrice(item.old_price)}`;
         }
@@ -416,7 +413,6 @@ class CartSystem {
         const form = e.target;
         const formData = new FormData(form);
         
-        // Формируем items с эффективной ценой (уже сохранённой в корзине)
         const orderData = {
             customer_name: formData.get('customerName'),
             customer_phone: formData.get('customerPhone'),
@@ -427,7 +423,7 @@ class CartSystem {
                 id: item.id,
                 variant_id: item.variant_id || item.id,
                 name: item.name,
-                price: item.price,   // здесь уже скорректированная цена
+                price: item.price,
                 quantity: item.quantity,
                 color_name: item.color_name || '',
                 is_price_on_request: item.is_price_on_request || false

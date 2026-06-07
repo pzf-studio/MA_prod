@@ -558,7 +558,6 @@ body {
     .contact-info-block, .contact-form-block { padding: 30px 20px; }
 }
 
-/* ========== СТИЛИ ДЛЯ DROPDOWN ИЗ INDEX.HTML ========== */
 .dropdown {
     position: relative;
     display: inline-block;

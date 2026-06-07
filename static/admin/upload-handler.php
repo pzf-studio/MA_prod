@@ -4,13 +4,13 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Настройки
+
 $uploadDir = '../uploads/products/';
 $tempDir = '../uploads/temp/';
-$maxFileSize = 5 * 1024 * 1024; // 5MB
+$maxFileSize = 5 * 1024 * 1024;
 $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-// Создаем директории если их нет
+
 if (!file_exists($uploadDir)) {
     mkdir($uploadDir, 0777, true);
 }
@@ -40,7 +40,6 @@ function compressImage($source, $destination, $quality = 80) {
         return false;
     }
     
-    // Уменьшаем размер если слишком большой
     $maxWidth = 1200;
     $maxHeight = 1200;
     
@@ -60,7 +59,6 @@ function compressImage($source, $destination, $quality = 80) {
         
         $newImage = imagecreatetruecolor($newWidth, $newHeight);
         
-        // Сохраняем прозрачность для PNG
         if ($info['mime'] == 'image/png' || $info['mime'] == 'image/webp') {
             imagealphablending($newImage, false);
             imagesavealpha($newImage, true);
@@ -72,7 +70,6 @@ function compressImage($source, $destination, $quality = 80) {
         $image = $newImage;
     }
     
-    // Сохраняем изображение
     if ($info['mime'] == 'image/jpeg') {
         imagejpeg($image, $destination, $quality);
     } elseif ($info['mime'] == 'image/png') {
@@ -102,41 +99,32 @@ try {
             
             $file = $_FILES['file'];
             
-            // Проверка ошибок
             if ($file['error'] !== UPLOAD_ERR_OK) {
                 throw new Exception('Upload error: ' . $file['error']);
             }
             
-            // Проверка типа файла
             if (!in_array($file['type'], $allowedTypes)) {
                 throw new Exception('Invalid file type. Allowed: JPG, PNG, WebP, GIF');
             }
             
-            // Проверка размера
             if ($file['size'] > $maxFileSize) {
                 throw new Exception('File too large. Max: 5MB');
             }
             
-            // Генерируем уникальное имя файла
             $fileName = generateFileName($file['name']);
             $tempPath = $tempDir . $fileName;
             $finalPath = $uploadDir . $fileName;
             
-            // Сохраняем во временную папку
             if (!move_uploaded_file($file['tmp_name'], $tempPath)) {
                 throw new Exception('Failed to save uploaded file');
             }
             
-            // Сжимаем и оптимизируем изображение
             if (!compressImage($tempPath, $finalPath)) {
-                // Если сжатие не удалось, просто перемещаем
                 copy($tempPath, $finalPath);
             }
             
-            // Удаляем временный файл
             unlink($tempPath);
             
-            // Возвращаем URL к загруженному файлу
             $fileUrl = 'uploads/products/' . $fileName;
             
             echo json_encode([
@@ -155,7 +143,6 @@ try {
                 throw new Exception('No filename provided');
             }
             
-            // Безопасность: проверяем что файл находится в нужной папке
             $safeFilename = basename($filename);
             $filePath = $uploadDir . $safeFilename;
             

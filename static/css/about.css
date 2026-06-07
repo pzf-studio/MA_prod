@@ -1,4 +1,3 @@
-/* ======= ОСНОВНЫЕ СТИЛИ (сохранены все секции about, включая hero) ======= */
 :root {
     --gold: #d4af37;
     --primary: #8B7355;
@@ -12,7 +11,6 @@ body {
     background-color: white;
 }
 
-/* === СТИЛИ HERO (ТОЧНО КАК В INDEX.HTML) === */
 .hero-section {
     position: relative;
     height: 100vh;
@@ -170,7 +168,6 @@ body {
     50% { transform: translateX(-50%) translateY(10px); }
 }
 
-/* Общие секции */
 .about-section {
     padding: 80px 0;
     border-bottom: 1px solid #eee;
@@ -209,7 +206,6 @@ body {
     margin-bottom: 1.4rem;
 }
 
-/* Цитата */
 .quote-block {
     background: var(--light-bg);
     padding: 50px 30px;
@@ -222,7 +218,6 @@ body {
     border-left: 5px solid var(--gold);
 }
 
-/* Статистика (лаконичная) */
 .stats-minimal {
     display: flex;
     justify-content: center;
@@ -246,7 +241,6 @@ body {
     color: #777;
 }
 
-/* Годовая линия истории */
 .timeline {
     max-width: 900px;
     margin: 50px auto;
@@ -270,7 +264,6 @@ body {
     color: #444;
 }
 
-/* Ценности (простые списки) */
 .values-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -299,7 +292,6 @@ body {
     line-height: 1.5;
 }
 
-/* Юридическая информация */
 .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -335,7 +327,6 @@ body {
     margin: 15px 0;
 }
 
-/* Форма обратной связи */
 .feedback-form {
     max-width: 700px;
     margin: 40px auto 0;
@@ -375,7 +366,6 @@ body {
     color: #222;
 }
 
-/* Анимация при прокрутке */
 .reveal {
     opacity: 0;
     transform: translateY(25px);
@@ -386,7 +376,6 @@ body {
     transform: translateY(0);
 }
 
-/* ======= DROPDOWN — ГЛАДКАЯ КНОПКА С ОТСТУПОМ ======= */
 .dropdown {
     position: relative;
     display: inline-block;
@@ -466,7 +455,6 @@ body {
     color: var(--primary);
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     .dropdown-toggle {
         padding: 8px 18px;

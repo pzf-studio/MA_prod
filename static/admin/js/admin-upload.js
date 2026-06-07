@@ -1,4 +1,3 @@
-// Упрощенный загрузчик для админки
 class AdminFileUploader {
     constructor() {
         this.API_BASE = window.location.origin;
@@ -40,7 +39,6 @@ class AdminFileUploader {
             const result = await this.uploadFile(file);
             results.push(result);
             
-            // Задержка между загрузками
             await new Promise(resolve => setTimeout(resolve, 300));
         }
         
@@ -56,5 +54,4 @@ class AdminFileUploader {
     }
 }
 
-// Глобальный инстанс
 window.fileUploader = new AdminFileUploader();

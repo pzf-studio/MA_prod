@@ -902,7 +902,6 @@ section {
     margin-top: 60px;
 }
 
-/* Содержимое футера в контейнере */
 .footer-content {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -910,7 +909,6 @@ section {
     padding: 3rem 0 2rem;
 }
 
-/* Секции футера */
 .footer-section h3,
 .footer-section h4 {
     font-family: 'Playfair Display', serif;
@@ -926,7 +924,6 @@ section {
     margin-bottom: 1.5rem;
 }
 
-/* Социальные иконки */
 .social-links {
     display: flex;
     gap: 1rem;
@@ -950,7 +947,6 @@ section {
     transform: translateY(-3px);
 }
 
-/* Навигация – колонка ссылок */
 .footer-nav,
 .contact-list {
     list-style: none;
@@ -984,7 +980,6 @@ section {
     font-size: 1.1rem;
 }
 
-/* Карта на всю ширину */
 .footer-map-fullwidth {
     width: 100%;
     margin-top: 2rem;
@@ -997,7 +992,6 @@ section {
     display: block;
 }
 
-/* Нижний колонтитул */
 .footer-bottom {
     background: #1a1a1a;
     padding: 1.2rem 0;
@@ -1007,7 +1001,6 @@ section {
     border-top: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Адаптация для мобильных */
 @media (max-width: 768px) {
     .footer-content {
         grid-template-columns: 1fr;
@@ -1501,13 +1494,11 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     transform: scale(1.05);
 }
 
-/* Если изображение отсутствует, показываем иконку */
 .shop-card-image:not(:has(img)) {
     color: var(--primary-color);
     font-size: 3rem;
 }
 
-/* Убираем старые стили корзины */
 .cart-btn,
 .cart-count,
 .cart-sidebar,
@@ -1520,14 +1511,12 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     display: none !important;
 }
 
-/* Обновляем header-actions */
 .header-actions {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-/* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
     .shop-card-image {
         height: 180px;
@@ -1542,7 +1531,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Для динамической загрузки фона */
 .hero-background {
     position: absolute;
     top: 0;
@@ -1553,14 +1541,13 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     transition: background-image 0.5s ease;
 }
 
-/* Фолбэк если фон не загрузился */
 .hero-background:not([style*="background-image"]) {
     background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
 }
 
 @media (max-width: 768px) {
     .header-content {
-        flex-direction: row !important; /* Главное меню в ряд, а не колонку */
+        flex-direction: row !important;
         justify-content: space-between !important;
         padding: 0.5rem 0 !important;
     }
@@ -1571,19 +1558,18 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     
     .menu-toggle {
         order: 2;
-        display: flex !important; /* Убедитесь, что бургер виден */
+        display: flex !important;
         margin-left: auto;
     }
     
     .header-actions .btn-telegram {
-        display: none; /* Скрыть Telegram кнопку на мобильном в шапке */
+        display: none;
     }
     
-    /* Мобильное меню - полноэкранное */
     .main-nav.active {
         display: block;
         position: fixed;
-        top: 70px; /* Высота шапки */
+        top: 70px;
         left: 0;
         right: 0;
         bottom: 0;
@@ -1607,7 +1593,7 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
         width: 100%;
     }
     
-    /* Анимация бургер-кнопки */
+  
     .menu-toggle.active span:nth-child(1) {
         transform: rotate(45deg) translate(6px, 6px);
     }
@@ -1900,7 +1886,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     transform: translateY(0);
 }
 
-/* Анимация для кнопок */
 .btn-float-in {
     opacity: 0;
     transform: translateY(20px) scale(0.95);
@@ -1912,7 +1897,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     transform: translateY(0) scale(1);
 }
 
-/* Анимация при нажатии кнопок */
 .btn-click-animation {
     animation: btnClick 0.3s ease;
 }
@@ -1933,7 +1917,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     transition: transform 0.3s ease;
 }
 
-/* Анимация индикатора прокрутки */
 .bounce-in {
     opacity: 0;
     transform: translateY(20px);
@@ -1959,7 +1942,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Анимации при прокрутке */
 .scroll-animate {
     opacity: 0;
     transform: translateY(30px);
@@ -1971,7 +1953,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     transform: translateY(0);
 }
 
-/* Анимация карточек товаров */
 .product-animate-in {
     opacity: 0;
     transform: translateY(30px) scale(0.95);
@@ -1995,7 +1976,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     100% { transform: scale(1); }
 }
 
-/* Анимация заголовков */
 .title-underline {
     position: relative;
 }
@@ -2019,7 +1999,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Анимация мобильного меню */
 .menu-slide-in {
     animation: menuSlideIn 0.3s ease;
 }
@@ -2050,7 +2029,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Анимация фона */
 .bg-fade-in {
     animation: bgFadeIn 1.5s ease;
 }
@@ -2060,7 +2038,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     to { opacity: 1; }
 }
 
-/* Анимация ссылок при клике */
 .link-click-animation {
     animation: linkClick 0.3s ease;
 }
@@ -2071,7 +2048,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     100% { transform: scale(1); }
 }
 
-/* Анимация FAQ */
 .faq-expand {
     animation: faqExpand 0.3s ease;
 }
@@ -2087,7 +2063,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Плавное появление всего сайта */
 body {
     animation: siteFadeIn 0.8s ease;
 }
@@ -2101,7 +2076,6 @@ body {
     }
 }
 
-/* Медиа-запросы для анимаций */
 @media (prefers-reduced-motion: reduce) {
     .page-fade-in,
     .page-slide-up,
@@ -2192,7 +2166,6 @@ body {
     margin: 0;
 }
 
-/* Для мобильных устройств */
 @media (max-width: 768px) {
     .faq-question {
         font-size: 16px;
@@ -2200,19 +2173,16 @@ body {
     }
 }
 
-/* НОВЫЕ СТИЛИ ДЛЯ МОБИЛЬНОГО МЕНЮ (Добавлены в конец) */
 
 @media (max-width: 768px) {
-    /* Скрыть бургер-кнопку */
     .menu-toggle {
         display: none !important;
     }
     
-    /* Показать навигацию всегда */
     .main-nav {
         display: block !important;
         width: 100%;
-        order: 3; /* Поместить меню под логотипом и кнопками */
+        order: 3;
         margin-top: 15px;
         padding-top: 15px;
         border-top: 1px solid var(--border-color);
@@ -2227,13 +2197,13 @@ body {
         margin: 0;
         padding: 0;
         width: 100%;
-        overflow-x: auto; /* Горизонтальная прокрутка если не помещается */
+        overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 5px;
     }
     
     .main-nav li {
-        flex-shrink: 0; /* Не сжимать элементы */
+        flex-shrink: 0;
     }
     
     .main-nav a {
@@ -2242,7 +2212,6 @@ body {
         white-space: nowrap;
     }
     
-    /* Адаптация шапки для мобильного меню */
     .header-content {
         flex-direction: column;
         align-items: stretch;
@@ -2260,11 +2229,9 @@ body {
     }
     
     .header-actions .btn-telegram {
-        display: inline-flex !important; /* Показать кнопку Telegram в мобильном меню */
+        display: inline-flex !important;
     }
     
-    /* Улучшения для мобильного меню */
-    /* Убедиться, что меню всегда видно и прокручивается горизонтально */
     .main-nav::-webkit-scrollbar {
         height: 4px;
     }
@@ -2279,7 +2246,6 @@ body {
         border-radius: 2px;
     }
     
-    /* Подсветка активной ссылки */
     .main-nav a.active {
         background: var(--primary-color);
         color: white !important;
@@ -2287,7 +2253,7 @@ body {
     }
     
     .main-nav a.active::after {
-        display: none; /* Скрыть подчеркивание для активной ссылки */
+        display: none;
     }
 }
 
@@ -2302,14 +2268,12 @@ body {
         padding: 6px 8px;
     }
     
-    /* Уменьшение отступов для очень маленьких экранов */
     .main-nav {
         margin-top: 10px;
         padding-top: 10px;
     }
 }
 
-/* Для очень маленьких экранов - уменьшить шапку */
 @media (max-width: 360px) {
     .main-nav a {
         font-size: 12px;
@@ -2326,7 +2290,6 @@ body {
     }
 }
 
-/* Кнопка телефона в шапке */
 .btn-phone {
     border-color: #d4af37;
     color: #d4af37;
@@ -2342,10 +2305,9 @@ body {
     box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
 }
 
-/* Адаптивность для мобильных */
 @media (max-width: 768px) {
     .btn-phone span {
-        display: none; /* на мобильных скрываем текст, оставляем только иконку */
+        display: none;
     }
     .btn-phone {
         padding: 10px;

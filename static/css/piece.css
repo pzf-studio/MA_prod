@@ -30,7 +30,6 @@ body {
     padding: 0 20px;
 }
 
-/* Header */
 .header {
     background: var(--white);
     box-shadow: var(--shadow);
@@ -153,7 +152,6 @@ body {
     transition: var(--transition);
 }
 
-/* Buttons */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -225,7 +223,6 @@ body {
     min-height: 36px;
 }
 
-/* Hero Section */
 .hero-section {
     position: relative;
     height: 100vh;
@@ -345,12 +342,10 @@ body {
     }
 }
 
-/* Main Content */
 .main-content {
     margin-top: 0;
 }
 
-/* Sections */
 section {
     padding: 80px 0;
 }
@@ -364,7 +359,6 @@ section {
     line-height: 1.3;
 }
 
-/* About Section */
 .about-content {
     max-width: 800px;
     margin: 0 auto 60px;
@@ -449,7 +443,6 @@ section {
     text-align: center;
 }
 
-/* Shop Preview Section */
 .shop-preview {
     padding: 80px 0;
     background: var(--bg-light);
@@ -517,7 +510,6 @@ section {
     text-align: left;
 }
 
-/* Shop Mini Preview Section */
 .shop-mini-preview {
     padding: 80px 0;
     background: var(--bg-light);
@@ -686,7 +678,6 @@ section {
     line-height: 1.4;
 }
 
-/* Product Gallery */
 .product-gallery {
     margin-top: 60px;
     position: relative;
@@ -793,7 +784,6 @@ section {
     color: var(--white);
 }
 
-/* Catalog CTA */
 .catalog-cta {
     text-align: center;
 }
@@ -844,7 +834,6 @@ section {
     background: #f0f0f0;
 }
 
-/* FAQ Section */
 .faq-container {
     max-width: 800px;
     margin: 0 auto;
@@ -901,7 +890,6 @@ section {
     margin: 0;
 }
 
-/* Divider */
 .divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--border-color), transparent);
@@ -914,7 +902,6 @@ section {
     margin-top: 60px;
 }
 
-/* Содержимое футера в контейнере */
 .footer-content {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -922,7 +909,6 @@ section {
     padding: 3rem 0 2rem;
 }
 
-/* Секции футера */
 .footer-section h3,
 .footer-section h4 {
     font-family: 'Playfair Display', serif;
@@ -938,7 +924,6 @@ section {
     margin-bottom: 1.5rem;
 }
 
-/* Социальные иконки */
 .social-links {
     display: flex;
     gap: 1rem;
@@ -962,7 +947,6 @@ section {
     transform: translateY(-3px);
 }
 
-/* Навигация – колонка ссылок */
 .footer-nav,
 .contact-list {
     list-style: none;
@@ -996,7 +980,6 @@ section {
     font-size: 1.1rem;
 }
 
-/* Карта на всю ширину */
 .footer-map-fullwidth {
     width: 100%;
     margin-top: 2rem;
@@ -1009,7 +992,6 @@ section {
     display: block;
 }
 
-/* Нижний колонтитул */
 .footer-bottom {
     background: #1a1a1a;
     padding: 1.2rem 0;
@@ -1019,7 +1001,6 @@ section {
     border-top: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Адаптация для мобильных */
 @media (max-width: 768px) {
     .footer-content {
         grid-template-columns: 1fr;
@@ -1047,7 +1028,6 @@ section {
     }
 }
 
-/* Product Cards */
 .product-card {
     background: var(--white);
     border-radius: 10px;
@@ -1125,7 +1105,6 @@ section {
     text-align: left;
 }
 
-/* Animations */
 .fade-in {
     opacity: 0;
     transform: translateY(20px);
@@ -1137,7 +1116,6 @@ section {
     transform: translateY(0);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .container {
         padding: 0 15px;
@@ -1328,7 +1306,6 @@ section {
     }
 }
 
-/* Mobile menu toggle display */
 @media (max-width: 768px) {
     .menu-toggle {
         display: flex;
@@ -1350,12 +1327,10 @@ section {
     }
 }
 
-/* Ensure all text elements have consistent line-height and alignment */
 h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     line-height: 1.4;
 }
 
-/* Center alignment utility */
 .text-center {
     text-align: center;
 }
@@ -1368,7 +1343,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     text-align: right;
 }
 
-/* Flex alignment utilities */
 .flex-center {
     display: flex;
     align-items: center;
@@ -1387,7 +1361,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     justify-content: flex-start;
 }
 
-/* Consistent spacing */
 .mb-1 { margin-bottom: 1rem; }
 .mb-2 { margin-bottom: 2rem; }
 .mb-3 { margin-bottom: 3rem; }
@@ -1398,13 +1371,11 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
 .p-2 { padding: 2rem; }
 .p-3 { padding: 3rem; }
 
-/* Product Page Specific Styles */
 .main-container {
     margin-top: 100px;
     min-height: calc(100vh - 400px);
 }
 
-/* Breadcrumbs */
 .breadcrumbs {
     display: flex;
     align-items: center;
@@ -1435,7 +1406,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     font-weight: 500;
 }
 
-/* Product Layout */
 .product-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1443,7 +1413,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     margin-bottom: 80px;
 }
 
-/* Product Gallery */
 .product-gallery {
     position: relative;
 }
@@ -1498,7 +1467,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     object-fit: cover;
 }
 
-/* Product Info */
 .product-info {
     padding: 20px 0;
 }
@@ -1547,7 +1515,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     margin-left: 10px;
 }
 
-/* Product Meta */
 .product-meta {
     display: flex;
     gap: 30px;
@@ -1580,7 +1547,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     color: #e74c3c;
 }
 
-/* Product Description */
 .product-description {
     margin-bottom: 25px;
     line-height: 1.7;
@@ -1591,7 +1557,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     color: var(--text-dark);
 }
 
-/* Product Features */
 .product-features {
     margin-bottom: 25px;
 }
@@ -1623,7 +1588,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     font-weight: bold;
 }
 
-/* Product Actions */
 .product-actions {
     display: flex;
     gap: 15px;
@@ -1701,7 +1665,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     color: var(--primary-color);
 }
 
-/* Product Specifications */
 .product-specifications {
     margin-bottom: 30px;
 }
@@ -1737,7 +1700,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     text-align: right;
 }
 
-/* Related Products */
 .related-products {
     margin-top: 60px;
     padding-top: 60px;
@@ -1775,7 +1737,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     gap: 30px;
 }
 
-/* Product Card Styles */
 .product-card {
     background: var(--white);
     border-radius: 10px;
@@ -1876,7 +1837,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     font-size: 0.9rem;
 }
 
-/* Error State */
 .error-state {
     text-align: center;
     padding: 60px 20px;
@@ -1897,7 +1857,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     text-decoration: underline;
 }
 
-/* Notifications */
 .notification {
     position: fixed;
     top: 100px;
@@ -1940,7 +1899,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     color: #e74c3c;
 }
 
-/* Modal Styles */
 .modal {
     position: fixed;
     top: 0;
@@ -2040,7 +1998,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     margin-top: 25px;
 }
 
-/* Cart Sidebar */
 .cart-sidebar {
     position: fixed;
     top: 0;
@@ -2188,7 +2145,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     width: 100%;
 }
 
-/* Mobile Menu */
 .mobile-menu {
     position: fixed;
     top: 0;
@@ -2243,7 +2199,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     color: var(--primary-color);
 }
 
-/* Consultation Modal */
 .consultation-form {
     display: flex;
     flex-direction: column;
@@ -2270,7 +2225,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     box-shadow: 0 0 0 2px rgba(139, 115, 85, 0.1);
 }
 
-/* Responsive Design for Product Page */
 @media (max-width: 968px) {
     .product-layout {
         grid-template-columns: 1fr;
@@ -2571,7 +2525,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     flex: 1;
 }
 
-/* Уведомления с действиями */
 .notification.with-action .notification-content {
     display: flex;
     align-items: center;
@@ -2593,7 +2546,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     background: #b8941f;
 }
 
-/* Анимация для кнопки корзины */
 .cart-btn.animate {
     animation: cartBounce 0.5s ease;
 }
@@ -2610,7 +2562,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Стили для пустой корзины */
 .empty-cart {
     text-align: center;
     padding: 2rem;
@@ -2623,7 +2574,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     opacity: 0.5;
 }
 
-/* Стили для элементов корзины */
 .cart-item {
     display: flex;
     gap: 15px;
@@ -2713,7 +2663,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     color: #c0392b;
 }
 
-/* Стили для страницы товара */
 .product-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -2734,7 +2683,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Галерея изображений */
 .product-gallery {
     display: flex;
     flex-direction: column;
@@ -2792,7 +2740,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     object-fit: cover;
 }
 
-/* Информация о товаре */
 .product-header {
     margin-bottom: 20px;
 }
@@ -2821,7 +2768,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     line-height: 1.2;
 }
 
-/* Цена и наличие */
 .product-price-section {
     margin: 30px 0;
     padding: 25px;
@@ -2859,7 +2805,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
 .low-stock { background: #fff3cd; color: #856404; }
 .out-of-stock { background: #f8d7da; color: #721c24; }
 
-/* Описание и характеристики */
 .product-description-section,
 .product-specifications-section {
     margin: 30px 0;
@@ -2894,7 +2839,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     border-bottom: none;
 }
 
-/* Кнопки действий */
 .product-actions {
     display: flex;
     gap: 15px;
@@ -2907,7 +2851,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     font-size: 1.1rem;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     .product-title {
         font-size: 1.8rem;
@@ -2931,7 +2874,7 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
 }
 
 #productBadge {
-    display: none; /* Скрыт по умолчанию, показывается через JS */
+    display: none;
     position: relative;
     padding: 8px 20px;
     border-radius: 25px;
@@ -2956,13 +2899,11 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     user-select: none;
 }
 
-/* Эффект при наведении */
 #productBadge:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
-/* Эффект свечения */
 #productBadge::before {
     content: '';
     position: absolute;
@@ -2982,20 +2923,17 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     opacity: 0.5;
 }
 
-/* Градиентный бордюр для всех бейджей */
 #productBadge {
     background-origin: border-box;
     background-clip: padding-box, border-box;
 }
 
-/* === ХИТ ПРОДАЖ === */
 #productBadge.hit {
     background: linear-gradient(135deg, #FF4757 0%, #FF6B6B 50%, #FF4757 100%);
     border: 2px solid rgba(255, 71, 87, 0.4);
     animation: badgePulse 2s infinite;
 }
 
-/* Пульсация для хита продаж */
 @keyframes badgePulse {
     0%, 100% {
         box-shadow: 
@@ -3009,7 +2947,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Искры для хита продаж */
 #productBadge.hit::after {
     content: '🔥';
     position: absolute;
@@ -3030,14 +2967,12 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* === НОВИНКА === */
 #productBadge.new {
     background: linear-gradient(135deg, #2ECC71 0%, #27AE60 50%, #2ECC71 100%);
     border: 2px solid rgba(46, 204, 113, 0.4);
     animation: badgeBreathe 3s infinite ease-in-out;
 }
 
-/* Эффект дыхания для новинки */
 @keyframes badgeBreathe {
     0%, 100% {
         transform: scale(1);
@@ -3047,7 +2982,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Свечение для новинки */
 #productBadge.new::after {
     content: '✨';
     position: absolute;
@@ -3068,14 +3002,12 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* === АКЦИЯ === */
 #productBadge.sale {
     background: linear-gradient(135deg, #FF9F43 0%, #F79F1F 50%, #FF9F43 100%);
     border: 2px solid rgba(255, 159, 67, 0.4);
     position: relative;
 }
 
-/* Вращающийся значок скидки */
 #productBadge.sale::before {
     content: '🏷️';
     position: absolute;
@@ -3097,7 +3029,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* === ЭКСКЛЮЗИВ === */
 #productBadge.exclusive {
     background: linear-gradient(135deg, #9B59B6 0%, #8E44AD 50%, #9B59B6 100%);
     border: 2px solid transparent;
@@ -3109,7 +3040,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     animation: exclusiveGlow 4s infinite linear;
 }
 
-/* Эффект переливающегося градиента */
 @keyframes exclusiveGlow {
     0% {
         background-image: 
@@ -3133,7 +3063,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* === ПРЕМИУМ === */
 #productBadge.premium {
     background: linear-gradient(135deg, #D4AF37 0%, #B8860B 50%, #D4AF37 100%);
     border: 2px solid rgba(212, 175, 55, 0.6);
@@ -3142,7 +3071,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-/* Эффект золотого свечения */
 #productBadge.premium {
     box-shadow: 
         0 4px 20px rgba(212, 175, 55, 0.4),
@@ -3150,7 +3078,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
         0 -2px 0 rgba(184, 134, 11, 0.3) inset;
 }
 
-/* Блестки для премиум бейджа */
 #productBadge.premium::after {
     content: '';
     position: absolute;
@@ -3177,9 +3104,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* === ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ === */
-
-/* Эффект поднятия при загрузке */
 #productBadge[style*="display: block"] {
     animation: badgeAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -3195,7 +3119,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* Эффект тряски при наведении на хит */
 #productBadge.hit:hover {
     animation: hitShake 0.5s ease;
 }
@@ -3206,7 +3129,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     75% { transform: translateX(2px) translateY(-3px); }
 }
 
-/* === АДАПТИВНОСТЬ === */
 @media (max-width: 768px) {
     #productBadge {
         padding: 6px 16px;
@@ -3215,7 +3137,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
         max-width: 180px;
     }
     
-    /* Уменьшаем анимации на мобильных */
     #productBadge.hit {
         animation: badgePulse 3s infinite;
     }
@@ -3233,7 +3154,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
         max-width: 160px;
     }
     
-    /* Отключаем сложные анимации на очень маленьких экранах */
     #productBadge.premium::after,
     #productBadge.exclusive,
     #productBadge.sale::before {
@@ -3241,8 +3161,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     }
 }
 
-/* === УТИЛИТНЫЕ КЛАССЫ ДЛЯ JS === */
-/* Для временного отключения анимаций */
 #productBadge.no-animation {
     animation: none !important;
 }
@@ -3253,7 +3171,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     display: none;
 }
 
-/* Для статичного отображения (если нужен) */
 #productBadge.static {
     animation: none !important;
     transform: none !important;
@@ -3377,7 +3294,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     backdrop-filter: blur(5px);
 }
 
-/* Иконка для открытия в полноэкранном режиме */
 .fullscreen-toggle {
     position: absolute;
     bottom: 15px;
@@ -3407,7 +3323,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     transform: scale(1.1);
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     .fullscreen-close {
         top: 10px;
@@ -3479,7 +3394,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     opacity: 1;
 }
 
-/* Анимация загрузки полноэкранного изображения */
 .fullscreen-image-container img {
     animation: fadeIn 0.3s ease;
 }
@@ -3500,7 +3414,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     border: 1px solid #d4af37;
 }
 
-/* Кнопка телефона в шапке */
 .btn-phone {
     border-color: #d4af37;
     color: #d4af37;
@@ -3516,7 +3429,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
 }
 
-/* Улучшения корзины (дополнительно) */
 .cart-sidebar {
     border-radius: 20px 0 0 20px;
     box-shadow: -5px 0 30px rgba(0,0,0,0.15);
@@ -3571,7 +3483,6 @@ h1, h2, h3, h4, h5, h6, p, span, a, li, button, input, textarea {
     font-weight: bold;
 }
 
-/* Адаптивность кнопки телефона */
 @media (max-width: 768px) {
     .btn-phone span {
         display: none;
