@@ -1,4 +1,3 @@
-// ========== ЗАЩИТА ОТ КОПИРОВАНИЯ И ПРОСМОТРА КОДА ==========
 (function(){
     if(window.console){
         var noop = function(){};
@@ -21,9 +20,7 @@
     window.addEventListener('beforeunload',function(){});
 })();
 
-// ========== ОСНОВНАЯ ЛОГИКА СТРАНИЦЫ ==========
 document.addEventListener('DOMContentLoaded', function() {
-    // Анимация при прокрутке (reveal)
     const revealElements = document.querySelectorAll('.reveal');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -34,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { threshold: 0.15 });
     revealElements.forEach(el => observer.observe(el));
 
-    // Обработка формы обратной связи
     const form = document.getElementById('feedbackForm');
     const statusDiv = document.getElementById('formStatus');
 
@@ -88,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // DROPDOWN ЛОГИКА
     const dropdown = document.getElementById('contactDropdown');
     const toggleBtn = document.getElementById('dropdownToggleBtn');
     const menu = document.getElementById('dropdownMenu');

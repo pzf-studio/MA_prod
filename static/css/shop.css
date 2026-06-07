@@ -34,7 +34,7 @@ body {
     padding: 0 20px;
 }
 
-/* ========== СТИЛИ HEADER (из index.css) ========== */
+
 .header {
     background: var(--white);
     box-shadow: var(--shadow);
@@ -130,7 +130,6 @@ body {
     gap: 1rem;
 }
 
-/* ========== СТИЛИ DROPDOWN (из index.css) ========== */
 .dropdown {
     position: relative;
     display: inline-block;
@@ -223,7 +222,6 @@ body {
     }
 }
 
-/* Buttons */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -403,12 +401,10 @@ body {
     }
 }
 
-/* Удаляем старые стили Hero, которые могут конфликтовать */
 .hero {
     display: none;
 }
 
-/* Мобильная адаптация для Hero в магазине */
 @media (max-width: 768px) {
     .hero-section {
         height: 70vh !important;
@@ -474,17 +470,14 @@ body {
     }
 }
 
-/* Для динамической загрузки фона */
 .hero-background {
     transition: background-image 0.5s ease;
 }
 
-/* Фолбэк если фон не загрузился */
 .hero-background:not([style*="background-image"]) {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
 }
 
-/* Обновленные стили для заголовка каталога */
 .section-title {
     font-family: 'Playfair Display', serif;
     font-size: 2.5rem;
@@ -507,7 +500,6 @@ body {
     border-radius: 2px;
 }
 
-/* Каталог и фильтры */
 .catalog {
     padding: 80px 0;
 }
@@ -538,7 +530,6 @@ body {
     border-color: var(--primary-color);
 }
 
-/* Сетка товаров */
 .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -615,7 +606,7 @@ body {
 
 .product-price {
     margin-bottom: 1rem;
-    min-height: 3.5rem;  /* фиксированная высота, чтобы не прыгало */
+    min-height: 3.5rem;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -637,7 +628,6 @@ body {
     flex-wrap: wrap;
 }
 
-/* Убираем быстрый осмотр */
 .product-actions .btn-outline {
     display: none;
 }
@@ -657,7 +647,6 @@ body {
     color: #e74c3c;
 }
 
-/* Обновленные стили для бейджей (хит, новинка) */
 .product-badge {
     position: absolute;
     top: 12px;
@@ -707,7 +696,6 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
-/* Анимация для бейджей */
 @keyframes badgePulse {
     0% {
         transform: scale(1);
@@ -720,7 +708,6 @@ body {
     }
 }
 
-/* Эффект свечения для премиум бейджей */
 .product-badge.premium::before {
     content: '';
     position: absolute;
@@ -742,7 +729,6 @@ body {
     }
 }
 
-/* Ссылка на всю карточку */
 .product-link-overlay {
     position: absolute;
     top: 0;
@@ -752,7 +738,6 @@ body {
     z-index: 1;
 }
 
-/* Пагинация */
 .pagination {
     display: flex;
     justify-content: center;
@@ -791,7 +776,6 @@ body {
     cursor: not-allowed;
 }
 
-/* Модальные окна */
 .modal {
     position: fixed;
     top: 0;
@@ -944,7 +928,6 @@ body {
     margin-top: 2rem;
 }
 
-/* Уведомления */
 .notification {
     position: fixed;
     top: 100px;
@@ -991,7 +974,6 @@ body {
     margin-top: 60px;
 }
 
-/* Содержимое футера в контейнере */
 .footer-content {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -999,7 +981,6 @@ body {
     padding: 3rem 0 2rem;
 }
 
-/* Секции футера */
 .footer-section h3,
 .footer-section h4 {
     font-family: 'Playfair Display', serif;
@@ -1015,7 +996,6 @@ body {
     margin-bottom: 1.5rem;
 }
 
-/* Социальные иконки */
 .social-links {
     display: flex;
     gap: 1rem;
@@ -1039,7 +1019,6 @@ body {
     transform: translateY(-3px);
 }
 
-/* Навигация – колонка ссылок */
 .footer-nav,
 .contact-list {
     list-style: none;
@@ -1073,7 +1052,6 @@ body {
     font-size: 1.1rem;
 }
 
-/* Карта на всю ширину */
 .footer-map-fullwidth {
     width: 100%;
     margin-top: 2rem;
@@ -1086,7 +1064,6 @@ body {
     display: block;
 }
 
-/* Нижний колонтитул */
 .footer-bottom {
     background: #1a1a1a;
     padding: 1.2rem 0;
@@ -1096,7 +1073,6 @@ body {
     border-top: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Адаптация для мобильных */
 @media (max-width: 768px) {
     .footer-content {
         grid-template-columns: 1fr;
@@ -1154,7 +1130,6 @@ body {
     text-align: left;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .container {
         padding: 0 15px;
@@ -1267,7 +1242,6 @@ body {
     }
 }
 
-/* Новые стили для корзины */
 .cart-overlay {
     position: fixed;
     top: 0;
@@ -1605,7 +1579,6 @@ body {
     transform: translateY(-2px);
 }
 
-/* Обновленные стили для иконки корзины в шапке */
 .cart-icon {
     position: relative;
     background: none;
@@ -1659,7 +1632,6 @@ body {
     display: flex;
 }
 
-/* Альтернативный вариант с более современным дизайном */
 .cart-icon.modern {
     background: var(--primary-color);
     color: var(--white);
@@ -1676,7 +1648,6 @@ body {
     border: 2px solid var(--primary-color);
 }
 
-/* Еще один вариант - минималистичный */
 .cart-icon.minimal {
     background: transparent;
     border: 2px solid var(--border-color);
@@ -1707,7 +1678,6 @@ body {
     100% { transform: scale(1); }
 }
 
-/* Анимация добавления в корзину */
 @keyframes cartBounce {
     0% { transform: scale(1); }
     50% { transform: scale(1.3); }
@@ -1718,7 +1688,6 @@ body {
     animation: cartBounce 0.5s ease;
 }
 
-/* Адаптивность для корзины */
 @media (max-width: 768px) {
     .cart-sidebar {
         max-width: 100%;
@@ -1893,7 +1862,6 @@ body {
     color: var(--primary-color);
 }
 
-/* Адаптивность для корзины */
 @media (max-width: 480px) {
     .cart-sidebar {
         max-width: 100%;
@@ -1914,7 +1882,6 @@ body {
     }
 }
 
-/* Анимация добавления в корзину */
 @keyframes addToCart {
     0% {
         transform: scale(1);
@@ -1938,7 +1905,6 @@ body {
     border-color: var(--primary-color);
 }
 
-/* Стили для модального окна оформления заказа */
 .checkout-modal {
     display: none;
     position: fixed;
@@ -2024,7 +1990,6 @@ body {
     border-radius: 0 0 12px 12px;
 }
 
-/* Стили формы */
 .form-group {
     margin-bottom: 1.5rem;
 }
@@ -2064,7 +2029,6 @@ body {
     min-height: 80px;
 }
 
-/* Сводка заказа */
 .order-summary {
     margin-top: 2rem;
     padding: 1.5rem;
@@ -2115,7 +2079,6 @@ body {
     font-size: 1.2rem;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     .checkout-modal.active {
         padding: 1rem 0.5rem;
@@ -2298,7 +2261,6 @@ body {
         margin-right: auto;
     }
     
-    /* Мобильные формы */
     .checkout-modal-content {
         max-width: 100% !important;
         height: 100% !important;
@@ -2312,11 +2274,10 @@ body {
     
     .form-group input,
     .form-group textarea {
-        font-size: 16px !important; /* Предотвращает масштабирование в iOS */
+        font-size: 16px !important;
     }
 }
 
-/* Исправление для touch-устройств */
 @media (hover: none) and (pointer: coarse) {
     .btn, 
     .filter-btn, 
@@ -2375,7 +2336,6 @@ body {
     border: 1px solid #d4af37;
 }
 
-/* Кнопка телефона в шапке */
 .btn-phone {
     border-color: #d4af37;
     color: #d4af37;
@@ -2391,7 +2351,6 @@ body {
     box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
 }
 
-/* Улучшения корзины (дополнительно к уже существующим стилям) */
 .cart-sidebar {
     border-radius: 20px 0 0 20px;
     box-shadow: -5px 0 30px rgba(0,0,0,0.15);
@@ -2446,7 +2405,6 @@ body {
     font-weight: bold;
 }
 
-/* Адаптивность кнопки телефона */
 @media (max-width: 768px) {
     .btn-phone span {
         display: none;
@@ -2489,7 +2447,6 @@ body {
     font-weight: normal;
 }
 
-/* ========== НОВЫЕ СТИЛИ ДЛЯ ПЛАШЕК НАЛИЧИЯ ========== */
 .stock-badge {
     display: inline-flex;
     align-items: center;
@@ -2521,7 +2478,6 @@ body {
     color: #95a5a6;
 }
 
-/* Адаптивность для плашек */
 @media (max-width: 480px) {
     .stock-badge {
         padding: 6px 12px;
@@ -2535,7 +2491,6 @@ body {
     }
 }
 
-/* ========== НОВЫЕ СТИЛИ КАРТОЧЕК ТОВАРОВ (как в categories.html) ========== */
 .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -2724,7 +2679,6 @@ body {
     z-index: 1;
 }
 
-/* Адаптивность для мобильных */
 @media (max-width: 768px) {
     .products-grid {
         grid-template-columns: 1fr;
@@ -2746,7 +2700,6 @@ body {
     }
 }
 
-/* Фиксация бейджей над кнопкой – гарантия положения */
 .product-card {
     display: flex;
     flex-direction: column;
@@ -2772,7 +2725,6 @@ body {
     margin-bottom: 24px;
 }
 
-/* Для совсем маленьких экранов */
 @media (max-width: 480px) {
     .btn-add-to-cart {
         width: calc(100% - 32px);
@@ -2802,26 +2754,22 @@ body {
     transition: all 0.2s ease;
 }
 
-/* Цена "под заказ" – тот же вид, что и бейдж наличия "Под заказ" */
 .price-on-request {
     background: white;
     border-color: var(--gold, #d4af37);
     color: var(--gold, #d4af37);
 }
 
-/* Бейдж наличия "В наличии" – зелёная рамка */
 .stock-badge.in-stock {
     border-color: #27ae60;
     color: #27ae60;
 }
 
-/* Бейдж наличия "Нет в наличии" – серая рамка */
 .stock-badge.out-of-stock {
     border-color: #95a5a6;
     color: #95a5a6;
 }
 
-/* Фиксация бейджей над кнопкой – гарантия положения */
 .product-card-body {
     flex: 1;
     display: flex;
@@ -2837,7 +2785,6 @@ body {
     gap: 12px;
 }
 
-/* Адаптивность для маленьких экранов */
 @media (max-width: 480px) {
     .product-price,
     .stock-badge,
@@ -2851,7 +2798,6 @@ body {
     }
 }
 
-/* Старая цена (зачёркнутая) */
 .product-price .old-price {
     text-decoration: line-through;
     color: #999;

@@ -1,4 +1,3 @@
-// Управление режимом технического обслуживания
 class MaintenanceManager {
     constructor() {
         this.API_BASE = window.location.origin;
@@ -140,9 +139,7 @@ class MaintenanceManager {
     }
 }
 
-// Инициализация после загрузки страницы
 document.addEventListener('DOMContentLoaded', () => {
-    // Проверяем, что находимся на дашборде
     if (window.location.pathname.includes('/admin/dashboard') || window.location.pathname.includes('/admin/')) {
         window.maintenanceManager = new MaintenanceManager();
     }

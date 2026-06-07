@@ -1,4 +1,3 @@
-// ========== ЗАЩИТА ОТ КОПИРОВАНИЯ И ПРОСМОТРА КОДА ==========
 (function(){
     if(window.console){
         var noop = function(){};
@@ -21,9 +20,7 @@
     window.addEventListener('beforeunload',function(){});
 })();
 
-// ========== ОСНОВНАЯ ЛОГИКА СТРАНИЦЫ ==========
 document.addEventListener('DOMContentLoaded', function() {
-    // Анимация счётчиков
     const statNumbers = document.querySelectorAll('.stat-mini-number');
     let animated = false;
     function animateStats() {
@@ -46,7 +43,6 @@ document.addEventListener('DOMContentLoaded', function() {
         animated = true;
     }
     
-    // Reveal анимация + триггер для счётчиков
     const revealElements = document.querySelectorAll('.reveal');
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -62,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const statsBlock = document.querySelector('.stats-minimal');
     if(statsBlock) observer.observe(statsBlock);
 
-    // Форма обратной связи
     const form = document.getElementById('contactForm');
     const statusDiv = document.getElementById('formStatus');
     if (form) {
@@ -86,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // DROPDOWN логика
     const dropdown = document.getElementById('contactDropdown');
     const toggleBtn = document.getElementById('dropdownToggleBtn');
     const menu = document.getElementById('dropdownMenu');
@@ -107,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Загрузка фона для hero (как на главной)
     async function loadAboutBackground() {
         try {
             console.log('Загрузка фона для about...');
@@ -127,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                 }
             } else {
-                // fallback, если фон не загрузился
                 const heroBg = document.getElementById('heroBgDynamic');
                 if (heroBg) heroBg.style.backgroundImage = "url('/static/images/hero.jpg')";
             }
@@ -139,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     loadAboutBackground();
 
-    // Плавная прокрутка для индикатора
     const scrollIndicator = document.querySelector('.scroll-indicator');
     if (scrollIndicator) {
         scrollIndicator.addEventListener('click', () => {

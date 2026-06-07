@@ -3,7 +3,7 @@ class AdminCategoriesManager {
         this.API_BASE = window.location.origin;
         this.categories = [];
         this.authToken = localStorage.getItem('admin_token');
-        this.categoriesExtra = {}; // Храним загруженные extra-данные
+        this.categoriesExtra = {};
         this.init();
     }
 
@@ -29,7 +29,6 @@ class AdminCategoriesManager {
             const res = await fetch(`${this.API_BASE}/api/categories/public`);
             const data = await res.json();
             if (data.success) {
-                // Преобразуем в объект по коду
                 data.categories.forEach(cat => {
                     this.categoriesExtra[cat.code] = {
                         description: cat.description || '',
@@ -223,7 +222,6 @@ class AdminCategoriesManager {
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); this.logout(); });
 
-        // Автогенерация кода из названия
         const nameInput = document.getElementById('categoryName');
         const codeInput = document.getElementById('categoryCode');
         if (nameInput && codeInput) {
@@ -235,7 +233,6 @@ class AdminCategoriesManager {
             codeInput.addEventListener('input', () => { codeInput.dataset.manual = 'true'; });
         }
 
-        // Загрузка изображения
         const imageUploadArea = document.getElementById('imageUploadArea');
         const imageInput = document.getElementById('categoryImage');
         if (imageUploadArea && imageInput) {
@@ -251,7 +248,6 @@ class AdminCategoriesManager {
         }).replace(/_+/g, '_').replace(/^_+|_+$/g, '');
     }
 
-    // Обработка выбора изображения
     async handleImageSelected(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -259,7 +255,6 @@ class AdminCategoriesManager {
             this.showNotification('Пожалуйста, выберите изображение', 'error');
             return;
         }
-        // Отображаем индикацию загрузки
         const previewDiv = document.getElementById('imagePreview');
         if (previewDiv) previewDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка...';
         
@@ -330,7 +325,6 @@ class AdminCategoriesManager {
         document.getElementById('categoryDescription').value = extra.description || '';
         document.getElementById('categoryImageUrl').value = extra.image_url || '';
         
-        // ✅ ИСПРАВЛЕНИЕ: показываем превью сохранённого изображения
         if (extra.image_url) {
             this.showImagePreview(extra.image_url);
         } else {
@@ -360,7 +354,6 @@ class AdminCategoriesManager {
         if (existingWithCode) { this.showNotification('Категория с таким кодом уже существует', 'error'); return; }
 
         try {
-            // 1. Сохраняем раздел (как раньше)
             const url = categoryId ?
                 `${this.API_BASE}/api/admin/sections/${categoryId}` :
                 `${this.API_BASE}/api/admin/sections`;
@@ -373,7 +366,6 @@ class AdminCategoriesManager {
             const data = await response.json();
             if (!data.success) throw new Error(data.error);
 
-            // 2. Сохраняем extra-данные (описание и картинку)
             const code = data.section?.code || categoryData.code;
             const extraData = {
                 description: formData.get('categoryDescription') || '',
@@ -386,7 +378,7 @@ class AdminCategoriesManager {
             });
 
             await this.loadCategories();
-            await this.loadExtraData(); // обновить кэш extra
+            await this.loadExtraData();
             this.closeModal();
             this.showNotification(categoryId ? 'Категория обновлена' : 'Категория добавлена', 'success');
         } catch (error) {

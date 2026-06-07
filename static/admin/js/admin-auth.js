@@ -1,4 +1,3 @@
-// Аутентификация администратора
 class AdminAuth {
     constructor() {
         this.API_BASE = window.location.origin;
@@ -17,7 +16,6 @@ class AdminAuth {
         const isLoginPage = window.location.pathname.includes('admin-login.html');
         
         if (token && session && !isLoginPage) {
-            // Проверяем валидность токена
             this.verifyToken(token);
         } else if (!token && !isLoginPage) {
             window.location.href = 'admin-login.html';
@@ -47,10 +45,8 @@ class AdminAuth {
         
         if (!isLoginPage) return;
         
-        // Загружаем статистику
         this.loadStatistics();
         
-        // Переключение видимости пароля
         const togglePassword = document.getElementById('togglePassword');
         if (togglePassword) {
             togglePassword.addEventListener('click', function() {
@@ -69,13 +65,11 @@ class AdminAuth {
             });
         }
         
-        // Обработчик формы входа
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => this.handleLogin(e));
         }
         
-        // Проверяем сохраненные данные
         const rememberMe = localStorage.getItem('admin_remember');
         if (rememberMe === 'true') {
             const savedUsername = localStorage.getItem('admin_username');
@@ -111,13 +105,11 @@ class AdminAuth {
         const password = document.getElementById('password').value;
         const rememberMe = document.getElementById('remember').checked;
         
-        // Валидация
         if (!username || !password) {
             this.showNotification('Пожалуйста, заполните все поля', 'error');
             return;
         }
         
-        // Показываем индикатор загрузки
         const submitBtn = event.target.querySelector('.btn-login');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверка...';
@@ -133,11 +125,9 @@ class AdminAuth {
             const data = await response.json();
             
             if (data.success) {
-                // Сохраняем токен и сессию
                 localStorage.setItem('admin_token', data.session_token);
                 localStorage.setItem('admin_session', JSON.stringify(data.admin));
                 
-                // Сохраняем данные для "Запомнить меня"
                 if (rememberMe) {
                     localStorage.setItem('admin_username', username);
                     localStorage.setItem('admin_remember', 'true');
@@ -229,17 +219,14 @@ class AdminAuth {
     }
 }
 
-// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     window.adminAuth = new AdminAuth();
     
-    // Глобальная функция для выхода
     window.handleLogout = function(e) {
         if (e) e.preventDefault();
         window.adminAuth.logout();
     };
     
-    // Дебаг функция
     window.debugAdminAuth = function() {
         console.log('=== Admin Auth Debug ===');
         console.log('Token:', localStorage.getItem('admin_token'));

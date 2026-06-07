@@ -82,7 +82,6 @@ class AdminBackupManager {
         const downloadBtn = document.getElementById('downloadBackupBtn');
         if (downloadBtn) downloadBtn.addEventListener('click', () => this.downloadBackup());
         
-        // Новая кнопка экспорта в Excel
         const exportExcelBtn = document.getElementById('exportExcelBtn');
         if (exportExcelBtn) exportExcelBtn.addEventListener('click', () => this.exportToExcel());
         
@@ -179,7 +178,6 @@ class AdminBackupManager {
         }
     }
     
-    // НОВЫЙ МЕТОД: Экспорт в Excel
     async exportToExcel() {
         const exportBtn = document.getElementById('exportExcelBtn');
         exportBtn.disabled = true;

@@ -1,4 +1,3 @@
-// Круговой выбор цвета для товаров
 class ColorPicker {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
@@ -13,7 +12,6 @@ class ColorPicker {
     init() {
         if (!this.container) return;
         
-        // Основная структура
         this.container.innerHTML = `
             <div class="color-picker-container">
                 <h4 class="color-picker-title">Выберите цвет:</h4>
@@ -25,7 +23,6 @@ class ColorPicker {
             </div>
         `;
         
-        // Стили (можно вынести в CSS)
         this.addStyles();
     }
     
@@ -131,7 +128,6 @@ class ColorPicker {
         this.variants = variants;
         this.renderColorWheel();
         
-        // Выбираем первый вариант по умолчанию
         if (variants.length > 0) {
             this.selectVariant(variants[0].variant_id);
         }
@@ -143,12 +139,10 @@ class ColorPicker {
         
         wheel.innerHTML = '';
         
-        // Располагаем цвета по кругу
         const total = this.variants.length;
-        const radius = 100; // Радиус круга
+        const radius = 100; 
         
         this.variants.forEach((variant, index) => {
-            // Вычисляем позицию на круге
             const angle = (index / total) * 2 * Math.PI;
             const x = radius * Math.cos(angle);
             const y = radius * Math.sin(angle);
@@ -173,7 +167,6 @@ class ColorPicker {
             wheel.appendChild(option);
         });
         
-        // Устанавливаем размер контейнера для круга
         wheel.style.position = 'relative';
         wheel.style.width = '220px';
         wheel.style.height = '220px';
@@ -186,29 +179,24 @@ class ColorPicker {
         
         this.selectedVariant = variant;
         
-        // Обновляем UI
         document.querySelectorAll('.color-option').forEach(opt => {
             opt.classList.toggle('selected', opt.dataset.variantId === variantId);
         });
         
-        // Обновляем информацию
         const nameEl = document.getElementById('selectedColorName');
         const codeEl = document.getElementById('selectedColorCode');
         
         if (nameEl) nameEl.textContent = variant.color_name;
         if (codeEl) codeEl.textContent = `Артикул: ${variant.variant_id}`;
         
-        // Обновляем название товара с цветом
         this.updateProductName(variant);
         
-        // Колбек при изменении цвета
         if (this.onColorChange) {
             this.onColorChange(variant);
         }
     }
     
     updateProductName(variant) {
-        // Находим элемент с названием товара и обновляем его
         const productNameEl = document.querySelector('.product-title, .product-name');
         if (productNameEl && this.baseProductName) {
             const newName = variant.is_original 
@@ -223,5 +211,4 @@ class ColorPicker {
     }
 }
 
-// Глобальный экспорт
 window.ColorPicker = ColorPicker;

@@ -1,4 +1,3 @@
-// Общие утилиты для админки
 window.showNotification = function(message, type = 'success', duration = 3000) {
     const existing = document.querySelector('.notification');
     if (existing) existing.remove();
@@ -31,7 +30,6 @@ window.getAuthHeaders = function() {
     return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 };
 
-// Инициализация боковой панели
 document.addEventListener('DOMContentLoaded', () => {
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebar');
@@ -39,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
     }
     
-    // Подсветка активного пункта меню
     const currentPath = window.location.pathname;
     document.querySelectorAll('.nav-item a').forEach(link => {
         const href = link.getAttribute('href');

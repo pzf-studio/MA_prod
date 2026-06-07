@@ -101,7 +101,6 @@
         .action-btn.edit { color: var(--secondary-color); }
         .action-btn.delete { color: var(--danger-color); }
         
-        /* Модальное окно */
         .modal-lg {
             max-width: 500px;
         }
@@ -162,7 +161,6 @@
             background: #5a6268;
         }
         
-        /* Сортировка */
         .sortable-handle {
             cursor: move;
             color: #adb5bd;
@@ -178,7 +176,6 @@
             opacity: 0.5;
         }
         
-        /* Адаптивность */
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -221,7 +218,6 @@
     </style>
 </head>
 <body>
-    <!-- Боковая панель -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">
@@ -309,7 +305,6 @@
         </div>
     </nav>
 
-    <!-- Основной контент -->
     <main class="main-content">
         <header class="topbar">
             <div class="topbar-left">
@@ -359,7 +354,6 @@
         </footer>
     </main>
 
-    <!-- Модальное окно добавления/редактирования категории -->
     <div class="modal" id="categoryModal">
         <div class="modal-content modal-lg">
             <div class="modal-header">
@@ -416,7 +410,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно подтверждения удаления (без изменений) -->
     <div class="modal" id="deleteModal">
         <div class="modal-content">
             <div class="modal-header">

@@ -1,4 +1,3 @@
-// Админ-панель: управление товарами (с поддержкой availability и is_price_on_request)
 class AdminProductsManager {
     constructor() {
         this.API_BASE = window.location.origin;
@@ -90,7 +89,6 @@ class AdminProductsManager {
             const formattedDate = date.toLocaleDateString('ru-RU');
             const priceFormatted = window.formatPrice(product.price);
             
-            // Исправление: гарантируем, что color_variants – массив
             let colorVariants = product.color_variants;
             if (!Array.isArray(colorVariants)) {
                 try { colorVariants = JSON.parse(colorVariants); } catch(e) { colorVariants = []; }
@@ -301,7 +299,6 @@ class AdminProductsManager {
         document.getElementById('baseProductCode').textContent = product.code || `ID${product.id}`;
         const baseCode = product.code || `ID${product.id}`;
         
-        // Исправление: гарантируем массив color_variants
         let colorVariants = product.color_variants;
         if (!Array.isArray(colorVariants)) {
             try { colorVariants = JSON.parse(colorVariants); } catch(e) { colorVariants = []; }

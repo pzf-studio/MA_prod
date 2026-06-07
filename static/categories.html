@@ -7,16 +7,13 @@
     <meta name="description" content="Категории товаров MA Furniture: пантографы, гардеробные системы, обувницы. Премиум качество.">
     <link rel="icon" href="/static/images/logo2.png" type="image/png">
 
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Подключаем внешний CSS -->
     <link rel="stylesheet" href="/static/css/categories.css">
 </head>
 <body>
 
-    <!-- ========== ЕДИНЫЙ HEADER (как в index.html) ========== -->
     <header class="header">
         <div class="container">
             <div class="header-content">
@@ -60,20 +57,16 @@
             </div>
         </div>
     </header>
-    <!-- ========== КОНЕЦ HEADER ========== -->
 
-    <!-- ОСНОВНОЙ КОНТЕНТ СТРАНИЦЫ КАТЕГОРИЙ -->
     <section class="categories-page">
         <div class="container">
             <h1 class="section-title reveal">Категории мебели</h1>
             <p class="section-subtitle reveal">Выберите идеальное решение для вашего интерьера</p>
             <div class="categories-grid" id="categoriesGrid">
-                <!-- карточки загружаются через JS -->
             </div>
         </div>
     </section>
 
-    <!-- ========== ФУТЕР (точно как в index.html) ========== -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-content">
@@ -105,7 +98,6 @@
                 </div>
             </div>
         </div>
-        <!-- Карта на всю ширину -->
         <div class="footer-map-fullwidth">
             <iframe src="https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=203236359108" style="width:100%; height:300px; border:0; display:block;" title="Карта MA Furniture на Яндекс.Картах" loading="lazy"></iframe>
         </div>
@@ -115,9 +107,7 @@
             </div>
         </div>
     </footer>
-    <!-- ========== КОНЕЦ ФУТЕРА ========== -->
 
-    <!-- ========== КОРЗИНА (боковая панель) ========== -->
     <div class="cart-overlay" id="cartOverlay">
         <div class="cart-sidebar">
             <div class="cart-header">
@@ -142,7 +132,6 @@
         </div>
     </div>
 
-    <!-- ========== Модалка оформления заказа ========== -->
     <div class="checkout-modal" id="checkoutModal">
         <div class="checkout-modal-content">
             <div class="checkout-modal-header">
@@ -168,7 +157,6 @@
                         <textarea id="orderComment" rows="3"></textarea>
                     </div>
                     <div class="order-summary" id="orderSummary">
-                        <!-- динамически -->
                     </div>
                     <button type="submit" class="btn-submit-order">Отправить заказ</button>
                 </form>
@@ -176,7 +164,6 @@
         </div>
     </div>
 
-    <!-- Подключаем внешний JavaScript -->
     <script src="/static/js/categories.js" defer></script>
 </body>
 </html>

@@ -1,7 +1,6 @@
 <?php
-// Скрипт для очистки старых временных файлов
 $tempDir = '../uploads/temp/';
-$maxAge = 24 * 60 * 60; // 24 часа в секундах
+$maxAge = 24 * 60 * 60;
 
 if (is_dir($tempDir)) {
     $files = scandir($tempDir);

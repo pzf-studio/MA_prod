@@ -1,4 +1,3 @@
-// Круговой пикер цветов для админки
 class AdminColorPicker {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
@@ -128,7 +127,7 @@ class AdminColorPicker {
         if (!circle) return;
         
         const total = this.palette.length;
-        const radius = 120; // Радиус круга
+        const radius = 120;
         
         this.palette.forEach((color, index) => {
             const angle = (index / total) * 2 * Math.PI;
@@ -154,7 +153,6 @@ class AdminColorPicker {
     selectColor(color) {
         this.selectedColor = color;
         
-        // Обновляем UI
         document.querySelectorAll('.color-circle-option').forEach(opt => {
             opt.classList.remove('selected');
         });
@@ -164,7 +162,6 @@ class AdminColorPicker {
             selectedOption.classList.add('selected');
         }
         
-        // Обновляем превью и поля
         const preview = document.getElementById('selectedColorPreview');
         const nameInput = document.getElementById('colorNameInput');
         const hexInput = document.getElementById('colorHexInput');
@@ -173,7 +170,6 @@ class AdminColorPicker {
         if (nameInput) nameInput.value = color.name;
         if (hexInput) hexInput.value = color.hex;
         
-        // Колбек
         if (this.onColorSelect) {
             this.onColorSelect(color);
         }
@@ -213,7 +209,6 @@ class AdminColorPicker {
     
     getSelectedColor() {
         if (!this.selectedColor) {
-            // Возвращаем цвет по умолчанию
             return {
                 name: document.getElementById('colorNameInput')?.value || 'Черный матовый',
                 hex: document.getElementById('colorHexInput')?.value || '#2C2C2C'

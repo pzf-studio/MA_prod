@@ -1,11 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM загружен, начинаем инициализацию...');
     
-    // Сначала скрываем весь контент для плавного появления
     document.body.style.opacity = '0';
     document.body.style.transition = 'opacity 0.8s ease';
     
-    // Проверяем, есть ли нужные CSS классы
     console.log('Проверяем CSS классы...');
     const testDiv = document.createElement('div');
     testDiv.className = 'featured-product-card';
@@ -16,26 +14,21 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('featured-product-card opacity:', computedStyle.opacity);
     testDiv.remove();
     
-    // Плавное появление всего сайта
     setTimeout(() => {
         document.body.style.opacity = '1';
         
-        // Инициализация анимации элементов
         initializeMainPage();
         initializePageAnimations();
         
-        // Дополнительная анимация для элементов при прокрутке
         setTimeout(() => {
             setupScrollAnimations();
         }, 500);
     }, 100);
 });
 
-// Новая функция для анимации загрузки страницы
 function initializePageAnimations() {
     console.log('Инициализация анимаций загрузки страницы...');
     
-    // Добавляем классы для анимации элементов
     const elementsToAnimate = [
         '.header',
         '.hero-section',
@@ -50,17 +43,14 @@ function initializePageAnimations() {
     elementsToAnimate.forEach(selector => {
         const elements = document.querySelectorAll(selector);
         elements.forEach((element, index) => {
-            // Удаляем возможные предыдущие классы
             element.classList.remove('page-fade-in', 'page-slide-up', 'visible');
             
-            // Добавляем задержку для последовательного появления
             setTimeout(() => {
                 if (selector.includes('header')) {
                     element.classList.add('page-fade-in', 'visible');
                 } else if (selector.includes('hero')) {
                     element.classList.add('page-slide-up', 'visible');
                 } else {
-                    // Чередуем анимации для разнообразия
                     if (index % 2 === 0) {
                         element.classList.add('page-fade-in', 'visible');
                     } else {
@@ -71,7 +61,6 @@ function initializePageAnimations() {
         });
     });
     
-    // Анимация для кнопок и интерактивных элементов
     setTimeout(() => {
         const buttons = document.querySelectorAll('.btn');
         buttons.forEach((button, index) => {
@@ -81,7 +70,6 @@ function initializePageAnimations() {
         });
     }, 300);
     
-    // Анимация для логотипа
     const logo = document.querySelector('.logo-container');
     if (logo) {
         setTimeout(() => {
@@ -89,7 +77,6 @@ function initializePageAnimations() {
         }, 200);
     }
     
-    // Анимация для индикатора прокрутки
     const scrollIndicator = document.querySelector('.scroll-indicator');
     if (scrollIndicator) {
         setTimeout(() => {
@@ -98,7 +85,6 @@ function initializePageAnimations() {
     }
 }
 
-// Новая функция для анимации при прокрутке
 function setupScrollAnimations() {
     const animatedElements = document.querySelectorAll(
         '.section-title, .shop-card, .feature-item, .faq-item, .random-product-card'
@@ -116,13 +102,11 @@ function setupScrollAnimations() {
                 setTimeout(() => {
                     entry.target.classList.add('scroll-visible');
                     
-                    // Специальная анимация для карточек товаров
                     if (entry.target.classList.contains('shop-card') || 
                         entry.target.classList.contains('random-product-card')) {
                         entry.target.classList.add('card-pop');
                     }
                     
-                    // Анимация для заголовков секций
                     if (entry.target.classList.contains('section-title')) {
                         entry.target.classList.add('title-underline');
                     }
@@ -141,16 +125,10 @@ async function initializeMainPage() {
     console.log('Главная страница инициализируется...');
     
     try {
-        // Проверка API
         const apiCheck = await checkAPIHealth();
-        
-        // initializeMobileMenu(); // Удален вызов мобильного меню
         initializeCart();
         await loadFeaturedProducts();
-        setupAnimations();
-        
-        // FAQ аккордеон
-        
+        setupAnimations();        
         console.log('Инициализация завершена успешно');
     } catch (error) {
         console.error('Критическая ошибка инициализации главной страницы:', error);
@@ -179,7 +157,6 @@ async function loadFeaturedProducts() {
     try {
         console.log('=== Начинаем загрузку популярных товаров ===');
         
-        // Проверяем, инициализирован ли dataManager
         if (!window.dataManager) {
             console.error('dataManager не инициализирован!');
             throw new Error('dataManager не доступен');
@@ -194,7 +171,6 @@ async function loadFeaturedProducts() {
             return;
         }
         
-        // Фильтруем популярные товары
         const featuredProducts = products
             .filter(p => {
                 const isActive = p.status === 'active';
@@ -210,7 +186,6 @@ async function loadFeaturedProducts() {
         
         if (featuredProducts.length === 0) {
             console.warn('Нет товаров с меткой recommended, "Хит продаж" или "Новинка"');
-            // Возьмем первые 6 активных товаров как fallback
             const activeProducts = products
                 .filter(p => p.status === 'active')
                 .slice(0, 6);
@@ -295,12 +270,10 @@ function renderFeaturedProducts(products) {
     products.forEach((product, index) => {
         console.log(`Товар ${index + 1}:`, product.name);
         
-        // Безопасное получение данных
         const imageUrl = product.images && product.images.length > 0 ? product.images[0] : '';
         const badge = product.badge ? `<span class="product-badge">${product.badge}</span>` : '';
         const price = product.price || 0;
         
-        // Проверяем доступность dataManager.formatPrice
         let priceFormatted = `${price.toLocaleString('ru-RU')} ₽`;
         if (window.dataManager && typeof window.dataManager.formatPrice === 'function') {
             try {
@@ -343,13 +316,11 @@ function renderFeaturedProducts(products) {
     console.log('HTML сгенерирован, длина:', html.length);
     container.innerHTML = html;
     
-    // Обработчики для кнопок "В корзину"
     container.querySelectorAll('.add-to-cart').forEach(btn => {
         btn.addEventListener('click', async function() {
             const productId = parseInt(this.dataset.id);
             console.log('Добавление в корзину товара ID:', productId);
             
-            // Анимация нажатия кнопки
             this.classList.add('btn-click-animation');
             setTimeout(() => {
                 this.classList.remove('btn-click-animation');
@@ -362,12 +333,9 @@ function renderFeaturedProducts(products) {
     console.log('✅ Товары успешно отображены');
 }
 
-// Функция initializeMobileMenu полностью удалена
-
 function setupAnimations() {
     console.log('Настройка анимаций...');
     
-    // Добавляем классы для анимации
     setTimeout(() => {
         document.querySelectorAll('.featured-product-card').forEach(el => {
             el.classList.add('fade-in');
@@ -376,7 +344,6 @@ function setupAnimations() {
     }, 100);
 }
 
-// Плавная прокрутка для якорных ссылок
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
         e.preventDefault();
@@ -386,7 +353,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         
         const targetElement = document.querySelector(targetId);
         if (targetElement) {
-            // Анимация перед прокруткой
             this.classList.add('link-click-animation');
             setTimeout(() => {
                 this.classList.remove('link-click-animation');
@@ -407,13 +373,11 @@ function showNotification(message, type = 'success') {
     
     document.body.appendChild(notification);
     
-    // Анимация появления
     setTimeout(() => {
         notification.style.opacity = '1';
         notification.style.transform = 'translateY(0)';
     }, 10);
     
-    // Автоматическое скрытие
     setTimeout(() => {
         notification.style.opacity = '0';
         notification.style.transform = 'translateY(-20px)';
@@ -440,7 +404,6 @@ async function loadBackgroundImage() {
                     heroBackground.style.backgroundSize = 'cover';
                     heroBackground.style.backgroundPosition = 'center';
                     heroBackground.style.backgroundRepeat = 'no-repeat';
-                    // Добавляем класс для плавного появления (если нужен)
                     heroBackground.classList.add('bg-fade-in');
                 };
                 img.onerror = function() {
@@ -455,7 +418,6 @@ async function loadBackgroundImage() {
     }
 }
 
-// Анимация для логотипа при наведении
 function setupLogoAnimation() {
     const logo = document.querySelector('.logo-container');
     if (logo) {
@@ -469,7 +431,6 @@ function setupLogoAnimation() {
     }
 }
 
-// Инициализация всех анимаций при загрузке
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
         setupLogoAnimation();
@@ -478,5 +439,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 loadBackgroundImage();
 
-// Экспорты
 window.showNotification = showNotification;
